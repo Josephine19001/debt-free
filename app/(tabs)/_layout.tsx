@@ -118,6 +118,8 @@ export default function TabLayout() {
           name="settings/adjust-hair-goals"
           options={{ href: null, headerShown: false }}
         />
+
+        <Tabs.Screen name="products/[id]" options={{ href: null, headerShown: false }} />
       </Tabs>
 
       {/* Floating Scan Button */}

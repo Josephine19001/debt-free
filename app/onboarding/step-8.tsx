@@ -31,7 +31,7 @@ export default function Step8Screen() {
     <OnboardingLayout
       onNext={handleContinue}
       currentStep={8}
-      totalSteps={10}
+      totalSteps={11}
       nextButtonLabel="Continue"
       allowContinue={!!selectedAnswer}
     >

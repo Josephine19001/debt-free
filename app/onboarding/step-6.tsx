@@ -13,7 +13,7 @@ export default function Step6Screen() {
     <OnboardingLayout
       onNext={handleContinue}
       currentStep={6}
-      totalSteps={10}
+      totalSteps={11}
       nextButtonLabel="Continue"
       allowContinue={true}
     >

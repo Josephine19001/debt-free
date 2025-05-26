@@ -26,7 +26,7 @@ export default function Step3Screen() {
     <OnboardingLayout
       onNext={handleContinue}
       currentStep={3}
-      totalSteps={10}
+      totalSteps={11}
       nextButtonLabel="Continue"
       allowContinue={!!selectedAnswer}
     >

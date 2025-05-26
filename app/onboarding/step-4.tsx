@@ -29,7 +29,7 @@ export default function Step4Screen() {
     <OnboardingLayout
       onNext={handleContinue}
       currentStep={4}
-      totalSteps={10}
+      totalSteps={11}
       nextButtonLabel="Continue"
       allowContinue={!!selectedAnswer}
     >

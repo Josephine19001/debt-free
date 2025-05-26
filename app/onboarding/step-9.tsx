@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Text } from '@/components/ui/text';
 import Carousel from 'react-native-reanimated-carousel';
-import { Quote, Star } from 'lucide-react-native';
+import { Quote } from 'lucide-react-native';
 import { Button } from '@/components/ui/button';
 import * as StoreReview from 'expo-store-review';
 
@@ -35,7 +35,6 @@ export default function Step9Screen() {
     if (isAvailable) {
       await StoreReview.requestReview();
     } else {
-      // fallback: go to store
       router.push('/onboarding/step-10');
     }
   };
@@ -45,31 +44,34 @@ export default function Step9Screen() {
   };
 
   const renderReview = ({ item }: { item: (typeof REVIEWS)[number] }) => (
-    <View className="items-center px-8">
-      <View className="bg-purple-50 p-4 rounded-full mb-6">
-        <Quote size={24} className="text-purple-500" />
+    <View className="mx-6 p-6 rounded-2xl bg-purple-50 shadow-sm">
+      <View className="items-center">
+        <View className="bg-purple-100 p-3 rounded-full mb-4">
+          <Quote size={20} className="text-purple-500" />
+        </View>
+        <Text className="text-lg text-center font-medium mb-2 leading-relaxed">"{item.quote}"</Text>
+        <Text className="text-gray-600">
+          – {item.author}, {item.age}
+        </Text>
       </View>
-      <Text className="text-xl text-center font-medium mb-4 leading-relaxed">"{item.quote}"</Text>
-      <Text className="text-gray-600">
-        – {item.author}, {item.age}
-      </Text>
     </View>
   );
 
   return (
     <OnboardingLayout
       title="You're in good company"
-      subtitle="Help others on their hair journey — leave a quick review!"
+      subtitle="Here's what other community members are saying"
       currentStep={9}
       totalSteps={10}
+      hideContinueButton
     >
       <View className="flex-1">
         <Carousel
           width={width}
-          height={200}
+          height={220}
           autoPlay
-          autoPlayInterval={3000}
-          scrollAnimationDuration={1200}
+          autoPlayInterval={4000}
+          scrollAnimationDuration={1000}
           data={REVIEWS}
           loop
           mode="parallax"
@@ -92,14 +94,16 @@ export default function Step9Screen() {
         </View>
 
         <View className="mt-10 items-center">
-          <View className="flex-row mb-6">
+          <View className="flex-row mb-6 px-4 py-2 bg-yellow-100 rounded-full">
             {[...Array(5)].map((_, i) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-              <Star key={i} size={22} className="text-yellow-400 mx-0.5" fill="#FACC15" />
+              <Text key={i} className="text-lg mx-1">
+                ⭐
+              </Text>
             ))}
           </View>
 
-          <View className="w-full gap-4">
+          <View className="w-full gap-4 px-6">
             <Button
               variant="primary"
               label="Yes, rate now"
@@ -107,7 +111,7 @@ export default function Step9Screen() {
               className="bg-black"
             />
             <Button
-              variant="link"
+              variant="secondary"
               label="Remind me later"
               onPress={handleRemindLater}
               className="bg-gray-100"
