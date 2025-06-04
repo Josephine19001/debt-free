@@ -6,20 +6,39 @@ import { SelectableCard } from '@/components/ui';
 import { useState, useRef, useCallback } from 'react';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { TestTube, ArrowRight } from 'lucide-react-native';
+import { useOnboarding } from '@/context/onboarding-provider';
+import type { HairPorosity } from '@/lib/api/types';
 
 const POROSITY_TEST_FACTS = [
   'Yes – it floated',
   'It stayed in the middle',
   'It sank',
-  'I don’t know',
+  "I don't know",
 ];
 
+// Map test results to porosity levels
+const getPorosityFromTestResult = (result: string): HairPorosity => {
+  if (result === 'Yes – it floated') return 'low';
+  if (result === 'It stayed in the middle') return 'normal';
+  if (result === 'It sank') return 'high';
+  return 'normal'; // default for "I don't know"
+};
+
 export default function Step5Screen() {
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const { data, updateData } = useOnboarding();
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(
+    data.porosityTestResponse || null
+  );
   const bottomSheetRef = useRef<BottomSheet>(null);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
+
   const handleAnswerSelect = (answer: string) => {
     setSelectedAnswer(answer);
+    const porosity = getPorosityFromTestResult(answer);
+    updateData({
+      porosityTestResponse: answer,
+      hairPorosity: porosity,
+    });
   };
 
   const handleContinue = () => {
@@ -35,12 +54,13 @@ export default function Step5Screen() {
     setIsBottomSheetOpen(false);
     bottomSheetRef.current?.close();
   }, []);
+
   return (
     <>
       <OnboardingLayout
         onNext={handleContinue}
-        currentStep={5}
-        totalSteps={11}
+        currentStep={6}
+        totalSteps={16}
         nextButtonLabel="Continue"
         allowContinue={!!selectedAnswer}
       >
@@ -66,52 +86,49 @@ export default function Step5Screen() {
           </Pressable>
         </View>
       </OnboardingLayout>
-      <>
-        {isBottomSheetOpen && (
-          <Animated.View
-            className="absolute inset-0 bg-black/60"
-            onTouchStart={closePorosityTest}
-          />
-        )}
 
-        <BottomSheet
-          ref={bottomSheetRef}
-          snapPoints={['60%']}
-          enablePanDownToClose
-          index={-1}
-          backgroundStyle={{ backgroundColor: 'white' }}
-          onClose={() => setIsBottomSheetOpen(false)}
-          handleIndicatorStyle={{ backgroundColor: '#94A3B8' }}
-        >
-          <Pressable onPress={closePorosityTest} className="self-end px-4">
-            <Text className="text-gray-700 pr-4">Close</Text>
-          </Pressable>
-          <View className="flex-1 p-4">
-            <Image
-              source={require('@/assets/images/porosity-test.png')}
-              className="w-full h-72 rounded-t-3xl mb-4"
-              resizeMode="cover"
-            />
-            <Text className="text-base text-gray-700 mb-4">
-              Take a strand of clean hair and drop it in a glass of water:
-            </Text>
-            <View className="space-y-2">
-              <View className="flex-row items-center gap-2">
-                <ArrowRight size={24} className="text-gray-700" />
-                <Text>If it floats: Low porosity</Text>
-              </View>
-              <View className="flex-row items-center gap-2">
-                <ArrowRight size={24} className="text-gray-700" />
-                <Text>If it stays in middle: Medium porosity</Text>
-              </View>
-              <View className="flex-row items-center gap-2">
-                <ArrowRight size={24} className="text-gray-700" />
-                <Text>If it sinks: High porosity</Text>
-              </View>
+      {/* Bottom Sheet Modal */}
+      {isBottomSheetOpen && (
+        <Animated.View className="absolute inset-0 bg-black/60" onTouchStart={closePorosityTest} />
+      )}
+
+      <BottomSheet
+        ref={bottomSheetRef}
+        snapPoints={['60%']}
+        enablePanDownToClose
+        index={-1}
+        backgroundStyle={{ backgroundColor: 'white' }}
+        onClose={() => setIsBottomSheetOpen(false)}
+        handleIndicatorStyle={{ backgroundColor: '#94A3B8' }}
+      >
+        <Pressable onPress={closePorosityTest} className="self-end px-4">
+          <Text className="text-gray-700 pr-4">Close</Text>
+        </Pressable>
+        <View className="flex-1 p-4">
+          <Image
+            source={require('@/assets/images/porosity-test.png')}
+            className="w-full h-72 rounded-t-3xl mb-4"
+            resizeMode="cover"
+          />
+          <Text className="text-base text-gray-700 mb-4">
+            Take a strand of clean hair and drop it in a glass of water:
+          </Text>
+          <View className="space-y-2">
+            <View className="flex-row items-center gap-2">
+              <ArrowRight size={24} className="text-gray-700" />
+              <Text>If it floats: Low porosity</Text>
+            </View>
+            <View className="flex-row items-center gap-2">
+              <ArrowRight size={24} className="text-gray-700" />
+              <Text>If it stays in middle: Medium porosity</Text>
+            </View>
+            <View className="flex-row items-center gap-2">
+              <ArrowRight size={24} className="text-gray-700" />
+              <Text>If it sinks: High porosity</Text>
             </View>
           </View>
-        </BottomSheet>
-      </>
+        </View>
+      </BottomSheet>
     </>
   );
 }

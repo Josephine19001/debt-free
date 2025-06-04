@@ -6,6 +6,8 @@ import { Text } from '@/components/ui/text';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { CheckCircle2 } from 'lucide-react-native';
 import Svg, { Circle, LinearGradient, Stop } from 'react-native-svg';
+import { useOnboarding } from '@/context/onboarding-provider';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SETUP_STEPS = [
   'Reviewing your hair history...',
@@ -15,7 +17,8 @@ const SETUP_STEPS = [
   'Creating your personalized journey...',
 ];
 
-export default function Step10Screen() {
+export default function Step11Screen() {
+  const { data } = useOnboarding();
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState(0);
   const [allowContinue, setAllowContinue] = useState(false);
@@ -40,14 +43,19 @@ export default function Step10Screen() {
     setCurrentStep(stepIndex);
   }, [progress]);
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
+    try {
+      await AsyncStorage.setItem('onboarding_data', JSON.stringify(data));
+    } catch (error) {
+      console.error('Failed to save onboarding data:', error);
+    }
     router.push('/paywall');
   };
 
   return (
     <OnboardingLayout
-      currentStep={10}
-      totalSteps={11}
+      currentStep={17}
+      totalSteps={17}
       showHeader={false}
       allowContinue={allowContinue}
       onNext={handleContinue}

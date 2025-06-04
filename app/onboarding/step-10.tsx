@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { Text } from '@/components/ui/text';
 import { SelectableCard } from '@/components/ui';
 import { useState } from 'react';
+import { useOnboarding } from '@/context/onboarding-provider';
 
 const ANSWERS = [
   'TikTok',
@@ -16,11 +17,13 @@ const ANSWERS = [
   'Other',
 ];
 
-export default function Step11Screen() {
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+export default function Step10Screen() {
+  const { data, updateData } = useOnboarding();
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(data.referralSource || null);
 
   const handleAnswerSelect = (answer: string) => {
     setSelectedAnswer(answer);
+    updateData({ referralSource: answer });
   };
 
   const handleContinue = () => {
@@ -30,8 +33,8 @@ export default function Step11Screen() {
   return (
     <OnboardingLayout
       onNext={handleContinue}
-      currentStep={10}
-      totalSteps={11}
+      currentStep={12}
+      totalSteps={16}
       nextButtonLabel="Continue"
       allowContinue={!!selectedAnswer}
     >

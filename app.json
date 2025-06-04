@@ -29,7 +29,21 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.hairdeetai.app",
-      "permissions": ["android.permission.CAMERA", "android.permission.READ_EXTERNAL_STORAGE"]
+      "permissions": ["android.permission.CAMERA", "android.permission.READ_EXTERNAL_STORAGE"],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "hehnaewpukivifwgvtpc.supabase.co",
+              "pathPrefix": "/auth/v1/callback"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "bundler": "metro",

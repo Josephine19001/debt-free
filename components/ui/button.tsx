@@ -1,4 +1,4 @@
-import { Pressable, View, type PressableProps } from 'react-native';
+import { Pressable, View, ActivityIndicator, type PressableProps } from 'react-native';
 import { Text } from './text';
 import { cn } from '@/lib/utils/cn';
 
@@ -6,6 +6,7 @@ interface ButtonProps extends PressableProps {
   variant?: 'primary' | 'link' | 'secondary';
   label: string;
   disabled?: boolean;
+  loading?: boolean;
 }
 
 export function Button({
@@ -14,31 +15,38 @@ export function Button({
   className,
   style,
   disabled,
+  loading = false,
   ...props
 }: ButtonProps) {
+  const isDisabled = disabled || loading;
+
   return (
     <Pressable
       className={cn(
         'items-center justify-center',
-        variant === 'primary' && 'bg-black p-4 rounded-full mb-4',
+        variant === 'primary' && 'bg-black p-4 rounded-xl mb-4',
         variant === 'link' && 'flex-row',
-        variant === 'secondary' && 'border border-black p-4 rounded-full mb-4',
+        variant === 'secondary' && 'border border-slate-300 p-4 rounded-xl mb-4',
         className,
-        disabled && 'opacity-50'
+        isDisabled && 'opacity-60'
       )}
       style={({ pressed }) => [
         typeof style === 'function' ? style({ pressed, hovered: false }) : style,
-        pressed && { opacity: 0.8 },
+        pressed && !isDisabled && { opacity: 0.8 },
       ]}
       {...props}
-      disabled={disabled}
+      disabled={isDisabled}
     >
-      <Text
-        variant="button"
-        className={cn(variant === 'primary' ? 'text-white' : 'text-black', 'font-bold')}
-      >
-        {label}
-      </Text>
+      {loading ? (
+        <ActivityIndicator color={variant === 'primary' ? 'white' : 'black'} size="small" />
+      ) : (
+        <Text
+          variant="button"
+          className={cn(variant === 'primary' ? 'text-white' : 'text-black', 'font-bold')}
+        >
+          {label}
+        </Text>
+      )}
     </Pressable>
   );
 }

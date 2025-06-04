@@ -1,14 +1,15 @@
 import { Text as RNText, type TextProps } from 'react-native';
 import { cn } from '@/lib/utils/cn';
 
-interface CustomTextProps extends TextProps {
+interface CustomTextProps extends Omit<TextProps, 'className'> {
   variant?: 'heading' | 'body' | 'button';
   bold?: boolean;
+  className?: string;
 }
 
-export function Text({ variant = 'body', bold, style, className, ...props }: CustomTextProps) {
+export function Text({ variant = 'body', bold, style, className, ...restProps }: CustomTextProps) {
   return (
-    <RNText 
+    <RNText
       className={cn(
         'text-base', // base style
         variant === 'heading' && 'text-3xl font-bold text-center',
@@ -17,7 +18,7 @@ export function Text({ variant = 'body', bold, style, className, ...props }: Cus
         className
       )}
       style={style}
-      {...props} 
+      {...restProps}
     />
   );
-} 
+}

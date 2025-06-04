@@ -1,17 +1,47 @@
-import { View } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { Text } from '../ui/text';
 import { Button } from '../ui/button';
+import { useAuth } from '@/context/auth-provider';
 
 export function WelcomeScreen() {
+  const { user, loading, checkOnboardingAndRedirect } = useAuth();
+
+  useEffect(() => {
+    // If user is already authenticated, check onboarding status
+    if (!loading && user) {
+      checkOnboardingAndRedirect();
+    }
+  }, [user, loading, checkOnboardingAndRedirect]);
+
   const onGetStarted = useCallback(() => {
     router.replace('/onboarding');
   }, []);
 
   const onSignIn = useCallback(() => {
-    router.push('/auth');
+    router.push('/auth?mode=signin');
   }, []);
+
+  // Show loading while checking auth status
+  if (loading) {
+    return (
+      <View className="flex-1 bg-white justify-center items-center">
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text className="mt-4 text-gray-600">Loading...</Text>
+      </View>
+    );
+  }
+
+  // Only show welcome screen if user is not authenticated
+  if (user) {
+    return (
+      <View className="flex-1 bg-white justify-center items-center">
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text className="mt-4 text-gray-600">Redirecting...</Text>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-white px-4 justify-between pt-5 pb-10">

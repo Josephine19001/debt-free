@@ -7,13 +7,18 @@ import { useState } from 'react';
 import { getJourneyFact, HAIR_JOURNEY_FACTS } from '@/lib/data/hair-journey-facts';
 import type { HairFact } from '@/lib/types/hair-fact';
 import FactCard from '@/components/ui/fact-card';
+import { useOnboarding } from '@/context/onboarding-provider';
 
-export default function Step3Screen() {
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+export default function Step2Screen() {
+  const { data, updateData } = useOnboarding();
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(
+    data.hardestPartResponse || null
+  );
   const [fact, setFact] = useState<HairFact | null>(null);
 
   const handleAnswerSelect = (answer: string) => {
     setSelectedAnswer(answer);
+    updateData({ hardestPartResponse: answer });
     const selectedFact = getJourneyFact(answer);
     setFact(selectedFact);
   };
@@ -26,7 +31,7 @@ export default function Step3Screen() {
     <OnboardingLayout
       onNext={handleContinue}
       currentStep={3}
-      totalSteps={11}
+      totalSteps={16}
       nextButtonLabel="Continue"
       allowContinue={!!selectedAnswer}
     >

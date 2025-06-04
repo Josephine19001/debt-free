@@ -9,3 +9,4 @@ export * from './chip';
 export * from './badge';
 export * from './accordion';
 export * from './image-picker';
+export * from './skeleton';

@@ -7,13 +7,18 @@ import { useState } from 'react';
 import { getProductCheckFact, PRODUCT_CHECK_FACTS } from '@/lib/data/product-check-facts';
 import type { HairFact } from '@/lib/types/hair-fact';
 import FactCard from '@/components/ui/fact-card';
+import { useOnboarding } from '@/context/onboarding-provider';
 
-export default function Step4Screen() {
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+export default function Step3Screen() {
+  const { data, updateData } = useOnboarding();
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(
+    data.ingredientCheckResponse || null
+  );
   const [fact, setFact] = useState<HairFact | null>(null);
 
   const handleAnswerSelect = (answer: string) => {
     setSelectedAnswer(answer);
+    updateData({ ingredientCheckResponse: answer });
     const selectedFact = getProductCheckFact(answer);
     setFact(selectedFact);
   };
@@ -26,7 +31,7 @@ export default function Step4Screen() {
     <OnboardingLayout
       onNext={handleContinue}
       currentStep={4}
-      totalSteps={11}
+      totalSteps={16}
       nextButtonLabel="Continue"
       allowContinue={!!selectedAnswer}
     >

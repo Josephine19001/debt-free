@@ -4,14 +4,19 @@ import { router } from 'expo-router';
 import { Text } from '@/components/ui/text';
 import { SelectableCard } from '@/components/ui';
 import { useState } from 'react';
+import { useOnboarding } from '@/context/onboarding-provider';
 
 const ANSWERS = ['Daily', 'Weekly', 'Monthly', 'When I remember', 'Only before protective styles'];
 
 export default function Step7Screen() {
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const { data, updateData } = useOnboarding();
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(
+    data.hairCareFrequencyResponse || null
+  );
 
   const handleAnswerSelect = (answer: string) => {
     setSelectedAnswer(answer);
+    updateData({ hairCareFrequencyResponse: answer });
   };
 
   const handleContinue = () => {
@@ -21,8 +26,8 @@ export default function Step7Screen() {
   return (
     <OnboardingLayout
       onNext={handleContinue}
-      currentStep={7}
-      totalSteps={11}
+      currentStep={8}
+      totalSteps={16}
       nextButtonLabel="Continue"
       allowContinue={!!selectedAnswer}
     >

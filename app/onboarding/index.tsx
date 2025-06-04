@@ -6,28 +6,31 @@ import { SelectableCard } from '@/components/ui';
 import { useState } from 'react';
 import { getFactForAnswer, GIVING_UP_FACTS } from '@/lib/data/hair-facts';
 import type { HairFact } from '@/lib/types/hair-fact';
+import { useOnboarding } from '@/context/onboarding-provider';
 
-export default function Step4Screen() {
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+export default function Step1Screen() {
+  const { data, updateData } = useOnboarding();
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(
+    data.givingUpResponse || null
+  );
   const [fact, setFact] = useState<HairFact | null>(null);
 
   const handleAnswerSelect = (answer: string) => {
     setSelectedAnswer(answer);
+    updateData({ givingUpResponse: answer });
     const selectedFact = getFactForAnswer(answer);
     setFact(selectedFact);
   };
 
-  console.log(selectedAnswer);
-
   const handleContinue = () => {
-    router.push('/onboarding/step-2');
+    router.push('/onboarding/step-1-hair-type');
   };
 
   return (
     <OnboardingLayout
       onNext={handleContinue}
       currentStep={1}
-      totalSteps={11}
+      totalSteps={17}
       nextButtonLabel="Continue"
       allowContinue={!!selectedAnswer}
     >

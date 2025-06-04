@@ -4,9 +4,10 @@ import { router } from 'expo-router';
 import { Text } from '@/components/ui/text';
 import { SelectableCard } from '@/components/ui';
 import { useState } from 'react';
+import { useOnboarding } from '@/context/onboarding-provider';
 
 const ANSWERS = [
-  'Whatever’s trending',
+  "Whatever's trending",
   'What my friends recommend',
   'What my hairstylist recommends',
   'What I can afford',
@@ -15,10 +16,14 @@ const ANSWERS = [
 ];
 
 export default function Step4Screen() {
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const { data, updateData } = useOnboarding();
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(
+    data.productSelectionResponse || null
+  );
 
   const handleAnswerSelect = (answer: string) => {
     setSelectedAnswer(answer);
+    updateData({ productSelectionResponse: answer });
   };
 
   const handleContinue = () => {
@@ -28,8 +33,8 @@ export default function Step4Screen() {
   return (
     <OnboardingLayout
       onNext={handleContinue}
-      currentStep={4}
-      totalSteps={11}
+      currentStep={5}
+      totalSteps={16}
       nextButtonLabel="Continue"
       allowContinue={!!selectedAnswer}
     >
