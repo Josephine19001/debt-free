@@ -38,14 +38,8 @@ class IAPService {
     if (this.initialized) return;
 
     try {
-      console.log('Initializing IAP service...');
-      console.log('Platform:', Platform.OS);
-      console.log('Development mode:', this.isDevelopment);
-
-      const result = await RNIap.initConnection();
-      console.log('IAP connection result:', result);
+      await RNIap.initConnection();
       this.initialized = true;
-      console.log('IAP initialized successfully');
     } catch (err: any) {
       console.error('Failed to initialize IAP:', err);
 
@@ -67,7 +61,6 @@ class IAPService {
 
     // Return mock products in development if IAP is not available
     if (this.isDevelopment && this.products.length === 0) {
-      console.log('Using mock products for development');
       this.products = [
         {
           productId: 'hair_deet_monthly',
@@ -201,12 +194,9 @@ class IAPService {
     }
 
     try {
-      console.log('Fetching available purchases from store...');
       const purchases = await RNIap.getAvailablePurchases();
-      console.log(`Found ${purchases.length} purchase(s) from store`);
 
       if (purchases.length === 0) {
-        console.log('No purchases found in store');
         return [];
       }
 
@@ -215,13 +205,10 @@ class IAPService {
         .filter((purchase) => {
           // Only include our app's subscription products
           const isOurProduct = SUBSCRIPTION_SKUS.includes(purchase.productId);
-          if (!isOurProduct) {
-            console.log(`Filtering out non-subscription product: ${purchase.productId}`);
-          }
+
           return isOurProduct;
         })
         .map((purchase) => {
-          console.log(`Processing purchase: ${purchase.productId} - ${purchase.transactionId}`);
           return {
             productId: purchase.productId,
             transactionId: purchase.transactionId || '',
@@ -239,7 +226,6 @@ class IAPService {
           return hasReceipt;
         });
 
-      console.log(`Returning ${validPurchases.length} valid purchases`);
       return validPurchases;
     } catch (err: any) {
       console.error('Failed to restore purchases:', err);

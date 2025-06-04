@@ -4,11 +4,9 @@ import type {
   ProductFilters,
   SearchProductsParams,
   ScanBarcodeData,
-  SavedProduct,
-  SaveProductData,
+  CustomProduct,
+  CustomProductsResponse,
   CreateCustomProductData,
-  ApiResponse,
-  PaginatedResponse,
 } from '../types';
 
 export const productsService = {
@@ -138,37 +136,21 @@ export const productsService = {
     return apiClient.delete(`/products/saved/${data.productId}`);
   },
 
-  async getCustomProducts(accountId: string): Promise<{
-    products: Array<{
-      id: string;
-      baseProductId: string | null;
-      name: string;
-      description: string | null;
-      ingredients: Array<{
-        name: string;
-        purpose: string;
-        effect: string;
-      }>;
-    }>;
-    pagination: {
-      hasMore: boolean;
-      nextCursor: string | null;
-    };
-  }> {
-    return apiClient.get(`/products/custom/${accountId}`);
+  async getCustomProducts(): Promise<CustomProductsResponse> {
+    return apiClient.get<CustomProductsResponse>('/products/custom');
   },
 
-  async createCustomProduct(data: {
-    accountId: string;
-    baseProductId?: string;
-    name: string;
-    description?: string;
-    ingredients: Array<{
-      name: string;
-      purpose: string;
-      effect: string;
-    }>;
-  }): Promise<{ status: string }> {
+  async getCustomProduct(productId: string): Promise<CustomProduct> {
+    return apiClient.get<CustomProduct>(`/products/custom/${productId}`);
+  },
+
+  async createCustomProduct(
+    data: CreateCustomProductData
+  ): Promise<{ success: boolean; id: string }> {
     return apiClient.post('/products/custom', data);
+  },
+
+  async deleteCustomProduct(productId: string): Promise<{ success: boolean }> {
+    return apiClient.delete(`/products/custom/${productId}`);
   },
 };

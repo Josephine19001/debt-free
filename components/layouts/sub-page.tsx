@@ -1,18 +1,27 @@
 import { View, Pressable } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@/components/ui/text';
 import { ChevronLeft } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
 
 type SubPageLayoutProps = {
   children: React.ReactNode;
   title: string;
   rightElement?: React.ReactNode;
+  onBack?: () => void;
 };
 
-export function SubPageLayout({ children, title, rightElement }: SubPageLayoutProps) {
+const SubPageLayout = ({ children, title, rightElement, onBack }: SubPageLayoutProps) => {
+  const navigation = useNavigation();
+
   const handleGoBack = () => {
-    // Temporarily disabled to prevent navigation errors
-    console.log('Back navigation temporarily disabled');
+    if (onBack) {
+      onBack();
+    } else {
+      // Use react-navigation instead of expo-router
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      }
+    }
   };
 
   return (
@@ -33,4 +42,6 @@ export function SubPageLayout({ children, title, rightElement }: SubPageLayoutPr
       <View className="flex-1 mt-4">{children}</View>
     </View>
   );
-}
+};
+
+export default SubPageLayout;

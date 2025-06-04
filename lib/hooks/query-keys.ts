@@ -28,5 +28,6 @@ export const queryKeys = {
       [...queryKeys.products.all, 'search', params] as const,
     saved: (accountId?: string) => [...queryKeys.products.all, 'saved', accountId] as const,
     custom: () => [...queryKeys.products.all, 'custom'] as const,
+    customProduct: (productId: string) => [...queryKeys.products.all, 'custom', productId] as const,
   },
 } as const;

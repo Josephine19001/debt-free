@@ -3,12 +3,15 @@ import { View, Modal, FlatList, TouchableOpacity } from 'react-native';
 import { Text } from '@/components/ui/text';
 import SettingsDetailItem from '@/components/settings-detail-item';
 import { HairGoalsSkeleton } from '@/components/ui';
-import { SubPageLayout } from '@/components/layouts';
+import SubPageLayout from '@/components/layouts/sub-page';
 import { api } from '@/lib/api';
 import type { HairProfile } from '@/lib/api/types';
 import { toast } from 'sonner-native';
+import { useRouter } from 'expo-router';
 
 export default function AdjustHairGoalsScreen() {
+  const router = useRouter();
+
   const [hairProfile, setHairProfile] = useState<HairProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [options, setOptions] = useState<{
@@ -48,6 +51,10 @@ export default function AdjustHairGoalsScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoBack = () => {
+    router.back();
   };
 
   const formatOptions = (optionValues: string[]): { label: string; value: string }[] => {
@@ -178,7 +185,7 @@ export default function AdjustHairGoalsScreen() {
 
   if (loading) {
     return (
-      <SubPageLayout title="Adjust Hair Goals">
+      <SubPageLayout title="Adjust Hair Goals" onBack={handleGoBack}>
         <HairGoalsSkeleton />
       </SubPageLayout>
     );
@@ -186,7 +193,7 @@ export default function AdjustHairGoalsScreen() {
 
   if (!hairProfile || !options) {
     return (
-      <SubPageLayout title="Adjust Hair Goals">
+      <SubPageLayout title="Adjust Hair Goals" onBack={handleGoBack}>
         <View className="bg-white mx-4 p-4 rounded-2xl shadow flex justify-center items-center h-32">
           <Text className="text-gray-500">No hair profile found</Text>
         </View>
@@ -203,7 +210,7 @@ export default function AdjustHairGoalsScreen() {
   ];
 
   return (
-    <SubPageLayout title="Adjust Hair Goals">
+    <SubPageLayout title="Adjust Hair Goals" onBack={handleGoBack}>
       <View className="bg-white mx-4 p-4 rounded-2xl shadow flex flex-col gap-4">
         {fields.map((field, index) => (
           <SettingsDetailItem

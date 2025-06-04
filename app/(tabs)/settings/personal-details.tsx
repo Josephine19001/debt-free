@@ -1,20 +1,16 @@
 import { useState, useEffect } from 'react';
-import { View, Pressable, Modal, Platform, Alert } from 'react-native';
+import { View, Pressable, Modal, Alert } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Calendar } from 'react-native-calendars';
 import SettingsDetailItem from '@/components/settings-detail-item';
 import { PersonalDetailsSkeleton } from '@/components/ui';
-import { cn } from '@/lib/utils';
-import { SubPageLayout } from '@/components/layouts';
-import { useColorScheme } from 'react-native';
+import SubPageLayout from '@/components/layouts/sub-page';
 import { api } from '@/lib/api';
-import { useAuth } from '@/context/auth-provider';
-import type { Account } from '@/lib/api/types';
 import { toast } from 'sonner-native';
+import { useRouter } from 'expo-router';
 
 export default function PersonalDetailsScreen() {
-  const colorScheme = useColorScheme();
-  const { user } = useAuth();
+  const router = useRouter();
   const [details, setDetails] = useState({
     name: '',
     dateOfBirth: new Date('1999-05-22'),
@@ -89,16 +85,20 @@ export default function PersonalDetailsScreen() {
     }
   };
 
+  const handleGoBack = () => {
+    router.back();
+  };
+
   if (loading) {
     return (
-      <SubPageLayout title="Personal Details">
+      <SubPageLayout title="Personal Details" onBack={handleGoBack}>
         <PersonalDetailsSkeleton />
       </SubPageLayout>
     );
   }
 
   return (
-    <SubPageLayout title="Personal Details">
+    <SubPageLayout title="Personal Details" onBack={handleGoBack}>
       <View className="bg-white mx-4 p-4 rounded-2xl shadow flex flex-col gap-4">
         {Object.entries(details).map(([field, value], index) => (
           <SettingsDetailItem

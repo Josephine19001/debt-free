@@ -16,6 +16,7 @@ import {
   type SavedProduct,
   type SaveProductData,
   type CreateCustomProductData,
+  type CustomProduct,
 } from '../api';
 import { queryKeys } from './query-keys';
 import { handleError } from './utils';
@@ -217,7 +218,7 @@ export function useRemoveSavedProduct() {
 
 export function useCustomProducts(
   options?: Omit<
-    UseQueryOptions<Product[], Error, Product[], readonly unknown[]>,
+    UseQueryOptions<CustomProduct[], Error, CustomProduct[], readonly unknown[]>,
     'queryKey' | 'queryFn'
   >
 ) {
@@ -225,31 +226,36 @@ export function useCustomProducts(
 
   return useQuery({
     queryKey: queryKeys.products.custom(),
-    queryFn: async (): Promise<Product[]> => {
+    queryFn: async (): Promise<CustomProduct[]> => {
       if (!user?.id) {
         return [];
       }
-      const response = await api.products.getCustomProducts(user.id);
-      return response.products.map((customProduct) => ({
-        id: customProduct.id,
-        name: customProduct.name,
-        brand: 'Custom',
-        type: 'Custom Product',
-        description: customProduct.description || '',
-        ingredients: customProduct.ingredients?.map((ing: any) => ing.name) || [],
-        suitableHairTypes: [],
-        price: 0,
-        size: '',
-        barcode: '',
-        imageUrl: '',
-        category: 'cream' as Product['category'],
-        isCustom: true,
-        userId: user.id,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }));
+      const response = await api.products.getCustomProducts();
+      return response.products;
     },
     enabled: !!user?.id,
+    retry: 1,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
+    ...options,
+  });
+}
+
+export function useCustomProduct(
+  productId: string,
+  options?: Omit<
+    UseQueryOptions<CustomProduct, Error, CustomProduct, readonly unknown[]>,
+    'queryKey' | 'queryFn'
+  >
+) {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: queryKeys.products.customProduct(productId),
+    queryFn: async (): Promise<CustomProduct> => {
+      return await api.products.getCustomProduct(productId);
+    },
+    enabled: !!user?.id && !!productId,
     retry: 1,
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000,
@@ -264,22 +270,29 @@ export function useCreateCustomProduct() {
   return useMutation({
     mutationFn: async (data: CreateCustomProductData) => {
       if (!user?.id) throw new Error('User not authenticated');
-      const requestData = {
-        accountId: user.id,
-        name: data.name,
-        description: data.description,
-        ingredients: data.ingredients.map((ingredient) => ({
-          name: ingredient,
-          purpose: 'Unknown',
-          effect: 'Unknown',
-        })),
-      };
-      return await api.products.createCustomProduct(requestData);
+      return await api.products.createCustomProduct(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.products.custom() });
       toast.success('Custom product created successfully');
     },
     onError: (error) => handleError(error, 'Failed to create custom product'),
+  });
+}
+
+export function useDeleteCustomProduct() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (productId: string) => {
+      if (!user?.id) throw new Error('User not authenticated');
+      return await api.products.deleteCustomProduct(productId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.custom() });
+      toast.success('Custom product deleted successfully');
+    },
+    onError: (error) => handleError(error, 'Failed to delete custom product'),
   });
 }

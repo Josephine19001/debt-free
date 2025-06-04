@@ -41,7 +41,6 @@ export default function ProgressScreen() {
             onChange={setTimeRange}
             onDateSelect={(date) => {
               setSelectedDate(date);
-              console.log('Selected date:', date);
             }}
             options={[
               { label: 'Daily', value: 'daily' },

@@ -1,15 +1,27 @@
 import { View, ScrollView } from 'react-native';
 import { Text } from '@/components/ui/text';
-import { SubPageLayout } from '@/components/layouts';
+import SubPageLayout from '@/components/layouts/sub-page';
 import { TextInput } from '@/components/ui/text-input';
-import { SelectButton } from '@/components/ui/select-button';
 import { Button } from '@/components/ui';
 import { useState } from 'react';
 import { ProductSelector } from '@/components/product-selector';
 import { ImagePicker } from '@/components/ui';
 
+type Product = {
+  id: string;
+  name: string;
+  brand: string;
+  type: string;
+};
+
 export default function LogRoutineScreen() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    hairLength: string;
+    hairStyle: string;
+    notes: string;
+    photos: string[];
+    products: Product[];
+  }>({
     hairLength: '',
     hairStyle: '',
     notes: '',

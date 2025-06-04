@@ -19,6 +19,7 @@ const HIDDEN_ROUTES = [
   '/settings/adjust-hair-goals',
   '/products/add',
   '/products/[id]',
+  '/products/custom/[id]',
   '/routines/log',
 ];
 
@@ -130,6 +131,7 @@ export default function TabLayout() {
           />
 
           <Tabs.Screen name="products/[id]" options={{ href: null, headerShown: false }} />
+          <Tabs.Screen name="products/custom/[id]" options={{ href: null, headerShown: false }} />
           <Tabs.Screen name="products/add" options={{ href: null, headerShown: false }} />
           <Tabs.Screen name="routines/log" options={{ href: null, headerShown: false }} />
         </Tabs>

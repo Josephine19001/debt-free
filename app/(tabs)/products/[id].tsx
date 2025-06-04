@@ -1,6 +1,6 @@
 import { View, ScrollView, Pressable } from 'react-native';
 import { Text } from '@/components/ui/text';
-import { SubPageLayout } from '@/components/layouts';
+import SubPageLayout from '@/components/layouts/sub-page';
 import { useLocalSearchParams } from 'expo-router';
 import { Heart, AlertCircle } from 'lucide-react-native';
 import { Skeleton } from '@/components/ui';
@@ -33,7 +33,6 @@ export default function ProductDetailScreen() {
 
   const saveProductMutation = useSaveProduct();
   const removeSavedProductMutation = useRemoveSavedProduct();
-  console.log('savedProducts', savedProducts);
 
   const handleBookmarkToggle = async () => {
     if (!product || !user) {
@@ -114,7 +113,7 @@ export default function ProductDetailScreen() {
             disabled={isToggling}
           >
             <Heart
-              size={24}
+              size={18}
               color={isBookmarked ? '#FFFFFF' : '#6B7280'}
               fill={isBookmarked ? '#FFFFFF' : 'none'}
               strokeWidth={isBookmarked ? 2 : 1.5}

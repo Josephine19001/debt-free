@@ -39,6 +39,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
       setUser(session?.user ?? null);
       if (session?.access_token) {
         apiClient.setToken(session.access_token);
+      } else {
+        apiClient.setToken(null);
       }
       setLoading(false);
     });

@@ -165,25 +165,15 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     setState((prev) => ({ ...prev, loading: true, error: null }));
 
     try {
-      console.log('Starting purchase restoration...');
-
       // First, try to get available purchases
       const purchases = await iapService.restorePurchases();
-      console.log('Found purchases:', purchases.length);
 
       if (purchases.length > 0) {
-        console.log(
-          'Restoring purchases:',
-          purchases.map((p) => ({ productId: p.productId, transactionId: p.transactionId }))
-        );
-
         // Find the most recent active subscription
         const activePurchase =
           purchases.find(
             (p) => p.productId === 'hair_deet_yearly' || p.productId === 'hair_deet_monthly'
           ) || purchases[0];
-
-        console.log('Using purchase for verification:', activePurchase.productId);
 
         // Verify with backend
         await verifyPurchaseWithBackend(activePurchase);

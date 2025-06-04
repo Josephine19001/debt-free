@@ -319,16 +319,34 @@ export interface SaveProductData {
   rating?: number;
 }
 
-export interface CreateCustomProductData {
+// Custom Product Types
+export interface CustomProduct {
+  id: string;
+  accountId: string;
+  baseProductId: string | null;
   name: string;
-  brand: string;
-  type: string;
-  category: Product['category'];
+  description: string | null;
+  ingredients: Array<{
+    name: string;
+    purpose: string;
+    effect: string;
+  }> | null;
+}
+
+export interface CreateCustomProductData {
+  baseProductId?: string;
+  name: string;
   description?: string;
-  ingredients: string[];
-  price?: number;
-  size?: string;
-  imageUrl?: string;
+  ingredients: Array<{
+    name: string;
+    purpose: string;
+    effect: string;
+  }>;
+}
+
+export interface CustomProductsResponse {
+  products: CustomProduct[];
+  total: number;
 }
 
 // API Response Types
