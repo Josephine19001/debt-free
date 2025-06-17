@@ -152,6 +152,43 @@ Deno.serve(async (req) => {
     let gptResult = {};
     try {
       gptResult = await enrichWithGPT(productName, product_links);
+      const beautyKeywords = [
+        'skin',
+        'hair',
+        'body',
+        'face',
+        'fragrance',
+        'makeup',
+        'cosmetic',
+        'nail',
+        'shaving',
+        'deodorant',
+        'beauty',
+        'lotion',
+        'cream',
+        'gel',
+        'serum',
+        'moisturizer',
+        'cleanser',
+        'mask',
+        'scrub',
+        'oil',
+        'balm',
+        'toner',
+        'conditioner',
+        'shampoo',
+        'sunscreen',
+      ];
+
+      const checkText = `${gptResult.category ?? ''} ${gptResult.name ?? ''}`.toLowerCase();
+      const isBeauty = beautyKeywords.some((keyword) => checkText.includes(keyword));
+
+      if (!isBeauty) {
+        return jsonError(
+          `We currently only support scanning beauty and personal care products. Detected: "${gptResult.category ?? 'Unknown'}".`,
+          400
+        );
+      }
     } catch {
       gptResult = {};
     }

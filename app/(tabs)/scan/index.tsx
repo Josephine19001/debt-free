@@ -4,7 +4,7 @@ import { CameraType, CameraView, useCameraPermissions } from 'expo-camera';
 import { Text } from '@/components/ui/text';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
-import { useAnalyzeScan } from '@/lib/hooks/use-analyze-scan';
+import { useAnalyzeScan, NonBeautyProductError } from '@/lib/hooks/use-analyze-scan';
 import { ProductDetailModal } from '@/components/saves/ProductDetailModal';
 import { useSaveScan } from '@/lib/hooks/use-scans';
 import { useAuth } from '@/context/auth-provider';
@@ -46,6 +46,11 @@ export default function ScanScreen() {
   } = useAnalyzeScan();
   const saveScan = useSaveScan();
 
+  // Clear any previous errors on component mount to prevent crashes
+  useEffect(() => {
+    resetAnalysis();
+  }, []);
+
   useEffect(() => {
     if (analysisData && capturedImage) {
       try {
@@ -64,21 +69,53 @@ export default function ScanScreen() {
       // Reset processing state when there's an error
       setIsProcessingImage(false);
 
-      toast.error(analysisError.message || 'Unable to analyze the product. Please try again.', {
-        action: {
-          label: 'Try Again',
-          onClick: () => {
-            resetAnalysis();
-            setShowCapturedImage(false);
-            setCapturedImage(null);
-            setIsProcessingImage(false);
+      // Handle non-beauty product errors specifically
+      if (analysisError instanceof NonBeautyProductError) {
+        toast.warning('Not a Beauty Product', {
+          description: `We detected "${analysisError.detectedCategory}" but currently only support beauty and personal care products.`,
+          duration: 1000,
+          action: {
+            label: 'Scan Another',
+            onClick: () => {
+              resetAnalysis();
+              setShowCapturedImage(false);
+              setCapturedImage(null);
+              setIsProcessingImage(false);
+              toast.dismiss();
+            },
           },
-        },
-      });
+        });
+      } else {
+        // Handle other errors
+        toast.error(analysisError.message || 'Unable to analyze the product. Please try again.', {
+          action: {
+            label: 'Try Again',
+            onClick: () => {
+              resetAnalysis();
+              setShowCapturedImage(false);
+              setCapturedImage(null);
+              setIsProcessingImage(false);
+            },
+          },
+        });
+      }
+
+      // Clear the error after handling it to prevent future crashes
+      setTimeout(() => {
+        resetAnalysis();
+      }, 100);
     }
   }, [analysisError]);
 
-  // Early return for permission loading
+  // Cleanup on component unmount to prevent crashes
+  useEffect(() => {
+    return () => {
+      resetAnalysis();
+      saveScan.reset();
+    };
+  }, []);
+
+  // Early return for permission loading - AFTER all hooks
   if (!permission) {
     return <View className="flex-1 bg-black" />;
   }
@@ -150,67 +187,55 @@ export default function ScanScreen() {
 
     setIsProcessingImage(true);
 
-    try {
-      // Calculate crop parameters as percentages of image dimensions
-      const cropX = cropArea.x / screenWidth;
-      const cropY = cropArea.y / screenHeight;
-      const cropWidth = cropArea.width / screenWidth;
-      const cropHeight = cropArea.height / screenHeight;
+    const cropX = cropArea.x / screenWidth;
+    const cropY = cropArea.y / screenHeight;
+    const cropWidth = cropArea.width / screenWidth;
+    const cropHeight = cropArea.height / screenHeight;
 
-      // Crop the image
-      const croppedImage = await ImageManipulator.manipulateAsync(
-        capturedImage.uri,
-        [
-          {
-            crop: {
-              originX: cropX * capturedImage.width,
-              originY: cropY * capturedImage.height,
-              width: cropWidth * capturedImage.width,
-              height: cropHeight * capturedImage.height,
-            },
+    const croppedImage = await ImageManipulator.manipulateAsync(
+      capturedImage.uri,
+      [
+        {
+          crop: {
+            originX: cropX * capturedImage.width,
+            originY: cropY * capturedImage.height,
+            width: cropWidth * capturedImage.width,
+            height: cropHeight * capturedImage.height,
           },
-        ],
-        { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG, base64: true }
-      );
+        },
+      ],
+      { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG, base64: true }
+    );
 
-      // Update captured image with cropped version
-      setCapturedImage(croppedImage);
+    setCapturedImage(croppedImage);
 
-      // Upload the cropped image to Supabase Storage
-      const filename = `scan-${Date.now()}.jpeg`;
-      const base64Data = croppedImage.base64;
-      if (!base64Data) throw new Error('No base64 data available');
-      const buffer = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
+    const filename = `scan-${Date.now()}.jpeg`;
+    const base64Data = croppedImage.base64;
+    if (!base64Data) throw new Error('No base64 data available');
+    const buffer = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
 
-      const { error: uploadError } = await supabase.storage
-        .from(PRODUCT_IMAGES_BUCKET)
-        .upload(filename, buffer, {
-          contentType: 'image/jpeg',
-          upsert: false,
-        });
+    const { error: uploadError } = await supabase.storage
+      .from(PRODUCT_IMAGES_BUCKET)
+      .upload(filename, buffer, {
+        contentType: 'image/jpeg',
+        upsert: false,
+      });
 
-      if (uploadError) {
-        throw new Error(`Upload failed: ${uploadError.message}`);
-      }
-
-      // Get the public URL
-      const { data: urlData } = supabase.storage.from(PRODUCT_IMAGES_BUCKET).getPublicUrl(filename);
-
-      if (!urlData?.publicUrl) {
-        throw new Error('Could not get public URL for uploaded image');
-      }
-
-      setProcessedImageUrl(urlData.publicUrl);
-
-      // Start analysis with the uploaded image URL
-      analyzeImage({ imageUrl: urlData.publicUrl });
-
-      // Processing is complete, now show analyzing modal
-      setIsProcessingImage(false);
-    } catch (error: any) {
-      toast.error('Failed to process image. Please try again.');
-      setIsProcessingImage(false);
+    if (uploadError) {
+      throw new Error(`Upload failed: ${uploadError.message}`);
     }
+
+    const { data: urlData } = supabase.storage.from(PRODUCT_IMAGES_BUCKET).getPublicUrl(filename);
+
+    if (!urlData?.publicUrl) {
+      throw new Error('Could not get public URL for uploaded image');
+    }
+
+    setProcessedImageUrl(urlData.publicUrl);
+
+    analyzeImage({ imageUrl: urlData.publicUrl });
+
+    setIsProcessingImage(false);
   };
 
   const retakePhoto = () => {
@@ -324,17 +349,23 @@ export default function ScanScreen() {
       {isAnalyzing && !isProcessingImage && (
         <View className="absolute inset-0 bg-black/80 items-center justify-center z-50">
           <View className="bg-white/95 rounded-2xl p-8 items-center max-w-[80%]">
-            <View className="bg-pink-500 rounded-full p-4 mb-5">
-              <Text className="text-2xl">🔬</Text>
+            <View className="bg-gradient-to-br from-purple-500 to-blue-600 rounded-full p-4 mb-5 relative">
+              <Text className="text-2xl">🧠</Text>
+              <View className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse" />
             </View>
             <Text className="text-xl font-bold text-black text-center mb-2">
-              Analyzing Your Product
+              AI Brain Analyzing...
             </Text>
             <Text className="text-gray-600 text-center text-sm mb-4">
-              Our AI is examining the ingredients and safety profile...
+              🤖 Neural networks are examining ingredients, safety profiles, and beauty science data
             </Text>
+            <View className="flex-row items-center justify-center mb-2">
+              <View className="w-2 h-2 bg-purple-500 rounded-full mr-1 animate-pulse" />
+              <View className="w-2 h-2 bg-blue-500 rounded-full mr-1 animate-pulse delay-150" />
+              <View className="w-2 h-2 bg-green-500 rounded-full animate-pulse delay-300" />
+            </View>
             <Text className="text-gray-500 text-center text-xs">
-              This usually takes 10-15 seconds
+              Processing with advanced AI models...
             </Text>
           </View>
         </View>
