@@ -22,7 +22,7 @@
         "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to select product images for ingredient analysis.",
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "5"
+      "buildNumber": "6"
     },
     "android": {
       "userInterfaceStyle": "light",
@@ -48,7 +48,10 @@
               "pathPrefix": "/auth/v1/callback"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
