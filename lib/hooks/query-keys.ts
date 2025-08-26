@@ -4,6 +4,11 @@ export const queryKeys = {
     detail: () => [...queryKeys.accounts.all, 'detail'] as const,
     subscription: () => [...queryKeys.accounts.all, 'subscription'] as const,
   },
+  subscription: {
+    all: ['subscription'] as const,
+    info: (userId?: string) => [...queryKeys.subscription.all, 'info', userId] as const,
+    status: () => [...queryKeys.subscription.all, 'status'] as const,
+  },
   scans: {
     all: ['scans'] as const,
     list: (filter: string, sort: string, search?: string) =>

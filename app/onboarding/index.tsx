@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { View, Dimensions } from 'react-native';
-import { useVideoPlayer, VideoView } from 'expo-video';
 import { useRouter } from 'expo-router';
 import { Button } from '@/components/ui/button';
+import { ScanLine, Shield, Heart, Sparkles, Eye, CheckCircle } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-  runOnJS,
+  withRepeat,
+  withSequence,
   FadeIn,
 } from 'react-native-reanimated';
 
@@ -15,11 +17,38 @@ const { width, height } = Dimensions.get('window');
 
 const steps = ['Welcome', 'Discover', 'Analyze'];
 
-// Video sources for each step - you can replace these with different videos
-const videoSources = [
-  require('@/assets/onboarding/example.mp4'), // Welcome step
-  require('@/assets/onboarding/example.mp4'), // Discover step
-  require('@/assets/onboarding/example.mp4'), // Analyze step
+// Icon backgrounds for each step
+const stepBackgrounds = [
+  {
+    gradientColors: ['#1a1a2e', '#16213e', '#0f3460'],
+    primaryIcon: ScanLine,
+    primaryColor: '#8B5CF6',
+    secondaryIcons: [
+      { icon: Sparkles, color: '#FFD700', size: 30 },
+      { icon: Heart, color: '#FF69B4', size: 25 },
+      { icon: Shield, color: '#10B981', size: 28 },
+    ],
+  },
+  {
+    gradientColors: ['#2d1b69', '#11998e', '#38ef7d'],
+    primaryIcon: Eye,
+    primaryColor: '#10B981',
+    secondaryIcons: [
+      { icon: ScanLine, color: '#8B5CF6', size: 35 },
+      { icon: Sparkles, color: '#FFA500', size: 28 },
+      { icon: Heart, color: '#FF69B4', size: 30 },
+    ],
+  },
+  {
+    gradientColors: ['#667eea', '#764ba2', '#f093fb'],
+    primaryIcon: CheckCircle,
+    primaryColor: '#FF69B4',
+    secondaryIcons: [
+      { icon: Shield, color: '#10B981', size: 32 },
+      { icon: Eye, color: '#8B5CF6', size: 28 },
+      { icon: Sparkles, color: '#FFD700', size: 26 },
+    ],
+  },
 ];
 
 function StepIndicator({ step }: { step: number }) {
@@ -36,38 +65,45 @@ function StepIndicator({ step }: { step: number }) {
   );
 }
 
-// Optimized video background with prefetching
-function OptimizedVideoBackground({
-  videoSource,
+// Animated icon background for each step
+function AnimatedIconBackground({
+  stepIndex,
   isActive,
   children,
-  onVideoLoad,
 }: {
-  videoSource: any;
+  stepIndex: number;
   isActive: boolean;
   children: React.ReactNode;
-  onVideoLoad?: () => void;
 }) {
   const opacity = useSharedValue(0);
+  const iconScale = useSharedValue(1);
+  const iconRotation = useSharedValue(0);
+  const floatingY = useSharedValue(0);
 
-  const player = useVideoPlayer(videoSource, (player) => {
-    player.loop = true;
-    player.muted = true;
-    if (isActive) {
-      player.play();
-    }
-    if (onVideoLoad) {
-      runOnJS(onVideoLoad)();
-    }
-  });
+  const stepConfig = stepBackgrounds[stepIndex];
+  const PrimaryIcon = stepConfig.primaryIcon;
 
   useEffect(() => {
     if (isActive) {
       opacity.value = withTiming(1, { duration: 500 });
-      player.play();
+
+      // Primary icon animations
+      iconScale.value = withRepeat(
+        withSequence(withTiming(1.2, { duration: 2000 }), withTiming(1, { duration: 2000 })),
+        -1,
+        true
+      );
+
+      iconRotation.value = withRepeat(withTiming(360, { duration: 8000 }), -1, false);
+
+      // Floating animation for secondary icons
+      floatingY.value = withRepeat(
+        withSequence(withTiming(-20, { duration: 2000 }), withTiming(20, { duration: 2000 })),
+        -1,
+        true
+      );
     } else {
       opacity.value = withTiming(0, { duration: 300 });
-      player.pause();
     }
   }, [isActive]);
 
@@ -75,27 +111,76 @@ function OptimizedVideoBackground({
     opacity: opacity.value,
   }));
 
+  const primaryIconStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: iconScale.value }, { rotate: `${iconRotation.value}deg` }],
+  }));
+
+  const floatingStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: floatingY.value }],
+  }));
+
   return (
     <Animated.View
       style={[{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }, animatedStyle]}
     >
-      <VideoView
+      <LinearGradient
+        colors={stepConfig.gradientColors as [string, string, ...string[]]}
         style={{
           position: 'absolute',
           top: 0,
           left: 0,
           bottom: 0,
           right: 0,
-          width,
-          height,
         }}
-        player={player}
-        allowsFullscreen={false}
-        allowsPictureInPicture={false}
-        nativeControls={false}
-        contentFit="cover"
       />
-      <View className="flex-1 bg-black/40">{children}</View>
+
+      {/* Primary central icon */}
+      <Animated.View
+        style={[
+          {
+            position: 'absolute',
+            top: height * 0.25,
+            left: width / 2 - 50,
+            width: 100,
+            height: 100,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'rgba(255,255,255,0.1)',
+            borderRadius: 50,
+          },
+          primaryIconStyle,
+        ]}
+      >
+        <PrimaryIcon size={60} color={stepConfig.primaryColor} />
+      </Animated.View>
+
+      {/* Secondary floating icons */}
+      {stepConfig.secondaryIcons.map((iconConfig, index) => {
+        const IconComponent = iconConfig.icon;
+        const positions = [
+          { top: 120, left: 50 },
+          { top: 180, right: 60 },
+          { bottom: 250, left: 40 },
+        ];
+        const position = positions[index] || positions[0];
+
+        return (
+          <Animated.View
+            key={index}
+            style={[
+              {
+                position: 'absolute',
+                ...position,
+              },
+              floatingStyle,
+            ]}
+          >
+            <IconComponent size={iconConfig.size} color={iconConfig.color} />
+          </Animated.View>
+        );
+      })}
+
+      {children}
     </Animated.View>
   );
 }
@@ -175,7 +260,7 @@ function StepContainer({
 
   return (
     <View className="flex-1 justify-end">
-      <Animated.View className="bg-black/80 rounded-t-[32px] pt-8" style={animatedStyle}>
+      <Animated.View className="bg-black rounded-t-[32px] pt-8" style={animatedStyle}>
         <View className="px-8">
           <Animated.Text
             className="text-3xl font-bold text-white text-left mb-4 leading-tight"
@@ -196,41 +281,10 @@ function StepContainer({
   );
 }
 
-// Legacy component - kept for compatibility but now uses optimized version
-function VideoBackground({
-  videoSource,
-  children,
-}: {
-  videoSource: any;
-  children: React.ReactNode;
-}) {
-  return (
-    <OptimizedVideoBackground videoSource={videoSource} isActive={true}>
-      {children}
-    </OptimizedVideoBackground>
-  );
-}
-
-// Legacy step components - removed in favor of optimized data-driven approach
-
 export default function Onboarding() {
   const [step, setStep] = useState(0);
-  const [videosLoaded, setVideosLoaded] = useState<Set<number>>(new Set());
   const [isTransitioning, setIsTransitioning] = useState(false);
   const router = useRouter();
-
-  // Prefetch next video when current step loads
-  useEffect(() => {
-    const nextVideoIndex = step + 1;
-    if (nextVideoIndex < videoSources.length && !videosLoaded.has(nextVideoIndex)) {
-      // Prefetch the next video by creating a hidden video component
-      // This will start loading the video in the background
-    }
-  }, [step, videosLoaded]);
-
-  const handleVideoLoad = (videoIndex: number) => {
-    setVideosLoaded((prev) => new Set(prev).add(videoIndex));
-  };
 
   const goNext = () => {
     if (isTransitioning) return;
@@ -240,8 +294,8 @@ export default function Onboarding() {
       if (step < steps.length - 1) {
         setStep((s) => s + 1);
       } else {
-        // Navigate to paywall after the last onboarding step
-        router.replace('/paywall');
+        // Navigate to paywall after onboarding completion
+        router.replace('/');
       }
       setIsTransitioning(false);
     }, 200); // Small delay for smooth transition
@@ -284,14 +338,9 @@ export default function Onboarding() {
     <View className="flex-1 bg-black">
       <StepIndicator step={step} />
 
-      {/* Render all videos but only show the active one */}
-      {videoSources.map((videoSource, index) => (
-        <OptimizedVideoBackground
-          key={index}
-          videoSource={videoSource}
-          isActive={index === step}
-          onVideoLoad={() => handleVideoLoad(index)}
-        >
+      {/* Render all backgrounds but only show the active one */}
+      {stepBackgrounds.map((_, index) => (
+        <AnimatedIconBackground key={index} stepIndex={index} isActive={index === step}>
           <StepContainer
             title={stepData[index].title}
             subtitle={stepData[index].subtitle}
@@ -305,7 +354,7 @@ export default function Onboarding() {
               nextLabel={stepData[index].nextLabel}
             />
           </StepContainer>
-        </OptimizedVideoBackground>
+        </AnimatedIconBackground>
       ))}
     </View>
   );

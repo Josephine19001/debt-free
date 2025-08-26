@@ -1,12 +1,15 @@
 import type { PropsWithChildren } from 'react';
+import { useEffect } from 'react';
+import { Platform } from 'react-native';
 
 import { useReactQueryDevTools } from '@dev-plugins/react-query';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Toaster } from 'sonner-native';
+import Purchases, { LOG_LEVEL } from 'react-native-purchases';
 import { AuthProvider } from './auth-provider';
-import { SubscriptionProvider } from './subscription-provider';
+import { RevenueCatProvider } from './revenuecat-provider';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -21,17 +24,54 @@ const queryClient = new QueryClient({
 export const RootProvider = ({ children }: PropsWithChildren) => {
   useReactQueryDevTools(queryClient);
 
+  useEffect(() => {
+    const initializeRevenueCat = async () => {
+      try {
+        if (Platform.OS === 'ios') {
+          const apiKey = process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY;
+
+          if (!apiKey || apiKey === 'your_ios_api_key') {
+            return;
+          }
+
+          await Purchases.configure({ apiKey: apiKey });
+        } else if (Platform.OS === 'android') {
+          const apiKey = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY;
+
+          if (!apiKey || apiKey === 'your_android_api_key') {
+            return;
+          }
+
+          await Purchases.configure({ apiKey: apiKey });
+        } else {
+          return;
+        }
+
+        // Test the connection
+        try {
+          await Purchases.getOfferings();
+        } catch (offeringsError: any) {
+          // Silent error handling
+        }
+      } catch (error: any) {
+        // Silent error handling
+      }
+    };
+
+    initializeRevenueCat();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <SubscriptionProvider>
+        <RevenueCatProvider>
           <GestureHandlerRootView style={{ flex: 1 }}>
             <BottomSheetModalProvider>
               {children}
               <Toaster />
             </BottomSheetModalProvider>
           </GestureHandlerRootView>
-        </SubscriptionProvider>
+        </RevenueCatProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

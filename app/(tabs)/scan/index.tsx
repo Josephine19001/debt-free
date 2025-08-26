@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { View, Image, Dimensions, Alert, Linking } from 'react-native';
+import { View, Image, Dimensions, Alert, Linking, ActivityIndicator } from 'react-native';
 import { CameraType, CameraView, useCameraPermissions } from 'expo-camera';
 import { Text } from '@/components/ui/text';
 import * as ImagePicker from 'expo-image-picker';
@@ -8,12 +8,16 @@ import { useAnalyzeScan, NonBeautyProductError } from '@/lib/hooks/use-analyze-s
 import { ProductDetailModal } from '@/components/saves/ProductDetailModal';
 import { useSaveScan } from '@/lib/hooks/use-scans';
 import { useAuth } from '@/context/auth-provider';
+import { useDailyScanLimit } from '@/lib/hooks/use-daily-scan-limit';
+import { FreemiumGate } from '@/components/freemium-gate';
 import { supabase } from '@/lib/supabase/client';
 import { ScannedProductUI, convertToUIFormat } from '@/lib/types/product';
 import { toast } from 'sonner-native';
 import { router } from 'expo-router';
 import { CropOverlay, ProcessingOverlay, CameraControls, CropArea } from '@/components/scan';
+import { ScanStatusBanner } from '@/components/ui/scan-status-banner';
 import { PRODUCT_IMAGES_BUCKET } from '@/constants/images';
+import { ScanLine } from 'lucide-react-native';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -27,6 +31,7 @@ export default function ScanScreen() {
   const [showCapturedImage, setShowCapturedImage] = useState(false);
   const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [processedImageUrl, setProcessedImageUrl] = useState<string | null>(null);
+  const [showScanLimitGate, setShowScanLimitGate] = useState(false);
   const [cropArea, setCropArea] = useState<CropArea>({
     x: screenWidth * 0.1,
     y: screenHeight * 0.3,
@@ -45,6 +50,7 @@ export default function ScanScreen() {
     reset: resetAnalysis,
   } = useAnalyzeScan();
   const saveScan = useSaveScan();
+  const { canScan, remainingScans, incrementScanCount, isSubscribed } = useDailyScanLimit();
 
   // Comprehensive reset function to clear all scan-related states
   const resetScanState = () => {
@@ -152,6 +158,12 @@ export default function ScanScreen() {
   }
 
   const takePicture = async () => {
+    // Check scan limits before allowing photo capture
+    if (!canScan) {
+      setShowScanLimitGate(true);
+      return;
+    }
+
     if (!cameraRef.current) {
       toast.error('Camera not ready. Please wait a moment and try again.');
       return;
@@ -237,6 +249,11 @@ export default function ScanScreen() {
 
       setProcessedImageUrl(urlData.publicUrl);
 
+      // Increment scan count for successful scan
+      if (!isSubscribed) {
+        await incrementScanCount();
+      }
+
       analyzeImage({ imageUrl: urlData.publicUrl });
 
       setIsProcessingImage(false);
@@ -253,6 +270,12 @@ export default function ScanScreen() {
   };
 
   const pickImage = async () => {
+    // Check scan limits before allowing image selection
+    if (!canScan) {
+      setShowScanLimitGate(true);
+      return;
+    }
+
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -320,6 +343,9 @@ export default function ScanScreen() {
         <CameraView ref={cameraRef} style={{ flex: 1 }} facing={facing} enableTorch={torch} />
       )}
 
+      {/* Scan status banner */}
+      {/* <ScanStatusBanner /> */}
+
       {/* Crop overlay - hidden when processing or analyzing */}
       {!isProcessingImage && !isAnalyzing && (
         <CropOverlay
@@ -349,24 +375,28 @@ export default function ScanScreen() {
       {/* Analysis overlay */}
       {isAnalyzing && !isProcessingImage && (
         <View className="absolute inset-0 bg-black/80 items-center justify-center z-50">
-          <View className="bg-white/95 rounded-2xl p-8 items-center max-w-[80%]">
-            <View className="bg-gradient-to-br from-purple-500 to-blue-600 rounded-full p-4 mb-5 relative">
-              <Text className="text-2xl">🧠</Text>
-              <View className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse" />
+          {/* Floating icons */}
+          <View className="absolute top-32 left-8">
+            <Text className="text-2xl animate-bounce">🧪</Text>
+          </View>
+          <View className="absolute top-40 right-12">
+            <Text className="text-xl animate-pulse">✨</Text>
+          </View>
+          <View className="absolute bottom-48 left-12">
+            <Text className="text-lg animate-bounce">🔬</Text>
+          </View>
+          <View className="absolute bottom-56 right-8">
+            <Text className="text-xl animate-pulse">⚗️</Text>
+          </View>
+
+          <View className="bg-white rounded-2xl p-8 items-center">
+            <View className="w-16 h-16 bg-purple-500 rounded-full items-center justify-center mb-4">
+              <ScanLine size={32} color="white" />
             </View>
-            <Text className="text-xl font-bold text-black text-center mb-2">
-              AI Brain Analyzing...
-            </Text>
-            <Text className="text-gray-600 text-center text-sm mb-4">
-              🤖 Neural networks are examining ingredients, safety profiles, and beauty science data
-            </Text>
-            <View className="flex-row items-center justify-center mb-2">
-              <View className="w-2 h-2 bg-purple-500 rounded-full mr-1 animate-pulse" />
-              <View className="w-2 h-2 bg-blue-500 rounded-full mr-1 animate-pulse delay-150" />
-              <View className="w-2 h-2 bg-green-500 rounded-full animate-pulse delay-300" />
-            </View>
-            <Text className="text-gray-500 text-center text-xs">
-              Processing with advanced AI models...
+            <Text className="text-xl font-bold text-gray-900 text-center mb-2">Analyzing...</Text>
+            <ActivityIndicator size="small" color="#8B5CF6" className="mb-3" />
+            <Text className="text-gray-500 text-sm text-center">
+              This usually takes 3-5 seconds
             </Text>
           </View>
         </View>
@@ -383,6 +413,16 @@ export default function ScanScreen() {
           modalHeight="80%"
         />
       )}
+
+      {/* Daily scan limit gate */}
+      <FreemiumGate
+        visible={showScanLimitGate}
+        feature="product_scan"
+        featureName="Product Scanning"
+        featureDescription="Analyze beauty product ingredients with AI-powered scanning technology"
+        icon="camera-outline"
+        onClose={() => setShowScanLimitGate(false)}
+      />
     </View>
   );
 }

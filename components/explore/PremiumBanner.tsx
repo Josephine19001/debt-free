@@ -16,7 +16,7 @@ export function PremiumBanner() {
         </View>
         <TouchableOpacity
           className="bg-white rounded-full px-6 py-3"
-          onPress={() => router.push('/paywall')}
+          onPress={() => router.push('/')}
         >
           <View className="flex-row items-center">
             <Text className="text-black font-bold text-base mr-2">Try for Free</Text>

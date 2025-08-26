@@ -41,7 +41,6 @@ export function useUpdateAccountAvatar() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.accounts.detail() });
-      toast.success('Avatar updated');
     },
     onError: (err: any) => handleError(err, 'Failed to update avatar'),
   });

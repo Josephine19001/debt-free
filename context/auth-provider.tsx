@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { toast } from 'sonner-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Crypto from 'expo-crypto';
+// Note: RevenueCat functionality is now in the RevenueCatProvider context
 
 interface AuthContextType {
   session: Session | null;
@@ -15,13 +16,17 @@ interface AuthContextType {
     email: string,
     password: string,
     firstName: string,
+    lastName: string,
+    plan?: string
+  ) => Promise<void>;
+  signUpWithEmailFree: (
+    email: string,
+    password: string,
+    firstName: string,
     lastName: string
   ) => Promise<void>;
-  signInWithApple: () => Promise<void>;
+  signInWithApple: (plan?: string) => Promise<void>;
   signOut: () => Promise<void>;
-  // Temporarily disabled subscription features
-  isSubscribed: boolean;
-  subscriptionPlan: 'free' | 'pro' | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,9 +35,186 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  // Temporarily set subscription to defaults
-  const [isSubscribed] = useState(false);
-  const [subscriptionPlan] = useState<'free' | 'pro' | null>('free');
+
+  // Helper function to ensure account exists in database
+  const ensureAccountExists = async (userId: string): Promise<void> => {
+    try {
+      // Call the function to create account if it doesn't exist
+      const { error } = await supabase.rpc('create_missing_account', { p_user_id: userId });
+      if (error) {
+        console.error('Error ensuring account exists:', error);
+      }
+    } catch (error) {
+      console.error('Error calling create_missing_account:', error);
+    }
+  };
+
+  // Helper function to determine where to redirect after auth
+  const getPostAuthRoute = async (
+    userId: string,
+    plan?: string,
+    isNewUser?: boolean
+  ): Promise<string> => {
+    try {
+      // Ensure account record exists
+      await ensureAccountExists(userId);
+
+      // Check if we're in development environment
+      const isDevelopment = __DEV__ || process.env.NODE_ENV === 'development';
+
+      if (isDevelopment && isNewUser) {
+        // In development, new users go directly to explore after signup
+        toast.success("Welcome! You're in development mode.");
+        return '/(tabs)/explore';
+      }
+
+      // Initialize RevenueCat with the user ID first
+      // TODO: Update to use RevenueCat context
+      // await revenueCatService.identifyUser(userId);
+
+      // Check subscription status
+      // TODO: Update to use RevenueCat context
+      // const result = await revenueCatService.checkSubscriptionStatus(userId);
+      const result = { isSubscribed: false, error: null }; // Temporary fallback
+
+      if (result.error) {
+        console.error('Error checking subscription:', result.error);
+        // If can't check subscription, send to payment if plan specified, otherwise welcome
+        return plan ? `/payment-processing?plan=${plan}` : '/';
+      }
+
+      // If user has active subscription, go directly to main app
+      if (result.isSubscribed) {
+        toast.success('Welcome back! You have an active subscription.');
+        return '/(tabs)/explore';
+      }
+
+      // User doesn't have active subscription
+      if (plan) {
+        // User has a plan (new or existing) - trigger immediate purchase
+        toast.info('Processing your subscription...');
+        const success = await handleImmediatePurchase(userId, plan);
+        if (success) {
+          return '/(tabs)/explore';
+        } else {
+          // Payment failed - show payment popup again
+          return await showPaymentRetry(userId, plan);
+        }
+      } else {
+        // No plan specified - user needs to choose a plan first
+        toast.info('Please choose a subscription plan to continue.');
+        return '/'; // Back to welcome screen to choose plan
+      }
+    } catch (error) {
+      console.error('Error in getPostAuthRoute:', error);
+      // Fallback: always go back to welcome to choose plan
+      toast.error('Something went wrong. Please try again.');
+      return '/';
+    }
+  };
+
+  // Helper function to trigger immediate purchase
+  const handleImmediatePurchase = async (userId: string, plan: string): Promise<boolean> => {
+    try {
+      // Get current offerings
+      // TODO: Update to use RevenueCat context
+      // const currentOffering = await revenueCatService.getCurrentOffering();
+      const currentOffering: any = null; // Temporary fallback
+
+      if (!currentOffering?.availablePackages) {
+        toast.error('No subscription options available');
+        return false;
+      }
+
+      // Find the package based on selected plan
+      const packageToPurchase = currentOffering.availablePackages.find((pkg: any) =>
+        plan === 'yearly'
+          ? pkg.packageType === 'ANNUAL' ||
+            pkg.identifier.includes('yearly') ||
+            pkg.product.identifier.includes('yearly')
+          : pkg.packageType === 'MONTHLY' ||
+            pkg.identifier.includes('monthly') ||
+            pkg.product.identifier.includes('monthly')
+      );
+
+      if (!packageToPurchase) {
+        toast.error('Selected subscription plan not available');
+        return false;
+      }
+
+      // Check if we're in Expo Go - if so, simulate success
+      const isExpoGo = __DEV__ && !process.env.EXPO_STANDALONE_APP;
+
+      if (isExpoGo) {
+        // Simulate purchase in Expo Go
+        toast.success('Subscription activated! (Expo Go simulation)');
+        return true;
+      }
+
+      // Process actual purchase with RevenueCat
+      // TODO: Update to use RevenueCat context
+      // const result = await revenueCatService.purchasePackage(packageToPurchase);
+      const result: any = { success: false }; // Temporary fallback
+
+      if (result.success) {
+        // Update RevenueCat with the user ID to sync subscription
+        // TODO: Update to use RevenueCat context
+        // await revenueCatService.identifyUser(userId);
+
+        // Update database with subscription status
+        await supabase.rpc('update_subscription_status', {
+          p_user_id: userId,
+          p_subscription_status: 'active',
+          p_subscription_plan: plan,
+          p_subscription_active: true,
+        });
+
+        toast.success('Subscription activated! Welcome to premium!');
+        return true;
+      } else {
+        // Payment failed - update database to reflect free status
+        await supabase.rpc('update_subscription_status', {
+          p_user_id: userId,
+          p_subscription_status: 'payment_failed',
+          p_subscription_plan: 'free',
+          p_subscription_active: false,
+        });
+
+        console.log('Payment failed:', result.error);
+        return false;
+      }
+    } catch (error: any) {
+      // Payment error - update database to reflect free status
+      try {
+        await supabase.rpc('update_subscription_status', {
+          p_user_id: userId,
+          p_subscription_status: 'payment_error',
+          p_subscription_plan: 'free',
+          p_subscription_active: false,
+        });
+      } catch (dbError) {
+        console.error('Error updating database after payment failure:', dbError);
+      }
+
+      console.error('Error in handleImmediatePurchase:', error);
+      return false;
+    }
+  };
+
+  // Helper function to show payment retry popup
+  const showPaymentRetry = async (userId: string, plan: string): Promise<string> => {
+    // In a real app, this would show a modal/popup to retry payment
+    // For now, we'll try payment again immediately
+    const retrySuccess = await handleImmediatePurchase(userId, plan);
+
+    if (retrySuccess) {
+      return '/(tabs)/explore';
+    } else {
+      // Final fallback - show error and go back to welcome
+      toast.error('Payment failed. Please try again from the welcome screen.');
+      return '/';
+    }
+  };
 
   useEffect(() => {
     (async () => {
@@ -74,13 +256,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password,
     });
     if (data.user) {
-      router.replace('/(tabs)/explore');
+      // Existing user signing in - no plan needed
+      const route = await getPostAuthRoute(data.user.id, undefined, false);
+      router.replace(route as any);
     }
     setLoading(false);
     if (error) throw error;
   };
 
   const signUpWithEmail = async (
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+    plan?: string
+  ) => {
+    setLoading(true);
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          first_name: firstName,
+          last_name: lastName,
+          selected_plan: plan || 'free',
+        },
+      },
+    });
+    if (data.user && data.session) {
+      // New user signing up with a plan
+      const route = await getPostAuthRoute(data.user.id, plan, true);
+      router.replace(route as any);
+    }
+    setLoading(false);
+    if (error) throw error;
+  };
+
+  const signUpWithEmailFree = async (
     email: string,
     password: string,
     firstName: string,
@@ -94,18 +306,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         data: { first_name: firstName, last_name: lastName },
       },
     });
-    if (data.user) {
+    if (data.user && data.session) {
+      // Free users go directly to app, bypassing subscription check
       router.replace('/(tabs)/explore');
     }
     setLoading(false);
     if (error) throw error;
-
-    if (!data.session) {
-      toast.success('Check your email to verify your account');
-    }
   };
 
-  const signInWithApple = async () => {
+  const signInWithApple = async (plan?: string) => {
     setLoading(true);
     try {
       const nonce = Math.random().toString(36).substring(2, 10);
@@ -122,14 +331,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         nonce: hashedNonce,
       });
 
+      // Add user metadata if we have the name from Apple
+      const options: any = {};
+      if (appleCredential.fullName?.givenName || appleCredential.fullName?.familyName || plan) {
+        options.data = {
+          first_name: appleCredential.fullName?.givenName || '',
+          last_name: appleCredential.fullName?.familyName || '',
+          selected_plan: plan || 'free',
+        };
+      }
+
       const { data, error } = await supabase.auth.signInWithIdToken({
         provider: 'apple',
         token: appleCredential.identityToken!,
         nonce,
+        options,
       });
 
       if (data.user) {
-        router.replace('/(tabs)/explore');
+        // Apple authentication - could be new or existing user
+        const route = await getPostAuthRoute(data.user.id, plan, true);
+        router.replace(route as any);
       }
 
       if (error) throw error;
@@ -158,10 +380,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading,
     signInWithEmail,
     signUpWithEmail,
+    signUpWithEmailFree,
     signInWithApple,
     signOut,
-    isSubscribed,
-    subscriptionPlan,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

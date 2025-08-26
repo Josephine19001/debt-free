@@ -39,3 +39,5 @@ yarn-error.*
 .env
 
 .cursorß
+
+.secret_gen.rb

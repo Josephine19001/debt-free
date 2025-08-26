@@ -10,9 +10,13 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import { Eye, EyeOff } from 'lucide-react-native';
 
 export default function AuthScreen() {
-  const { signInWithEmail, signUpWithEmail, signInWithApple } = useAuth();
+  const { signInWithEmail, signUpWithEmail, signUpWithEmailFree, signInWithApple } = useAuth();
 
-  const { mode } = useLocalSearchParams<{ mode?: 'signin' | 'signup' }>();
+  const { mode, free, plan } = useLocalSearchParams<{
+    mode?: 'signin' | 'signup';
+    free?: string;
+    plan?: 'yearly' | 'monthly';
+  }>();
   const [isSignUp, setIsSignUp] = useState(mode === 'signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,6 +26,8 @@ export default function AuthScreen() {
   const [showPassword, setShowPassword] = useState(false);
 
   const canSignUp = mode === 'signup';
+  const isFreeSignup = free === 'true';
+  const selectedPlan = plan || 'monthly';
 
   const handleEmailAuth = async () => {
     if (!email || !password) {
@@ -42,7 +48,11 @@ export default function AuthScreen() {
     setIsSubmitting(true);
     try {
       if (isSignUp) {
-        await signUpWithEmail(email, password, firstName.trim(), lastName.trim());
+        if (isFreeSignup) {
+          await signUpWithEmailFree(email, password, firstName.trim(), lastName.trim());
+        } else {
+          await signUpWithEmail(email, password, firstName.trim(), lastName.trim(), selectedPlan);
+        }
       } else {
         await signInWithEmail(email, password);
       }
@@ -53,12 +63,19 @@ export default function AuthScreen() {
     }
   };
 
-  const handleAppleSignIn = async () => {
+  const handleAppleAuth = async () => {
     setIsSubmitting(true);
     try {
-      await signInWithApple();
+      if (isSignUp) {
+        // For sign up, we'll pass the selected plan if it's a paid signup
+        await signInWithApple(isFreeSignup ? undefined : selectedPlan);
+      } else {
+        await signInWithApple();
+      }
     } catch (error: any) {
-      toast.error(error.message || 'Failed to sign in with Apple');
+      toast.error(
+        error.message || `Failed to ${isSignUp ? 'create account' : 'sign in'} with Apple`
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -97,11 +114,19 @@ export default function AuthScreen() {
         {/* Header */}
         <View className="mb-12">
           <Text className="text-3xl font-bold text-black text-center mb-3">
-            {isSignUp ? 'Create your account' : 'Welcome back'}
+            {isSignUp
+              ? isFreeSignup
+                ? 'Get Started for Free'
+                : 'Create your account'
+              : 'Welcome back'}
           </Text>
           <Text className="text-lg text-slate-600 text-center">
             {isSignUp
-              ? 'Join the community that understands your beauty'
+              ? isFreeSignup
+                ? 'Start with 1 free scan per day • No payment required'
+                : selectedPlan === 'yearly'
+                  ? 'For a Yearly Plan'
+                  : 'For a Monthly Plan'
               : 'Sign in to continue your beauty journey'}
           </Text>
         </View>
@@ -160,7 +185,7 @@ export default function AuthScreen() {
           </View>
 
           <Button
-            title={isSignUp ? 'Create Account' : 'Sign In'}
+            title={isSignUp ? (isFreeSignup ? 'Start Free Account' : 'Create Account') : 'Sign In'}
             onPress={handleEmailAuth}
             disabled={isSubmitting}
             variant="primary"
@@ -168,8 +193,8 @@ export default function AuthScreen() {
             className="mb-4"
           />
 
-          {/* Apple Sign In - Only show on iOS and when not signing up */}
-          {Platform.OS === 'ios' && !isSignUp && (
+          {/* Apple Authentication - Show on iOS */}
+          {Platform.OS === 'ios' && (
             <>
               <View className="flex-row items-center mb-4">
                 <View className="flex-1 h-px bg-slate-300" />
@@ -178,7 +203,11 @@ export default function AuthScreen() {
               </View>
 
               <AppleAuthentication.AppleAuthenticationButton
-                buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+                buttonType={
+                  isSignUp
+                    ? AppleAuthentication.AppleAuthenticationButtonType.SIGN_UP
+                    : AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN
+                }
                 buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
                 cornerRadius={100}
                 style={{
@@ -187,7 +216,7 @@ export default function AuthScreen() {
                   marginBottom: 16,
                   opacity: isSubmitting ? 0.5 : 1,
                 }}
-                onPress={isSubmitting ? () => {} : handleAppleSignIn}
+                onPress={isSubmitting ? () => {} : handleAppleAuth}
               />
             </>
           )}

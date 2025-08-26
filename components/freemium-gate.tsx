@@ -1,9 +1,8 @@
-import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-// import { useSubscription } from '../context/subscription-provider';
+import { useSubscription } from '@/context/revenuecat-provider';
 
 const { width } = Dimensions.get('window');
 
@@ -24,15 +23,15 @@ export function FreemiumGate({
   icon,
   onClose,
 }: FreemiumGateProps) {
-  // const { getRemainingFreeScans, canAccessFeature } = useSubscription();
+  const { isSubscribed, isEligibleForTrial } = useSubscription();
 
   const getFeatureDetails = () => {
     switch (feature) {
       case 'product_scan':
         return {
           remaining: 0,
-          total: 150,
-          resetPeriod: 'month',
+          total: 1,
+          resetPeriod: 'day',
         };
       case 'routine_generation':
         return {
@@ -59,7 +58,7 @@ export function FreemiumGate({
 
   const handleUpgrade = () => {
     onClose();
-    router.push('/paywall');
+    router.push('/');
   };
 
   return (
@@ -102,33 +101,35 @@ export function FreemiumGate({
             </View>
 
             <View style={styles.proFeatures}>
-              <Text style={styles.proFeaturesTitle}>With h-deets Pro:</Text>
+              <Text style={styles.proFeaturesTitle}>With BeautyScan Pro:</Text>
 
               <View style={styles.featureItem}>
                 <Ionicons name="infinite-outline" size={20} color="#FF6B6B" />
-                <Text style={styles.featureText}>Unlimited {featureName.toLowerCase()}</Text>
+                <Text style={styles.featureText}>Unlimited daily scans</Text>
               </View>
 
               <View style={styles.featureItem}>
                 <Ionicons name="analytics-outline" size={20} color="#FF6B6B" />
-                <Text style={styles.featureText}>Detailed analysis & insights</Text>
+                <Text style={styles.featureText}>Advanced ingredient analysis</Text>
               </View>
 
               <View style={styles.featureItem}>
                 <Ionicons name="star-outline" size={20} color="#FF6B6B" />
-                <Text style={styles.featureText}>Expert recommendations</Text>
+                <Text style={styles.featureText}>Personalized recommendations</Text>
               </View>
 
               <View style={styles.featureItem}>
-                <Ionicons name="people-outline" size={20} color="#FF6B6B" />
-                <Text style={styles.featureText}>Multiple hair profiles</Text>
+                <Ionicons name="shield-checkmark-outline" size={20} color="#FF6B6B" />
+                <Text style={styles.featureText}>Priority AI processing</Text>
               </View>
             </View>
 
             <TouchableOpacity style={styles.upgradeButton} onPress={handleUpgrade}>
               <LinearGradient colors={['#FF6B6B', '#FF8E53']} style={styles.upgradeButtonGradient}>
                 <Text style={styles.upgradeButtonText}>Upgrade to Pro</Text>
-                <Text style={styles.upgradeButtonSubtext}>7-day free trial</Text>
+                {isEligibleForTrial && (
+                  <Text style={styles.upgradeButtonSubtext}>Free trial available</Text>
+                )}
               </LinearGradient>
             </TouchableOpacity>
 

@@ -12,7 +12,7 @@ export const mainFeatures: Feature[] = [
     icon: ScanLine,
     color: '#8B5CF6',
     bgColor: '#F3F4F6',
-    image: require('@/assets/onboarding/example-icon.png'),
+    image: require('@/assets/images/flask.png'),
   },
   {
     id: 2,
@@ -22,7 +22,7 @@ export const mainFeatures: Feature[] = [
     icon: Shield,
     color: '#10B981',
     bgColor: '#ECFDF5',
-    image: require('@/assets/onboarding/example-icon.png'),
+    image: require('@/assets/images/shield.png'),
   },
 ];
 
@@ -58,42 +58,42 @@ export const scanningPeople: ScanningPerson[] = [
     id: 1,
     name: 'Sarah M.',
     product: 'Foundation',
-    image: require('@/assets/onboarding/example.mp4'),
+    image: require('@/assets/images/avatar.png'),
   },
   {
     id: 2,
     name: 'Mike K.',
     product: 'Shampoo',
-    image: require('@/assets/onboarding/example.mp4'),
+    image: require('@/assets/images/avatar.png'),
   },
   {
     id: 3,
     name: 'Lisa R.',
     product: 'Moisturizer',
-    image: require('@/assets/onboarding/example.mp4'),
+    image: require('@/assets/images/avatar.png'),
   },
   {
     id: 4,
     name: 'Alex T.',
     product: 'Cologne',
-    image: require('@/assets/onboarding/example.mp4'),
+    image: require('@/assets/images/avatar.png'),
   },
   {
     id: 5,
     name: 'Katelyne K.',
     product: 'Shampoo',
-    image: require('@/assets/onboarding/example.mp4'),
+    image: require('@/assets/images/avatar.png'),
   },
   {
     id: 6,
     name: 'Nara R.',
     product: 'Moisturizer',
-    image: require('@/assets/onboarding/example.mp4'),
+    image: require('@/assets/images/avatar.png'),
   },
   {
     id: 7,
     name: 'Alex T.',
     product: 'Cologne',
-    image: require('@/assets/onboarding/example.mp4'),
+    image: require('@/assets/images/avatar.png'),
   },
 ];

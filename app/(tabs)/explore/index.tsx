@@ -4,7 +4,7 @@ import { Text } from '@/components/ui/text';
 import { FeatureCard } from '@/components/explore/FeatureCard';
 import { CompactProductCard } from '@/components/explore/CompactProductCard';
 import { ProductDetailModal } from '@/components/saves/ProductDetailModal';
-import { BeautyFactCard } from '@/components/ui/beauty-fact-card';
+import { TrialStatusBanner } from '@/components/ui/trial-status-banner';
 import { mainFeatures } from '@/data/exploreData';
 import { ScannedProductUI, convertScannedProductToUI } from '@/lib/types/product';
 import { useState } from 'react';
@@ -68,7 +68,9 @@ export default function ExploreScreen() {
         <View className="px-4 pt-4 pb-6">
           <Text className="text-3xl font-bold text-black mb-6">Explore</Text>
 
-          <BeautyFactCard compact={true} className="mb-6" />
+          <TrialStatusBanner />
+          {/* <RevenueCatTestButton /> */}
+          {/* <ScanLimitCard /> */}
         </View>
 
         <View className="px-4">

@@ -1,11 +1,12 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import OpenAI from 'npm:openai';
+import Groq from 'npm:groq-sdk';
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL') ?? '',
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 );
-const openai = new OpenAI({
-  apiKey: Deno.env.get('OPENAI_API_KEY') ?? '',
+// Use Groq's official SDK
+const groq = new Groq({
+  apiKey: Deno.env.get('GROQ_API_KEY') ?? '',
 });
 function jsonError(message, status = 500) {
   return new Response(
@@ -76,22 +77,21 @@ async function searchWithSerper(imageUrl) {
   };
 }
 async function enrichWithGPT(productName, product_links) {
-  const prompt = `You are a friendly beauty product expert. Your job is to explain each ingredient in simple, clear, everyday language that anyone can understand. Avoid scientific jargon. Be warm, helpful, and conversational, like you're talking to a friend.
+  const prompt = `Analyze this beauty product and return ONLY valid JSON. Be honest about harmful ingredients.
 
-  Based on the product name and links, return only valid JSON in the structure below:
-  
+  Return this exact structure:
   {
     "name": string,
     "brand": string,
     "category": string,
-    "safety_score": number (1-10),
+    "safety_score": number (1-10, where 1=very harmful, 10=very safe),
     "ingredients": string[],
     "key_ingredients": [
       {
         "name": string,
         "type": "beneficial" | "harmful" | "neutral",
-        "description": string, // use plain language here!
-        "effect": string        // explain exactly what it does to skin or hair
+        "description": string,
+        "effect": string
       }
     ],
     "product_links": [
@@ -103,19 +103,19 @@ async function enrichWithGPT(productName, product_links) {
       }
     ]
   }
-  
-  Instructions:
-  - Only return JSON. No commentary.
-  - For each key ingredient, describe what it does and how it affects the skin or hair. Use plain language. For example:
-    "Sulfates: While they’re great at cleaning, they can also strip your hair’s natural oils and make it dry or frizzy."
-  - Don't use technical or scientific terms unless they’re explained simply.
-  - Limit key_ingredients to 10 max, prioritizing the most impactful ones.
+
+  IMPORTANT:
+  - Mark ingredients as "harmful" if they cause irritation, dryness, allergies, or health concerns
+  - Use simple language (no scientific jargon)
+  - Common harmful ingredients: sulfates, parabens, formaldehyde, synthetic fragrances, alcohol denat
+  - Safety score should reflect actual harm potential
+  - Focus on the 5-10 most important ingredients
   `;
 
   const userContent = `Product Name: ${productName}
 Product Links:\n${JSON.stringify(product_links, null, 2)}`;
-  const chat = await openai.chat.completions.create({
-    model: 'gpt-4o',
+  const chat = await groq.chat.completions.create({
+    model: 'llama-3.1-8b-instant',
     temperature: 0.3,
     messages: [
       {
@@ -134,7 +134,7 @@ Product Links:\n${JSON.stringify(product_links, null, 2)}`;
     if (match) return JSON.parse(match[0]);
     throw new Error('No valid JSON found');
   } catch {
-    throw new Error('Failed to parse JSON from OpenAI');
+    throw new Error('Failed to parse JSON from Groq');
   }
 }
 Deno.serve(async (req) => {
