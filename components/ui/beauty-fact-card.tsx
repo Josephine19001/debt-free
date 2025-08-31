@@ -153,7 +153,7 @@ function BeautyFactCardInner({
       {/* Footer */}
       <View className="mt-4 pt-4 border-t border-gray-200">
         <Text className="text-xs text-gray-500 text-center">
-          Learn something new about beauty every day with BeautyScan ✨
+          Learn something new about beauty every day with LunaSync ✨
         </Text>
       </View>
     </Animated.View>

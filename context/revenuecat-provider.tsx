@@ -103,7 +103,7 @@ export function RevenueCatProvider({ children }: { children: ReactNode }) {
       // Set attributes for better debugging
       if (__DEV__) {
         Purchases.setAttributes({
-          $email: 'dev@beautyscan.app',
+          $email: 'dev@lunasync.app',
           $displayName: 'Development User',
         });
       }

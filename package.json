@@ -1,5 +1,5 @@
 {
-  "name": "beautyscan",
+  "name": "lunasync",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
@@ -10,9 +10,10 @@
     "test": "jest --watchAll",
     "populate-db": "node scripts/populate_supabase.js",
     "eas:env:pull": "eas env:pull --environment production",
-    "eas:build": "eas build --platform ios --profile production",
+    "eas:build-pro": "eas build --platform ios --profile production",
     "eas:submit": "eas submit -p ios --latest",
-    "eas-build-pre-install": "corepack enable && yarn set version 4"
+    "eas-build-pre-install": "corepack enable && yarn set version 4",
+    "eas:build": "eas build --platform ios --clear-cache"
   },
   "jest": {
     "preset": "jest-expo"
@@ -39,6 +40,7 @@
     "expo-av": "~15.1.7",
     "expo-blur": "~14.1.5",
     "expo-camera": "~16.1.11",
+    "expo-constants": "~17.1.7",
     "expo-crypto": "~14.1.5",
     "expo-dev-client": "~5.2.4",
     "expo-file-system": "~18.1.11",

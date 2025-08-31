@@ -279,7 +279,7 @@ export function WelcomeScreen() {
               className="text-6xl font-bold text-white text-center leading-tight mb-6"
               entering={SlideInUp.delay(800).duration(800)}
             >
-              Aurae
+              LunaSync
             </Animated.Text>
             <Animated.Text
               className="text-3xl text-white text-center leading-relaxed font-light mb-4"

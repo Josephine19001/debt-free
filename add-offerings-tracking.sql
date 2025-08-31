@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS public.revenuecat_packages (
   offering_id TEXT NOT NULL REFERENCES public.revenuecat_offerings(offering_id) ON DELETE CASCADE,
   package_id TEXT NOT NULL, -- e.g., "$rc_annual", "$rc_monthly"
   package_type TEXT NOT NULL, -- "ANNUAL", "MONTHLY", "WEEKLY", etc.
-  product_id TEXT NOT NULL, -- e.g., "com.beautyscan.app.yearly"
+  product_id TEXT NOT NULL, -- e.g., "com.lunasync.app.yearly"
   display_name TEXT NOT NULL,
   description TEXT,
   price_string TEXT, -- "$9.99"
@@ -127,8 +127,8 @@ ON CONFLICT (entitlement_id) DO UPDATE SET
 
 -- Insert your packages
 INSERT INTO public.revenuecat_packages (offering_id, package_id, package_type, product_id, display_name, description) VALUES
-  ('first-pricing', '$rc_annual', 'ANNUAL', 'com.beautyscan.app.yearly', 'Annual Subscription', 'BeautyScan Yearly Premium'),
-  ('first-pricing', '$rc_monthly', 'MONTHLY', 'com.beautyscan.app.monthly', 'Monthly Subscription', 'BeautyScan Monthly Premium')
+  ('first-pricing', '$rc_annual', 'ANNUAL', 'com.lunasync.app.yearly', 'Annual Subscription', 'LunaSync Yearly Premium'),
+  ('first-pricing', '$rc_monthly', 'MONTHLY', 'com.lunasync.app.monthly', 'Monthly Subscription', 'LunaSync Monthly Premium')
 ON CONFLICT (offering_id, package_id) DO UPDATE SET
   package_type = EXCLUDED.package_type,
   product_id = EXCLUDED.product_id,
@@ -139,7 +139,7 @@ ON CONFLICT (offering_id, package_id) DO UPDATE SET
 INSERT INTO public.package_entitlements (package_id, entitlement_id)
 SELECT p.id, e.id
 FROM public.revenuecat_packages p, public.revenuecat_entitlements e
-WHERE p.product_id IN ('com.beautyscan.app.yearly', 'com.beautyscan.app.monthly')
+WHERE p.product_id IN ('com.lunasync.app.yearly', 'com.lunasync.app.monthly')
   AND e.entitlement_id = 'pro'
 ON CONFLICT (package_id, entitlement_id) DO NOTHING;
 

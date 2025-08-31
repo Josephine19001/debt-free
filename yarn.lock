@@ -3894,97 +3894,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"beautyscan@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "beautyscan@workspace:."
-  dependencies:
-    "@babel/core": "npm:^7.27.1"
-    "@dev-plugins/react-query": "npm:^0.3.1"
-    "@eslint/js": "npm:^9.27.0"
-    "@expo/vector-icons": "npm:^14.1.0"
-    "@gorhom/bottom-sheet": "npm:4"
-    "@react-native-async-storage/async-storage": "npm:2.1.2"
-    "@react-native-community/datetimepicker": "npm:8.4.1"
-    "@react-native-ml-kit/text-recognition": "npm:^1.5.2"
-    "@react-navigation/native": "npm:^7.1.6"
-    "@supabase/supabase-js": "npm:^2.49.8"
-    "@tanstack/react-query": "npm:^5.77.0"
-    "@trivago/prettier-plugin-sort-imports": "npm:^5.2.2"
-    "@types/react": "npm:~19.0.10"
-    "@types/react-native": "npm:^0.73.0"
-    autoprefixer: "npm:^10.4.21"
-    base64-arraybuffer: "npm:^1.0.2"
-    clsx: "npm:^2.1.1"
-    date-fns: "npm:^4.1.0"
-    eslint: "npm:^9.27.0"
-    eslint-config-expo: "npm:^9.2.0"
-    eslint-config-prettier: "npm:^10.1.5"
-    eslint-config-turbo: "npm:^2.5.3"
-    eslint-plugin-import: "npm:^2.31.0"
-    eslint-plugin-only-warn: "npm:^1.1.0"
-    eslint-plugin-prettier: "npm:^5.4.0"
-    eslint-plugin-react: "npm:^7.37.5"
-    eslint-plugin-react-native: "npm:^5.0.0"
-    expo: "npm:53.0.22"
-    expo-apple-authentication: "npm:^7.2.4"
-    expo-auth-session: "npm:~6.2.1"
-    expo-av: "npm:~15.1.7"
-    expo-blur: "npm:~14.1.5"
-    expo-camera: "npm:~16.1.11"
-    expo-crypto: "npm:~14.1.5"
-    expo-dev-client: "npm:~5.2.4"
-    expo-file-system: "npm:~18.1.11"
-    expo-font: "npm:~13.3.2"
-    expo-image-manipulator: "npm:~13.1.7"
-    expo-image-picker: "npm:^16.1.4"
-    expo-linear-gradient: "npm:~14.1.5"
-    expo-linking: "npm:~7.1.7"
-    expo-media-library: "npm:~17.1.7"
-    expo-progress: "npm:^0.0.2"
-    expo-router: "npm:~5.1.5"
-    expo-secure-store: "npm:~14.2.4"
-    expo-splash-screen: "npm:~0.30.10"
-    expo-status-bar: "npm:~2.2.3"
-    expo-store-review: "npm:^8.1.5"
-    expo-system-ui: "npm:~5.0.11"
-    expo-video: "npm:~2.2.1"
-    expo-web-browser: "npm:~14.2.0"
-    globals: "npm:^16.1.0"
-    jest: "npm:^29.2.1"
-    jest-expo: "npm:~53.0.10"
-    lucide-react-native: "npm:^0.511.0"
-    nativewind: "npm:^4.1.23"
-    openai: "npm:^5.1.0"
-    postcss: "npm:^8.5.3"
-    prettier: "npm:^3.5.3"
-    prettier-plugin-tailwindcss: "npm:^0.6.11"
-    react: "npm:19.0.0"
-    react-dom: "npm:19.0.0"
-    react-native: "npm:0.79.5"
-    react-native-calendars: "npm:^1.1312.1"
-    react-native-chart-kit: "npm:^6.12.0"
-    react-native-gesture-handler: "npm:~2.24.0"
-    react-native-purchases: "npm:^8.11.9"
-    react-native-purchases-ui: "npm:^8.11.9"
-    react-native-reanimated: "npm:~3.17.4"
-    react-native-reanimated-carousel: "npm:^4.0.2"
-    react-native-redash: "npm:^18.1.3"
-    react-native-safe-area-context: "npm:5.4.0"
-    react-native-screens: "npm:~4.11.1"
-    react-native-svg: "npm:15.11.2"
-    react-native-url-polyfill: "npm:^2.0.0"
-    react-native-web: "npm:~0.20.0"
-    react-test-renderer: "npm:19.0.0"
-    sonner-native: "npm:^0.20.0"
-    tailwind-merge: "npm:^3.3.0"
-    tailwindcss: "npm:3"
-    tailwindcss-animate: "npm:^1.0.7"
-    typescript: "npm:~5.8.3"
-    typescript-eslint: "npm:^8.32.1"
-    zustand: "npm:^5.0.5"
-  languageName: unknown
-  linkType: soft
-
 "better-opn@npm:~3.0.2":
   version: 3.0.2
   resolution: "better-opn@npm:3.0.2"
@@ -8628,6 +8537,98 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lunasync@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "lunasync@workspace:."
+  dependencies:
+    "@babel/core": "npm:^7.27.1"
+    "@dev-plugins/react-query": "npm:^0.3.1"
+    "@eslint/js": "npm:^9.27.0"
+    "@expo/vector-icons": "npm:^14.1.0"
+    "@gorhom/bottom-sheet": "npm:4"
+    "@react-native-async-storage/async-storage": "npm:2.1.2"
+    "@react-native-community/datetimepicker": "npm:8.4.1"
+    "@react-native-ml-kit/text-recognition": "npm:^1.5.2"
+    "@react-navigation/native": "npm:^7.1.6"
+    "@supabase/supabase-js": "npm:^2.49.8"
+    "@tanstack/react-query": "npm:^5.77.0"
+    "@trivago/prettier-plugin-sort-imports": "npm:^5.2.2"
+    "@types/react": "npm:~19.0.10"
+    "@types/react-native": "npm:^0.73.0"
+    autoprefixer: "npm:^10.4.21"
+    base64-arraybuffer: "npm:^1.0.2"
+    clsx: "npm:^2.1.1"
+    date-fns: "npm:^4.1.0"
+    eslint: "npm:^9.27.0"
+    eslint-config-expo: "npm:^9.2.0"
+    eslint-config-prettier: "npm:^10.1.5"
+    eslint-config-turbo: "npm:^2.5.3"
+    eslint-plugin-import: "npm:^2.31.0"
+    eslint-plugin-only-warn: "npm:^1.1.0"
+    eslint-plugin-prettier: "npm:^5.4.0"
+    eslint-plugin-react: "npm:^7.37.5"
+    eslint-plugin-react-native: "npm:^5.0.0"
+    expo: "npm:53.0.22"
+    expo-apple-authentication: "npm:^7.2.4"
+    expo-auth-session: "npm:~6.2.1"
+    expo-av: "npm:~15.1.7"
+    expo-blur: "npm:~14.1.5"
+    expo-camera: "npm:~16.1.11"
+    expo-constants: "npm:~17.1.7"
+    expo-crypto: "npm:~14.1.5"
+    expo-dev-client: "npm:~5.2.4"
+    expo-file-system: "npm:~18.1.11"
+    expo-font: "npm:~13.3.2"
+    expo-image-manipulator: "npm:~13.1.7"
+    expo-image-picker: "npm:^16.1.4"
+    expo-linear-gradient: "npm:~14.1.5"
+    expo-linking: "npm:~7.1.7"
+    expo-media-library: "npm:~17.1.7"
+    expo-progress: "npm:^0.0.2"
+    expo-router: "npm:~5.1.5"
+    expo-secure-store: "npm:~14.2.4"
+    expo-splash-screen: "npm:~0.30.10"
+    expo-status-bar: "npm:~2.2.3"
+    expo-store-review: "npm:^8.1.5"
+    expo-system-ui: "npm:~5.0.11"
+    expo-video: "npm:~2.2.1"
+    expo-web-browser: "npm:~14.2.0"
+    globals: "npm:^16.1.0"
+    jest: "npm:^29.2.1"
+    jest-expo: "npm:~53.0.10"
+    lucide-react-native: "npm:^0.511.0"
+    nativewind: "npm:^4.1.23"
+    openai: "npm:^5.1.0"
+    postcss: "npm:^8.5.3"
+    prettier: "npm:^3.5.3"
+    prettier-plugin-tailwindcss: "npm:^0.6.11"
+    react: "npm:19.0.0"
+    react-dom: "npm:19.0.0"
+    react-native: "npm:0.79.5"
+    react-native-calendars: "npm:^1.1312.1"
+    react-native-chart-kit: "npm:^6.12.0"
+    react-native-gesture-handler: "npm:~2.24.0"
+    react-native-purchases: "npm:^8.11.9"
+    react-native-purchases-ui: "npm:^8.11.9"
+    react-native-reanimated: "npm:~3.17.4"
+    react-native-reanimated-carousel: "npm:^4.0.2"
+    react-native-redash: "npm:^18.1.3"
+    react-native-safe-area-context: "npm:5.4.0"
+    react-native-screens: "npm:~4.11.1"
+    react-native-svg: "npm:15.11.2"
+    react-native-url-polyfill: "npm:^2.0.0"
+    react-native-web: "npm:~0.20.0"
+    react-test-renderer: "npm:19.0.0"
+    sonner-native: "npm:^0.20.0"
+    tailwind-merge: "npm:^3.3.0"
+    tailwindcss: "npm:3"
+    tailwindcss-animate: "npm:^1.0.7"
+    typescript: "npm:~5.8.3"
+    typescript-eslint: "npm:^8.32.1"
+    zustand: "npm:^5.0.5"
+  languageName: unknown
+  linkType: soft
+
 "make-dir@npm:^4.0.0":
   version: 4.0.0
   resolution: "make-dir@npm:4.0.0"
@@ -10568,7 +10569,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-purchases@npm:8.11.9, react-native-purchases@npm:^8.11.9":
+"react-native-purchases@npm:8.11.9":
   version: 8.11.9
   resolution: "react-native-purchases@npm:8.11.9"
   dependencies:
@@ -10577,6 +10578,18 @@ __metadata:
     react: ">= 16.6.3"
     react-native: "*"
   checksum: 10c0/74f74fe2d8e3cac8cacd4031537739c5945340491d02277214862e56257d4f07fb168d57038a9885b7fe068991a3997fd8c440b6bc50e7158e29882acc95bce6
+  languageName: node
+  linkType: hard
+
+"react-native-purchases@npm:^8.11.9":
+  version: 8.11.10
+  resolution: "react-native-purchases@npm:8.11.10"
+  dependencies:
+    "@revenuecat/purchases-typescript-internal": "npm:14.2.0"
+  peerDependencies:
+    react: ">= 16.6.3"
+    react-native: "*"
+  checksum: 10c0/7046e069db63779d4d5e2fb9f8461adaebf5365d8f7f5bbb211d9c06062090bb1f15dfe8bf634f7c8a628ac6ced88fe17030a2c6702da139f6d16690c4db4ad2
   languageName: node
   linkType: hard
 

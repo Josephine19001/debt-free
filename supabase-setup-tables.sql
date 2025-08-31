@@ -1,5 +1,5 @@
 -- ================================================================
--- Supabase Tables Setup for Aurae App
+-- Supabase Tables Setup for LunaSync App
 -- Settings, Onboarding, and User Preferences
 -- ================================================================
 
@@ -347,7 +347,7 @@ LEFT JOIN lifestyle_preferences lp ON up.user_id = lp.user_id;
 -- ================================================================
 DO $$
 BEGIN
-  RAISE NOTICE '✅ Aurae database tables created successfully!';
+  RAISE NOTICE '✅ LunaSync database tables created successfully!';
   RAISE NOTICE '';
   RAISE NOTICE 'Tables created:';
   RAISE NOTICE '- fitness_goals';

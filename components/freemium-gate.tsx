@@ -101,7 +101,7 @@ export function FreemiumGate({
             </View>
 
             <View style={styles.proFeatures}>
-              <Text style={styles.proFeaturesTitle}>With BeautyScan Pro:</Text>
+              <Text style={styles.proFeaturesTitle}>With LunaSync Pro:</Text>
 
               <View style={styles.featureItem}>
                 <Ionicons name="infinite-outline" size={20} color="#FF6B6B" />

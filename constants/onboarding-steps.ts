@@ -15,7 +15,7 @@ import { OnboardingStep } from '@/types/onboarding';
 export const onboardingSteps: OnboardingStep[] = [
   {
     id: 'welcome',
-    title: 'Welcome to Aurae',
+    title: 'Welcome to LunaSync',
     subtitle: "Let's create your personalized wellness experience",
     icon: Heart,
     color: '#EC4899',

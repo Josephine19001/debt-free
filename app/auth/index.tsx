@@ -268,14 +268,14 @@ export default function AuthScreen() {
             By continuing, you agree to our{' '}
             <Text
               className="text-pink-500 underline"
-              onPress={() => openLink('https://www.beautyscan.app/terms')}
+              onPress={() => openLink('https://www.lunasync.app/terms')}
             >
               Terms
             </Text>{' '}
             and{' '}
             <Text
               className="text-pink-500 underline"
-              onPress={() => openLink('https://www.beautyscan.app/privacy')}
+              onPress={() => openLink('https://www.lunasync.app/privacy')}
             >
               Privacy Policy
             </Text>

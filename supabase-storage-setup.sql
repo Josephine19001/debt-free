@@ -1,5 +1,5 @@
 -- ================================================================
--- Supabase Storage Setup for Aurae App
+-- Supabase Storage Setup for LunaSync App
 -- Avatar uploads and file management
 -- ================================================================
 

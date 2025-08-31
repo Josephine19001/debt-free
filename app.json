@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "BeautyScan",
-    "slug": "beautyscan",
+    "name": "LunaSync",
+    "slug": "lunasync",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "beautyscan",
+    "scheme": "lunasync",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
@@ -16,13 +16,13 @@
     "ios": {
       "supportsTablet": false,
       "userInterfaceStyle": "light",
-      "bundleIdentifier": "com.beautyscan.app",
+      "bundleIdentifier": "com.lunasync.app",
       "infoPlist": {
-        "NSCameraUsageDescription": "This app needs access to your camera to scan products and ingredients labels.",
-        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to select product images for ingredient analysis.",
+        "NSCameraUsageDescription": "LunaSync uses your camera to capture meal photos for nutrition tracking, and take profile avatar pictures to personalize your experience.",
+        "NSPhotoLibraryUsageDescription": "LunaSync accesses your photo library to select product images for ingredient analysis, upload meal photos for nutrition tracking, and choose profile avatar pictures.",
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "9"
+      "buildNumber": "4"
     },
     "android": {
       "userInterfaceStyle": "light",
@@ -31,7 +31,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.beautyscan.app",
+      "package": "com.lunasync.app",
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
@@ -85,7 +85,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "91f6f133-5998-4ed1-af6e-e2d6be3fccf8"
+        "projectId": "634500bb-609b-498d-9c74-6c7ae742a54a"
       }
     },
     "owner": "josephine19001"

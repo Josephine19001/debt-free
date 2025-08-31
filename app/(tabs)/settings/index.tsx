@@ -271,18 +271,18 @@ export default function SettingsScreen() {
               {/* <View className="bg-white mx-4 rounded-2xl shadow mt-4">
               <SettingsItem
                 icon={Star}
-                label="Rate BeautyScan"
+                label="Rate LunaSync"
                 onPress={() =>
                   Linking.openURL('https://apps.apple.com/app/id6747519576?action=write-review')
                 }
               />
               <SettingsItem
                 icon={Lightbulb}
-                label="Share BeautyScan"
+                label="Share LunaSync"
                 onPress={() =>
                   Share.share({
                     message:
-                      "Hey, I just found this random app that shows me the exact meaning of the ingredients on beauty products. It's called BeautyScan and it's honestly pretty cool - you should check it out! https://apps.apple.com/app/id6747519576",
+                      "Hey, I just found this random app that shows me the exact meaning of the ingredients on beauty products. It's called LunaSync and it's honestly pretty cool - you should check it out! https://apps.apple.com/app/id6747519576",
                     url: 'https://apps.apple.com/app/id6747519576',
                   })
                 }
@@ -298,12 +298,12 @@ export default function SettingsScreen() {
                 <SettingsItem
                   icon={FileText}
                   label="Terms and Conditions"
-                  onPress={() => Linking.openURL('https://www.beautyscan.app/terms')}
+                  onPress={() => Linking.openURL('https://www.lunasync.app/terms')}
                 />
                 <SettingsItem
                   icon={Shield}
                   label="Privacy Policy"
-                  onPress={() => Linking.openURL('https://www.beautyscan.app/privacy')}
+                  onPress={() => Linking.openURL('https://www.lunasync.app/privacy')}
                 />
                 <SettingsItem
                   icon={UserMinus}

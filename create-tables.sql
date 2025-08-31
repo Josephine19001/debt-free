@@ -1,4 +1,4 @@
--- BeautyScan Database Setup Script
+-- LunaSync Database Setup Script
 -- Run this SQL script in your Supabase SQL Editor to create all required tables
 
 -- Enable necessary extensions
