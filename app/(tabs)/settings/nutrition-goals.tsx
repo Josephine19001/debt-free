@@ -9,15 +9,15 @@ import { toast } from 'sonner-native';
 import {
   Target,
   Flame,
-  Heart,
+  Beef,
   Wheat,
-  Droplets,
   GlassWater,
   Sparkles,
   Edit3,
   X,
   Check,
 } from 'lucide-react-native';
+import { OliveOilIcon } from '@/components/icons/olive-oil-icon';
 import { useNutritionGoals, useUpdateNutritionGoals } from '@/lib/hooks/use-nutrition-goals';
 import { useNutritionGoalSetter } from '@/lib/hooks/use-nutrition-goal-setter';
 import { useBodyMeasurements } from '@/lib/hooks/use-weight-tracking';
@@ -291,7 +291,7 @@ export default function NutritionGoalsScreen() {
                   <View className="flex-row items-center justify-between bg-gray-50 p-4 rounded-xl">
                     <View className="flex-row items-center">
                       <View className="bg-red-100 p-3 rounded-full">
-                        <Heart size={28} color="#dc2626" />
+                        <Beef size={28} color="#dc2626" />
                       </View>
                       <View className="ml-4">
                         <Text className="text-sm font-medium text-gray-600 uppercase tracking-wide">
@@ -395,7 +395,7 @@ export default function NutritionGoalsScreen() {
                   <View className="flex-row items-center justify-between bg-gray-50 p-4 rounded-xl">
                     <View className="flex-row items-center">
                       <View className="bg-blue-100 p-3 rounded-full">
-                        <Droplets size={28} color="#2563eb" />
+                        <OliveOilIcon size={28} color="#2563eb" />
                       </View>
                       <View className="ml-4">
                         <Text className="text-sm font-medium text-gray-600 uppercase tracking-wide">

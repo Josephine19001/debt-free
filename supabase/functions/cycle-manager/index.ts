@@ -9,6 +9,7 @@ interface CycleSettings {
   cycle_length: number;
   period_length: number;
   last_period_date: string | null;
+  average_cycle_length?: number;
 }
 
 interface PeriodLog {
@@ -17,6 +18,27 @@ interface PeriodLog {
   flow_intensity?: 'light' | 'moderate' | 'heavy';
   mood?: 'happy' | 'normal' | 'sad' | 'irritable' | 'anxious';
   symptoms?: string[];
+  notes?: string;
+  // Additional fields for consistency with database cleanup
+  period_start?: boolean;
+  flow?: string;
+  period_flow?: string;
+  is_period?: boolean;
+  period?: boolean;
+  menstruation?: boolean;
+}
+
+interface SymptomEntry {
+  date: string;
+  symptoms: string[];
+  severity?: 'mild' | 'moderate' | 'severe';
+  notes?: string;
+}
+
+interface MoodEntry {
+  date: string;
+  mood: 'happy' | 'normal' | 'sad' | 'irritable' | 'anxious';
+  energy_level?: 'high' | 'medium' | 'low';
   notes?: string;
 }
 
@@ -43,16 +65,43 @@ function errorResponse(message: string, status = 400) {
 
 // Calculate current cycle phase based on settings and logs
 function calculateCyclePhase(settings: CycleSettings, periodLogs: any[]): CurrentCyclePhase | null {
-  if (!settings.last_period_date) return null;
+  // Try to find the most recent period start from logs first
+  const sortedLogs = periodLogs
+    .filter(
+      (log: any) =>
+        log.is_start_day === true ||
+        log.period_start === true ||
+        log.flow ||
+        log.period_flow ||
+        log.flow_intensity ||
+        log.is_period === true ||
+        log.period === true ||
+        log.menstruation === true
+    )
+    .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  let lastPeriodDate: Date;
+
+  if (sortedLogs.length > 0) {
+    // Use the most recent period from logs
+    lastPeriodDate = new Date(sortedLogs[0].date);
+  } else if (settings.last_period_date) {
+    // Fallback to settings
+    lastPeriodDate = new Date(settings.last_period_date);
+  } else {
+    return null;
+  }
 
   const today = new Date();
-  const lastPeriod = new Date(settings.last_period_date);
   const daysSinceLastPeriod = Math.floor(
-    (today.getTime() - lastPeriod.getTime()) / (1000 * 60 * 60 * 24)
+    (today.getTime() - lastPeriodDate.getTime()) / (1000 * 60 * 60 * 24)
   );
 
+  // Use average_cycle_length if available, otherwise cycle_length
+  const cycleLength = settings.average_cycle_length || settings.cycle_length || 28;
+
   // Calculate current day in cycle (1-based)
-  const dayInCycle = (daysSinceLastPeriod % settings.cycle_length) + 1;
+  const dayInCycle = (daysSinceLastPeriod % cycleLength) + 1;
 
   // Determine phase based on day in cycle
   let phase: CurrentCyclePhase['phase'];
@@ -333,14 +382,21 @@ Deno.serve(async (req) => {
           // Create or update cycle settings
           const body: CycleSettings = await req.json();
 
+          const upsertData: any = {
+            user_id: user.id,
+            cycle_length: body.cycle_length,
+            period_length: body.period_length,
+            last_period_date: body.last_period_date,
+          };
+
+          // Include average_cycle_length if provided
+          if (body.average_cycle_length !== undefined) {
+            upsertData.average_cycle_length = body.average_cycle_length;
+          }
+
           const { data, error } = await supabase
             .from('cycle_settings')
-            .upsert({
-              user_id: user.id,
-              cycle_length: body.cycle_length,
-              period_length: body.period_length,
-              last_period_date: body.last_period_date,
-            })
+            .upsert(upsertData)
             .select()
             .single();
 
@@ -370,11 +426,24 @@ Deno.serve(async (req) => {
             };
 
             // Only update fields that are provided
-            if (body.is_start_day !== undefined) updateData.is_start_day = body.is_start_day;
-            if (body.flow_intensity !== undefined) updateData.flow_intensity = body.flow_intensity;
+            if (body.is_start_day !== undefined) {
+              updateData.is_start_day = body.is_start_day;
+              updateData.period_start = body.is_start_day; // Keep consistent
+            }
+            if (body.flow_intensity !== undefined) {
+              updateData.flow_intensity = body.flow_intensity;
+              updateData.flow = body.flow_intensity; // Keep consistent
+            }
             if (body.mood !== undefined) updateData.mood = body.mood;
             if (body.symptoms !== undefined) updateData.symptoms = body.symptoms;
             if (body.notes !== undefined) updateData.notes = body.notes;
+
+            // Set period flags if this is period-related
+            if (body.is_start_day || body.flow_intensity) {
+              updateData.is_period = true;
+              updateData.period = true;
+              updateData.menstruation = true;
+            }
 
             const { data, error } = await supabase
               .from('period_logs')
@@ -391,16 +460,155 @@ Deno.serve(async (req) => {
             return jsonResponse(data);
           } else {
             // Create new log
+            const insertData: any = {
+              user_id: user.id,
+              date: body.date,
+              is_start_day: body.is_start_day || false,
+              flow_intensity: body.flow_intensity,
+              mood: body.mood,
+              symptoms: body.symptoms || [],
+              notes: body.notes,
+            };
+
+            // Set consistent period indicators
+            if (body.is_start_day) {
+              insertData.period_start = true;
+            }
+            if (body.flow_intensity) {
+              insertData.flow = body.flow_intensity;
+            }
+
+            // Set period flags if this is period-related
+            if (body.is_start_day || body.flow_intensity) {
+              insertData.is_period = true;
+              insertData.period = true;
+              insertData.menstruation = true;
+            }
+
+            const { data, error } = await supabase
+              .from('period_logs')
+              .insert(insertData)
+              .select()
+              .single();
+
+            if (error) {
+              return errorResponse(error.message);
+            }
+
+            return jsonResponse(data);
+          }
+        }
+
+        if (path === 'log-symptoms') {
+          // Log symptoms
+          const body: SymptomEntry = await req.json();
+
+          // Format the notes to include severity
+          const formattedNotes =
+            body.severity && body.notes
+              ? `Severity: ${body.severity} | ${body.notes}`
+              : body.severity
+                ? `Severity: ${body.severity}`
+                : body.notes;
+
+          // Check if a log already exists for this date
+          const { data: existingLog } = await supabase
+            .from('period_logs')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('date', body.date)
+            .single();
+
+          if (existingLog) {
+            // Update existing log with symptoms
+            const { data, error } = await supabase
+              .from('period_logs')
+              .update({
+                symptoms: body.symptoms,
+                notes: formattedNotes,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('user_id', user.id)
+              .eq('date', body.date)
+              .select()
+              .single();
+
+            if (error) {
+              return errorResponse(error.message);
+            }
+
+            return jsonResponse(data);
+          } else {
+            // Create new log with symptoms
             const { data, error } = await supabase
               .from('period_logs')
               .insert({
                 user_id: user.id,
                 date: body.date,
-                is_start_day: body.is_start_day || false,
-                flow_intensity: body.flow_intensity,
+                symptoms: body.symptoms,
+                notes: formattedNotes,
+                is_start_day: false,
+              })
+              .select()
+              .single();
+
+            if (error) {
+              return errorResponse(error.message);
+            }
+
+            return jsonResponse(data);
+          }
+        }
+
+        if (path === 'log-mood') {
+          // Log mood
+          const body: MoodEntry = await req.json();
+
+          // Format the notes to include energy level
+          const formattedNotes =
+            body.energy_level && body.notes
+              ? `Energy: ${body.energy_level} | ${body.notes}`
+              : body.energy_level
+                ? `Energy: ${body.energy_level}`
+                : body.notes;
+
+          // Check if a log already exists for this date
+          const { data: existingLog } = await supabase
+            .from('period_logs')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('date', body.date)
+            .single();
+
+          if (existingLog) {
+            // Update existing log with mood
+            const { data, error } = await supabase
+              .from('period_logs')
+              .update({
                 mood: body.mood,
-                symptoms: body.symptoms || [],
-                notes: body.notes,
+                notes: formattedNotes,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('user_id', user.id)
+              .eq('date', body.date)
+              .select()
+              .single();
+
+            if (error) {
+              return errorResponse(error.message);
+            }
+
+            return jsonResponse(data);
+          } else {
+            // Create new log with mood
+            const { data, error } = await supabase
+              .from('period_logs')
+              .insert({
+                user_id: user.id,
+                date: body.date,
+                mood: body.mood,
+                notes: formattedNotes,
+                is_start_day: false,
               })
               .select()
               .single();

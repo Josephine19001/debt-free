@@ -41,9 +41,14 @@ export const DropdownField: React.FC<DropdownFieldProps> = ({
 
   return (
     <View className="mb-4 relative">
-      <Text className="text-base font-medium text-black mb-2">{label}</Text>
+      <Text className="text-base font-medium text-black mb-2">
+        {label} {isVisible ? '(OPEN)' : '(CLOSED)'}
+      </Text>
       <TouchableOpacity
-        onPress={() => setIsVisible(!isVisible)}
+        onPress={() => {
+          console.log('Dropdown tapped, current visibility:', isVisible);
+          setIsVisible(!isVisible);
+        }}
         className="bg-gray-50 rounded-xl p-4 border border-gray-200 flex-row items-center justify-between"
       >
         <Text
@@ -55,7 +60,20 @@ export const DropdownField: React.FC<DropdownFieldProps> = ({
       </TouchableOpacity>
 
       {isVisible && (
-        <View className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl mt-1 max-h-48 z-50 shadow-lg">
+        <View
+          className="absolute top-full left-0 right-0 rounded-xl mt-1 max-h-48"
+          style={{
+            zIndex: 1000,
+            elevation: 10,
+            backgroundColor: '#FF0000', // Temporary red background to see if dropdown appears
+            borderWidth: 3,
+            borderColor: '#000000', // Black border to make it super visible
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 8,
+          }}
+        >
           <ScrollView showsVerticalScrollIndicator={false}>
             {options.map((option) => (
               <TouchableOpacity

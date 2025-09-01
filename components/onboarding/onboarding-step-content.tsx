@@ -23,15 +23,15 @@ export const OnboardingStepContent = ({
 }: OnboardingStepContentProps & { stepId: string }) => {
   const renderStepContent = () => {
     switch (stepId) {
-      case 'welcome':
-        return (
-          <Animated.View entering={FadeIn.duration(600)} className="items-center">
-            <Text className="text-gray-600 text-center text-lg leading-relaxed">
-              We'll ask you a few personalized questions to create your custom wellness experience
-              tailored just for you.
-            </Text>
-          </Animated.View>
-        );
+      // case 'welcome':
+      //   return (
+      //     <Animated.View entering={FadeIn.duration(600)} className="items-center">
+      //       <Text className="text-gray-600 text-center text-lg leading-relaxed">
+      //         We'll ask you a few personalized questions to create your custom wellness experience
+      //         tailored just for you.
+      //       </Text>
+      //     </Animated.View>
+      //   );
 
       case 'personal':
         return (
@@ -366,116 +366,24 @@ export const OnboardingStepContent = ({
 
       case 'complete':
         return (
-          <Animated.View entering={FadeIn.duration(600)} className="items-center">
-            {/* Features List */}
-            <View className="w-full mb-8">
-              {[
-                {
-                  icon: Calendar,
-                  title: 'Cycle Tracking',
-                  description: 'Track your period and fertility window',
-                  color: '#EC4899',
-                },
-                {
-                  icon: Apple,
-                  title: 'Nutrition Planning',
-                  description: 'Personalized meal plans and macro tracking',
-                  color: '#10B981',
-                },
-                {
-                  icon: Zap,
-                  title: 'Fitness Goals',
-                  description: 'Workouts that sync with your hormones',
-                  color: '#8B5CF6',
-                },
-                {
-                  icon: Bot,
-                  title: 'AI Assistant',
-                  description: 'Smart insights for your wellness journey',
-                  color: '#F59E0B',
-                },
-              ].map((feature, index) => {
-                const IconComponent = feature.icon;
-                return (
-                  <View key={index} className="flex-row items-center mb-6">
-                    <View
-                      className="w-12 h-12 rounded-full items-center justify-center mr-4"
-                      style={{ backgroundColor: `${feature.color}15` }}
-                    >
-                      <IconComponent size={24} color={feature.color} />
-                    </View>
-                    <View className="flex-1">
-                      <Text className="text-lg font-semibold text-gray-900 mb-1">
-                        {feature.title}
-                      </Text>
-                      <Text className="text-gray-600 text-sm">{feature.description}</Text>
-                    </View>
-                  </View>
-                );
-              })}
-            </View>
+          <Animated.View entering={FadeIn.duration(600)} className="items-center px-4">
+            {/* Completion Icon */}
+            <Animated.View
+              entering={FadeIn.delay(200).duration(800)}
+              className="w-20 h-20 bg-green-100 rounded-full items-center justify-center mb-8"
+            >
+              <Check size={40} color="#10B981" />
+            </Animated.View>
 
-            {/* Subscription Options */}
-            <View className="w-full mb-4">
-              <TouchableOpacity
-                onPress={() => updateData('plan', 'yearly')}
-                className={`relative p-4 rounded-xl border-2 mb-2 ${
-                  data.plan === 'yearly' ? 'border-pink-500 bg-pink-50' : 'border-gray-200 bg-white'
-                }`}
-              >
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-1">
-                    <Text className="text-lg font-bold text-gray-900">Yearly - $0.77/week</Text>
-                    <Text className="text-xs text-gray-600">$39.99/year after trial</Text>
-                  </View>
-                  <View className="bg-pink-500 px-2 py-1 rounded-full">
-                    <Text className="text-white text-xs font-bold">Save 58%</Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => updateData('plan', 'monthly')}
-                className={`p-4 rounded-xl border-2 ${
-                  data.plan === 'monthly'
-                    ? 'border-pink-500 bg-pink-50'
-                    : 'border-gray-200 bg-white'
-                }`}
-              >
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-1">
-                    <Text className="text-lg font-bold text-gray-900">Monthly - $1.84/week</Text>
-                    <Text className="text-xs text-gray-600">$7.99/month after trial</Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            </View>
-
-            {/* No Payment Notice */}
-            <View className="w-full mb-2">
-              <Text className="text-center text-gray-600 text-xs">
-                No payment required • Cancel anytime
+            {/* Completion Message */}
+            <Animated.View entering={FadeIn.delay(400).duration(800)} className="items-center">
+              <Text className="text-2xl font-bold text-slate-900 text-center mb-4">
+                Onboarding Complete! 🎉
               </Text>
-            </View>
-
-            {/* Restore Purchases */}
-            <View className="w-full mb-3">
-              <TouchableOpacity className="items-center">
-                <Text className="text-gray-500 text-xs underline">Restore Purchases</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Terms & Privacy */}
-            <View className="w-full mb-4">
-              <View className="flex-row justify-center items-center">
-                <TouchableOpacity className="mr-6">
-                  <Text className="text-gray-500 text-xs underline">Terms</Text>
-                </TouchableOpacity>
-                <TouchableOpacity>
-                  <Text className="text-gray-500 text-xs underline">Privacy</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+              <Text className="text-lg text-slate-600 text-center leading-relaxed">
+                Perfect! We've got everything we need to personalize your wellness journey.
+              </Text>
+            </Animated.View>
           </Animated.View>
         );
 

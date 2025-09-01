@@ -8,28 +8,28 @@
 
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
-		3B61075C323CDBA846A9929E /* libPods-LunaSync.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A0F747FBB0EB03E48F194D57 /* libPods-LunaSync.a */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		54BE93987C01F2759B15F25A /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 7B374C63A82450038FE0B22E /* PrivacyInfo.xcprivacy */; };
+		7C6FFB4EAEFBFF00DE010ADA /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9DB6313EBEB8B9341AC3490 /* ExpoModulesProvider.swift */; };
+		82133B1CAFA538BA82E39DB7 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 08B4654BD3EFA04030F16DD2 /* PrivacyInfo.xcprivacy */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
-		F7E2F3B05C0A393AE923729A /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A1B9E548B5B3118B33DBEF /* ExpoModulesProvider.swift */; };
+		FE4D9179E33750C0FD51127B /* libPods-LunaSync.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E48FD389FFE2C3B43DA34847 /* libPods-LunaSync.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		08B4654BD3EFA04030F16DD2 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = LunaSync/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* LunaSync.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LunaSync.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = LunaSync/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = LunaSync/Info.plist; sourceTree = "<group>"; };
-		3211CFF61EF4A8D515EEEE9F /* Pods-LunaSync.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LunaSync.release.xcconfig"; path = "Target Support Files/Pods-LunaSync/Pods-LunaSync.release.xcconfig"; sourceTree = "<group>"; };
-		7B374C63A82450038FE0B22E /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = LunaSync/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		9D6BFED90C5647A3A92DF841 /* Pods-LunaSync.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LunaSync.debug.xcconfig"; path = "Target Support Files/Pods-LunaSync/Pods-LunaSync.debug.xcconfig"; sourceTree = "<group>"; };
-		A0F747FBB0EB03E48F194D57 /* libPods-LunaSync.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-LunaSync.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		73E40D8F9C0042605E7F7C0E /* Pods-LunaSync.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LunaSync.release.xcconfig"; path = "Target Support Files/Pods-LunaSync/Pods-LunaSync.release.xcconfig"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = LunaSync/SplashScreen.storyboard; sourceTree = "<group>"; };
+		AD3A0076AC6C266E569FFE7E /* Pods-LunaSync.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LunaSync.debug.xcconfig"; path = "Target Support Files/Pods-LunaSync/Pods-LunaSync.debug.xcconfig"; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		E9A1B9E548B5B3118B33DBEF /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-LunaSync/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		E48FD389FFE2C3B43DA34847 /* libPods-LunaSync.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-LunaSync.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = LunaSync/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* LunaSync-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LunaSync-Bridging-Header.h"; path = "LunaSync/LunaSync-Bridging-Header.h"; sourceTree = "<group>"; };
+		F9DB6313EBEB8B9341AC3490 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-LunaSync/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,7 +37,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3B61075C323CDBA846A9929E /* libPods-LunaSync.a in Frameworks */,
+				FE4D9179E33750C0FD51127B /* libPods-LunaSync.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -53,34 +53,28 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				7B374C63A82450038FE0B22E /* PrivacyInfo.xcprivacy */,
+				08B4654BD3EFA04030F16DD2 /* PrivacyInfo.xcprivacy */,
 			);
 			name = LunaSync;
-			sourceTree = "<group>";
-		};
-		22DF018127E896DC5E8674F9 /* ExpoModulesProviders */ = {
-			isa = PBXGroup;
-			children = (
-				51731EAED18DEF20A06E6B63 /* LunaSync */,
-			);
-			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				A0F747FBB0EB03E48F194D57 /* libPods-LunaSync.a */,
+				E48FD389FFE2C3B43DA34847 /* libPods-LunaSync.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		51731EAED18DEF20A06E6B63 /* LunaSync */ = {
+		5ACFA1D042FD66F46F957174 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				E9A1B9E548B5B3118B33DBEF /* ExpoModulesProvider.swift */,
+				AD3A0076AC6C266E569FFE7E /* Pods-LunaSync.debug.xcconfig */,
+				73E40D8F9C0042605E7F7C0E /* Pods-LunaSync.release.xcconfig */,
 			);
-			name = LunaSync;
+			name = Pods;
+			path = Pods;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -97,8 +91,8 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				C29DCCF55ED6FC8422C065B1 /* Pods */,
-				22DF018127E896DC5E8674F9 /* ExpoModulesProviders */,
+				5ACFA1D042FD66F46F957174 /* Pods */,
+				F24E61043D63638BA5FEB27E /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -113,6 +107,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		8E6BDC50EA62AF51EAD38B99 /* LunaSync */ = {
+			isa = PBXGroup;
+			children = (
+				F9DB6313EBEB8B9341AC3490 /* ExpoModulesProvider.swift */,
+			);
+			name = LunaSync;
+			sourceTree = "<group>";
+		};
 		BB2F792B24A3F905000567C9 /* Supporting */ = {
 			isa = PBXGroup;
 			children = (
@@ -122,14 +124,12 @@
 			path = LunaSync/Supporting;
 			sourceTree = "<group>";
 		};
-		C29DCCF55ED6FC8422C065B1 /* Pods */ = {
+		F24E61043D63638BA5FEB27E /* ExpoModulesProviders */ = {
 			isa = PBXGroup;
 			children = (
-				9D6BFED90C5647A3A92DF841 /* Pods-LunaSync.debug.xcconfig */,
-				3211CFF61EF4A8D515EEEE9F /* Pods-LunaSync.release.xcconfig */,
+				8E6BDC50EA62AF51EAD38B99 /* LunaSync */,
 			);
-			name = Pods;
-			path = Pods;
+			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -140,13 +140,13 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "LunaSync" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				4BAE6DA2121BE35F3522B571 /* [Expo] Configure project */,
+				139E79E0322A0A285914E392 /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				88EAB28527BDD1989CBF3FCC /* [CP] Embed Pods Frameworks */,
+				AAFBD88ADACA28C41211E0C7 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -166,8 +166,8 @@
 				LastUpgradeCheck = 1130;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
-						DevelopmentTeam = 2AFY6WW292;
 						LastSwiftMigration = 1250;
+						DevelopmentTeam = "2AFY6WW292";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -198,7 +198,7 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				54BE93987C01F2759B15F25A /* PrivacyInfo.xcprivacy in Resources */,
+				82133B1CAFA538BA82E39DB7 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -242,7 +242,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		4BAE6DA2121BE35F3522B571 /* [Expo] Configure project */ = {
+		139E79E0322A0A285914E392 /* [Expo] Configure project */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -268,6 +268,8 @@
 			);
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-LunaSync/Pods-LunaSync-resources.sh",
+				"${PODS_CONFIGURATION_BUILD_DIR}/Adapty/Adapty.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/AdaptyUI/AdaptyUI.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXApplication/ExpoApplication_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXConstants/EXConstants.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXConstants/ExpoConstants_privacy.bundle",
@@ -299,9 +301,12 @@
 				"${PODS_CONFIGURATION_BUILD_DIR}/expo-dev-menu/EXDevMenu.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/glog/glog_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/nanopb/nanopb_Privacy.bundle",
+				"${PODS_ROOT}/../../node_modules/react-native-adapty/ios/Pods/Pods.xcodeproj/xcuserdata/jimpunster.xcuserdatad/xcschemes/xcschememanagement.plist",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputPaths = (
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Adapty.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AdaptyUI.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoApplication_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/EXConstants.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoConstants_privacy.bundle",
@@ -333,13 +338,14 @@
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/EXDevMenu.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/glog_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/nanopb_Privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/xcschememanagement.plist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-LunaSync/Pods-LunaSync-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		88EAB28527BDD1989CBF3FCC /* [CP] Embed Pods Frameworks */ = {
+		AAFBD88ADACA28C41211E0C7 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -365,7 +371,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				F7E2F3B05C0A393AE923729A /* ExpoModulesProvider.swift in Sources */,
+				7C6FFB4EAEFBFF00DE010ADA /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -374,15 +380,12 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 9D6BFED90C5647A3A92DF841 /* Pods-LunaSync.debug.xcconfig */;
+			baseConfigurationReference = AD3A0076AC6C266E569FFE7E /* Pods-LunaSync.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = LunaSync/LunaSync.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 2AFY6WW292;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -408,20 +411,20 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 				VERSIONING_SYSTEM = "apple-generic";
+				DEVELOPMENT_TEAM = "2AFY6WW292";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 			};
 			name = Debug;
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 3211CFF61EF4A8D515EEEE9F /* Pods-LunaSync.release.xcconfig */;
+			baseConfigurationReference = 73E40D8F9C0042605E7F7C0E /* Pods-LunaSync.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = LunaSync/LunaSync.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 2AFY6WW292;
 				INFOPLIST_FILE = LunaSync/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -441,6 +444,9 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 				VERSIONING_SYSTEM = "apple-generic";
+				DEVELOPMENT_TEAM = "2AFY6WW292";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 			};
 			name = Release;
 		};

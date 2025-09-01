@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { toast } from 'sonner-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Crypto from 'expo-crypto';
+import { OnboardingStorage } from '@/lib/utils/onboarding-storage';
 
 // Note: RevenueCat functionality is now in the RevenueCatProvider context
 
@@ -29,6 +30,14 @@ interface AuthContextType {
     onboardingData?: any
   ) => Promise<void>;
   signInWithApple: (plan?: string, onboardingData?: any) => Promise<void>;
+  signUpWithOnboarding: (
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+    plan?: string
+  ) => Promise<void>;
+  signUpWithAppleOnboarding: (plan?: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -62,121 +71,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Ensure account record exists
       await ensureAccountExists(userId);
 
-      // Check if we're in development environment
-      const isDevelopment = __DEV__ || process.env.NODE_ENV === 'development';
-
-      if (isDevelopment && isNewUser) {
-        // In development, new users go directly to nutrition after signup
-        return '/(tabs)/nutrition';
+      // If explicitly marked as new user (from onboarding flow), go to paywall
+      if (isNewUser) {
+        return '/paywall?source=onboarding&successRoute=/(tabs)/nutrition';
       }
 
-      // For now, always go to main app - the subscription guard will handle showing paywall
-      // This allows users to experience the app during grace period
+      // For uncertain cases (like Apple sign-in), check if user has completed onboarding
+      const { data: account } = await supabase
+        .from('accounts')
+        .select('onboarding_completed')
+        .eq('user_id', userId)
+        .single();
+
+      // If user hasn't completed onboarding, redirect to onboarding
+      if (!account?.onboarding_completed) {
+        return '/onboarding';
+      }
+
+      // Existing users with completed onboarding go directly to main app
       return '/(tabs)/nutrition';
     } catch (error) {
       console.error('Error in getPostAuthRoute:', error);
       // Fallback: go to main app, let subscription guard handle the rest
       return '/(tabs)/nutrition';
-    }
-  };
-
-  // Helper function to trigger immediate purchase
-  const handleImmediatePurchase = async (userId: string, plan: string): Promise<boolean> => {
-    try {
-      // Get current offerings
-      // TODO: Update to use RevenueCat context
-      // const currentOffering = await revenueCatService.getCurrentOffering();
-      const currentOffering: any = null; // Temporary fallback
-
-      if (!currentOffering?.availablePackages) {
-        toast.error('No subscription options available');
-        return false;
-      }
-
-      // Find the package based on selected plan
-      const packageToPurchase = currentOffering.availablePackages.find((pkg: any) =>
-        plan === 'yearly'
-          ? pkg.packageType === 'ANNUAL' ||
-            pkg.identifier.includes('yearly') ||
-            pkg.product.identifier.includes('yearly')
-          : pkg.packageType === 'MONTHLY' ||
-            pkg.identifier.includes('monthly') ||
-            pkg.product.identifier.includes('monthly')
-      );
-
-      if (!packageToPurchase) {
-        toast.error('Selected subscription plan not available');
-        return false;
-      }
-
-      // Check if we're in Expo Go - if so, simulate success
-      const isExpoGo = __DEV__ && !process.env.EXPO_STANDALONE_APP;
-
-      if (isExpoGo) {
-        // Simulate purchase in Expo Go
-        return true;
-      }
-
-      // Process actual purchase with RevenueCat
-      // TODO: Update to use RevenueCat context
-      // const result = await revenueCatService.purchasePackage(packageToPurchase);
-      const result: any = { success: false }; // Temporary fallback
-
-      if (result.success) {
-        // Update RevenueCat with the user ID to sync subscription
-        // TODO: Update to use RevenueCat context
-        // await revenueCatService.identifyUser(userId);
-
-        // Update database with subscription status
-        await supabase.rpc('update_subscription_status', {
-          p_user_id: userId,
-          p_subscription_status: 'active',
-          p_subscription_plan: plan,
-          p_subscription_active: true,
-        });
-
-        return true;
-      } else {
-        // Payment failed - update database to reflect free status
-        await supabase.rpc('update_subscription_status', {
-          p_user_id: userId,
-          p_subscription_status: 'payment_failed',
-          p_subscription_plan: 'free',
-          p_subscription_active: false,
-        });
-
-        return false;
-      }
-    } catch (error: any) {
-      // Payment error - update database to reflect free status
-      try {
-        await supabase.rpc('update_subscription_status', {
-          p_user_id: userId,
-          p_subscription_status: 'payment_error',
-          p_subscription_plan: 'free',
-          p_subscription_active: false,
-        });
-      } catch (dbError) {
-        console.error('Error updating database after payment failure:', dbError);
-      }
-
-      console.error('Error in handleImmediatePurchase:', error);
-      return false;
-    }
-  };
-
-  // Helper function to show payment retry popup
-  const showPaymentRetry = async (userId: string, plan: string): Promise<string> => {
-    // In a real app, this would show a modal/popup to retry payment
-    // For now, we'll try payment again immediately
-    const retrySuccess = await handleImmediatePurchase(userId, plan);
-
-    if (retrySuccess) {
-      return '/(tabs)/nutrition';
-    } else {
-      // Final fallback - show error and go back to welcome
-      toast.error('Payment failed. Please try again from the welcome screen.');
-      return '/';
     }
   };
 
@@ -361,8 +278,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      // Free users go directly to app, bypassing subscription check
-      router.replace('/(tabs)/nutrition');
+      // Navigate based on the new flow
+      const route = await getPostAuthRoute(data.user.id, 'free', true);
+      router.replace(route as any);
     }
     setLoading(false);
     if (error) throw error;
@@ -385,6 +303,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         nonce: hashedNonce,
       });
 
+      // console.log('appleCredential', appleCredential); // Removed for security
+
       // Add user metadata if we have the name from Apple
       const options: any = {};
       if (
@@ -393,13 +313,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         plan ||
         onboardingData
       ) {
+        const firstName =
+          appleCredential.fullName?.givenName || onboardingData?.name?.split(' ')[0] || '';
+        const lastName =
+          appleCredential.fullName?.familyName ||
+          onboardingData?.name?.split(' ').slice(1).join(' ') ||
+          '';
+
         options.data = {
-          first_name:
-            appleCredential.fullName?.givenName || onboardingData?.name?.split(' ')[0] || '',
-          last_name:
-            appleCredential.fullName?.familyName ||
-            onboardingData?.name?.split(' ').slice(1).join(' ') ||
-            '',
+          first_name: firstName,
+          last_name: lastName,
           selected_plan: plan || 'free',
           onboarding_data: onboardingData ? JSON.stringify(onboardingData) : null,
         };
@@ -416,10 +339,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Process onboarding data if provided (for new users)
         if (onboardingData) {
           try {
-            const { error } = await supabase.rpc('process_onboarding_data', {
+            const rpcParams = {
               p_user_id: data.user.id,
-              p_onboarding_data: onboardingData,
-            });
+              p_name: onboardingData.name,
+              p_date_of_birth: onboardingData.dateOfBirth,
+              p_fitness_goal: onboardingData.fitnessGoal,
+              p_fitness_frequency: onboardingData.fitnessFrequency,
+              p_fitness_experience: onboardingData.fitnessExperience,
+              p_nutrition_goal: onboardingData.nutritionGoal,
+              p_activity_level: onboardingData.activityLevel,
+              p_nutrition_experience: onboardingData.nutritionExperience,
+              p_height: onboardingData.height,
+              p_weight: onboardingData.weight,
+              p_weight_goal: onboardingData.weightGoal,
+              p_units: onboardingData.units,
+            };
+
+            const { error } = await supabase.rpc('process_onboarding_data', rpcParams);
 
             if (error) {
               console.error('Onboarding processing failed:', error.message);
@@ -435,8 +371,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
 
-        // Apple authentication - could be new or existing user
-        const route = await getPostAuthRoute(data.user.id, plan, true);
+        // Check if this is a new user or existing user
+        // If we have onboarding data, it's definitely a new user from the signup flow
+        const isNewUser = !!onboardingData;
+        const route = await getPostAuthRoute(data.user.id, plan, isNewUser);
         router.replace(route as any);
       }
 
@@ -455,9 +393,125 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     setLoading(true);
     const { error } = await supabase.auth.signOut();
+    // Clear onboarding data on signout
+    await OnboardingStorage.clear();
     setLoading(false);
     if (error) throw error;
     router.replace('/auth?mode=signin');
+  };
+
+  // New transactional signup with onboarding via Edge Function
+  const signUpWithOnboarding = async (
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+    plan?: string
+  ) => {
+    setLoading(true);
+    try {
+      // Load onboarding data from storage
+      const onboardingData = await OnboardingStorage.load();
+      if (!onboardingData) {
+        throw new Error('Onboarding data not found. Please complete onboarding first.');
+      }
+
+      // Call Edge Function for transactional signup + onboarding
+      const { data, error } = await supabase.functions.invoke('signup-with-onboarding', {
+        body: {
+          email,
+          password,
+          firstName,
+          lastName,
+          plan: plan || 'free',
+          onboardingData,
+        },
+      });
+
+      if (error) throw error;
+      if (!data.success) throw new Error(data.error || 'Signup failed');
+
+      // Clear onboarding data after successful signup
+      await OnboardingStorage.clear();
+
+      // Navigate to appropriate route
+      const route =
+        plan && plan !== 'free'
+          ? '/paywall?source=onboarding&successRoute=/(tabs)/nutrition'
+          : '/(tabs)/nutrition';
+
+      router.replace(route as any);
+      toast.success('Account created successfully!');
+    } catch (error: any) {
+      console.error('Signup with onboarding failed:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // New transactional Apple signup with onboarding via Edge Function
+  const signUpWithAppleOnboarding = async (plan?: string) => {
+    setLoading(true);
+    try {
+      // Load onboarding data from storage
+      const onboardingData = await OnboardingStorage.load();
+      if (!onboardingData) {
+        throw new Error('Onboarding data not found. Please complete onboarding first.');
+      }
+
+      // Get Apple credentials
+      const nonce = Math.random().toString(36).substring(2, 10);
+      const hashedNonce = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        nonce
+      );
+
+      const appleCredential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+        nonce: hashedNonce,
+      });
+
+      // Call Edge Function for transactional Apple signup + onboarding
+      const { data, error } = await supabase.functions.invoke('signup-with-onboarding', {
+        body: {
+          plan: plan || 'free',
+          appleCredential: {
+            identityToken: appleCredential.identityToken!,
+            nonce,
+            fullName: appleCredential.fullName,
+          },
+          onboardingData,
+        },
+      });
+
+      if (error) throw error;
+      if (!data.success) throw new Error(data.error || 'Apple signup failed');
+
+      // Clear onboarding data after successful signup
+      await OnboardingStorage.clear();
+
+      // Navigate to appropriate route
+      const route =
+        plan && plan !== 'free'
+          ? '/paywall?source=onboarding&successRoute=/(tabs)/nutrition'
+          : '/(tabs)/nutrition';
+
+      router.replace(route as any);
+      toast.success('Account created successfully!');
+    } catch (error: any) {
+      if (error.code === 'ERR_REQUEST_CANCELED') {
+        // User canceled the sign-in flow
+        return;
+      }
+      console.error('Apple signup with onboarding failed:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const value = {
@@ -468,6 +522,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signUpWithEmail,
     signUpWithEmailFree,
     signInWithApple,
+    signUpWithOnboarding,
+    signUpWithAppleOnboarding,
     signOut,
   };
 

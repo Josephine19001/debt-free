@@ -46,31 +46,25 @@ export function ExerciseSummaryCard({ dailySummary, isLoading }: ExerciseSummary
           </View>
 
           {/* Circular Progress Ring */}
-          <View className="relative w-24 h-24">
-            <View className="absolute inset-0 items-center justify-center">
-              {/* Background Circle */}
-              <View
-                className="w-20 h-20 rounded-full border-4"
-                style={{ borderColor: '#F3F4F6' }}
-              />
+          <View className="relative w-24 h-24 items-center justify-center">
+            {/* Background Circle */}
+            <View className="w-20 h-20 rounded-full border-4" style={{ borderColor: '#F3F4F6' }} />
 
-              {/* Progress Circle */}
+            {/* Progress Circle */}
+            {minutesProgress > 0 && (
               <View
-                className="absolute w-20 h-20 rounded-full border-4"
+                className="w-20 h-20 rounded-full border-4 absolute"
                 style={{
-                  borderColor: 'transparent',
+                  borderColor: '#F3F4F6',
                   borderTopColor: '#8B5CF6',
-                  borderRightColor: minutesProgress > 25 ? '#8B5CF6' : 'transparent',
-                  borderBottomColor: minutesProgress > 50 ? '#8B5CF6' : 'transparent',
-                  borderLeftColor: minutesProgress > 75 ? '#8B5CF6' : 'transparent',
                   transform: [{ rotate: `${-90 + minutesProgress * 3.6}deg` }],
                 }}
               />
-            </View>
+            )}
 
             {/* Center Content */}
-            <View className="absolute inset-0 items-center justify-center">
-              <Text className="text-purple-600 text-lg font-bold">
+            <View className="absolute w-20 h-20 items-center justify-center">
+              <Text className="text-purple-600 text-sm font-bold">
                 {Math.round(minutesProgress)}%
               </Text>
             </View>

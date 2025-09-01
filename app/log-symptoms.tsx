@@ -1,22 +1,64 @@
-import { View, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import {
+  View,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Animated,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { Text } from '@/components/ui/text';
 import { router } from 'expo-router';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import SubPageLayout from '@/components/layouts/sub-page';
-import { AlertCircle, Sparkles } from 'lucide-react-native';
-import { useLogPeriodData, usePeriodLogs, useTodaysPeriodLog } from '@/lib/hooks/use-cycle-data';
-import { useAppNavigation } from '@/lib/hooks/use-navigation';
+import { Check } from 'lucide-react-native';
+import { usePeriodLogs, useTodaysPeriodLog } from '@/lib/hooks/use-cycle-data';
+import { useLogSymptoms } from '@/lib/hooks/use-symptoms-mood';
+import { Button } from '@/components/ui/button';
+import {
+  CrampsIcon,
+  HeadacheIcon,
+  MoodSwingsIcon,
+  BloatingIcon,
+  FatigueIcon,
+  BreastTendernessIcon,
+  BackPainIcon,
+  NauseaIcon,
+  AcneIcon,
+  FoodCravingsIcon,
+  InsomniaIcon,
+  AnxietyIcon,
+} from '@/components/icons/symptom-icons';
 
 export default function LogSymptomsScreen() {
-  const { goBack } = useAppNavigation();
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
   const [selectedSeverity, setSelectedSeverity] = useState<'mild' | 'moderate' | 'severe' | ''>('');
   const [notes, setNotes] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const logPeriodData = useLogPeriodData();
+  // Animation values
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+
+  const logSymptoms = useLogSymptoms();
   const { data: periodLogs = [] } = usePeriodLogs();
   const todaysLog = useTodaysPeriodLog();
+
+  // Entrance animation
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   // Set initial state from existing data
   useEffect(() => {
@@ -43,42 +85,24 @@ export default function LogSymptomsScreen() {
   }, [todaysLog]);
 
   const symptomOptions = [
-    { value: 'cramps', label: 'Cramps', emoji: '🤕', color: '#EF4444' },
-    { value: 'headache', label: 'Headache', emoji: '🤯', color: '#F59E0B' },
-    { value: 'mood_swings', label: 'Mood Swings', emoji: '😤', color: '#8B5CF6' },
-    { value: 'bloating', label: 'Bloating', emoji: '🫃', color: '#06B6D4' },
-    { value: 'fatigue', label: 'Fatigue', emoji: '😴', color: '#6B7280' },
-    { value: 'breast_tenderness', label: 'Breast Tenderness', emoji: '💔', color: '#EC4899' },
-    { value: 'back_pain', label: 'Back Pain', emoji: '🔥', color: '#DC2626' },
-    { value: 'nausea', label: 'Nausea', emoji: '🤢', color: '#10B981' },
-    { value: 'acne', label: 'Acne', emoji: '🔴', color: '#F97316' },
-    { value: 'food_cravings', label: 'Food Cravings', emoji: '🍫', color: '#84CC16' },
-    { value: 'insomnia', label: 'Insomnia', emoji: '🌙', color: '#3B82F6' },
-    { value: 'anxiety', label: 'Anxiety', emoji: '😰', color: '#F59E0B' },
+    { value: 'cramps', label: 'Cramps', icon: 'cramps' },
+    { value: 'headache', label: 'Headache', icon: 'headache' },
+    { value: 'mood_swings', label: 'Mood Swings', icon: 'mood_swings' },
+    { value: 'fatigue', label: 'Fatigue', icon: 'fatigue' },
+    { value: 'nausea', label: 'Nausea', icon: 'nausea' },
+    { value: 'insomnia', label: 'Insomnia', icon: 'insomnia' },
+    { value: 'anxiety', label: 'Anxiety', icon: 'anxiety' },
+    { value: 'food_cravings', label: 'Food Cravings', icon: 'food_cravings' },
+    { value: 'acne', label: 'Acne', icon: 'acne' },
+    { value: 'breast_tenderness', label: 'Breast Tenderness', icon: 'breast_tenderness' },
+    { value: 'bloating', label: 'Bloating', icon: 'bloating' },
+    { value: 'back_pain', label: 'Back Pain', icon: 'back_pain' },
   ];
 
   const severityOptions = [
-    {
-      value: 'mild',
-      label: 'Mild',
-      color: '#10B981',
-      icon: '🟢',
-      description: 'Barely noticeable',
-    },
-    {
-      value: 'moderate',
-      label: 'Moderate',
-      color: '#F59E0B',
-      icon: '🟡',
-      description: 'Somewhat bothersome',
-    },
-    {
-      value: 'severe',
-      label: 'Severe',
-      color: '#EF4444',
-      icon: '🔴',
-      description: 'Very uncomfortable',
-    },
+    { value: 'mild', label: 'Mild' },
+    { value: 'moderate', label: 'Moderate' },
+    { value: 'severe', label: 'Severe' },
   ];
 
   const handleSymptomToggle = (symptom: string) => {
@@ -99,25 +123,19 @@ export default function LogSymptomsScreen() {
     const day = String(today.getDate()).padStart(2, '0');
     const dateString = `${year}-${month}-${day}`;
 
-    // Store severity in notes with a special format
-    const symptomNotes = notes.trim();
-    const severityNote = selectedSeverity ? `Severity: ${selectedSeverity}` : '';
-    const combinedNotes =
-      symptomNotes && severityNote
-        ? `${severityNote} | ${symptomNotes}`
-        : severityNote || symptomNotes;
-
-    // Log symptoms (backend will handle merging with existing data)
-    logPeriodData.mutate(
+    // Log symptoms using direct Supabase function
+    logSymptoms.mutate(
       {
         date: dateString,
         symptoms: selectedSymptoms,
-        notes: combinedNotes || undefined,
+        severity: selectedSeverity || undefined,
+        notes: notes.trim() || undefined,
       },
       {
         onSuccess: () => {
           setIsLoading(false);
-          goBack();
+          // Navigate back to cycle tab specifically
+          router.push('/(tabs)/cycle');
         },
         onError: (error) => {
           console.error('Error saving symptom log:', error);
@@ -130,189 +148,174 @@ export default function LogSymptomsScreen() {
   const isFormValid = selectedSymptoms.length > 0;
 
   return (
-    <SubPageLayout
-      title="Log Symptoms"
-      rightElement={
-        <TouchableOpacity
-          onPress={handleSave}
-          disabled={!isFormValid || isLoading}
-          className={`px-6 py-3 rounded-full ${
-            isFormValid && !isLoading ? 'bg-orange-500' : 'bg-gray-300'
-          }`}
+    <View className="flex-1" style={{ backgroundColor: '#F5F1E8' }}>
+      <SubPageLayout
+        title="Log Symptoms"
+        onBack={() => router.push('/(tabs)/cycle')}
+        rightElement={
+          <Button
+            title="Log"
+            onPress={handleSave}
+            variant="primary"
+            size="small"
+            disabled={!isFormValid || isLoading}
+            loading={isLoading}
+          />
+        }
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          className="flex-1"
         >
-          <Text
-            className={`font-semibold ${
-              isFormValid && !isLoading ? 'text-white' : 'text-gray-500'
-            }`}
+          <ScrollView
+            className="flex-1"
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 100 }}
+            keyboardShouldPersistTaps="handled"
           >
-            {isLoading ? 'Saving...' : 'Save'}
-          </Text>
-        </TouchableOpacity>
-      }
-    >
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="px-4 pt-6">
-          {/* Header */}
-          <View className="mb-8">
-            <View className="flex-row items-center mb-3">
-              <Sparkles size={28} color="#F97316" />
-              <Text className="text-2xl font-bold text-black ml-3">Track your symptoms</Text>
-            </View>
-            <Text className="text-gray-600 text-base">Log any symptoms you're experiencing</Text>
-          </View>
-
-          {/* Symptom Selection */}
-          <View className="mb-8">
-            <Text className="text-lg font-semibold text-black mb-4">
-              Symptoms ({selectedSymptoms.length} selected)
-            </Text>
-            <View className="flex-row flex-wrap" style={{ gap: 12 }}>
-              {symptomOptions.map((option) => {
-                const isSelected = selectedSymptoms.includes(option.value);
-                return (
-                  <TouchableOpacity
-                    key={option.value}
-                    onPress={() => handleSymptomToggle(option.value)}
-                    className="flex-1 min-w-[48%] p-4 rounded-2xl border border-gray-100"
-                    style={{
-                      backgroundColor: isSelected ? `${option.color}15` : '#FFFFFF',
-                      borderColor: isSelected ? option.color : '#E5E7EB',
-                      borderWidth: isSelected ? 1.5 : 1,
-                    }}
-                  >
-                    <View className="items-center">
-                      <Text className="text-3xl mb-2">{option.emoji}</Text>
-                      <Text
-                        className="text-xs font-medium text-center"
-                        style={{ color: isSelected ? option.color : '#374151' }}
-                      >
-                        {option.label}
-                      </Text>
-                      {isSelected && (
-                        <View
-                          className="absolute -top-2 -right-2 w-6 h-6 rounded-full items-center justify-center"
-                          style={{ backgroundColor: option.color }}
-                        >
-                          <Text className="text-white text-xs font-bold">✓</Text>
-                        </View>
-                      )}
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
-
-          {/* Severity Level */}
-          {selectedSymptoms.length > 0 && (
-            <View className="mb-8">
-              <Text className="text-lg font-semibold text-black mb-4">Overall Severity</Text>
-              <View style={{ gap: 12 }}>
-                {severityOptions.map((option) => {
-                  const isSelected = selectedSeverity === option.value;
-                  return (
-                    <TouchableOpacity
-                      key={option.value}
-                      onPress={() => setSelectedSeverity(option.value as any)}
-                      className="p-5 rounded-2xl border border-gray-100 flex-row items-center"
-                      style={{
-                        backgroundColor: isSelected ? `${option.color}15` : '#FFFFFF',
-                        borderColor: isSelected ? option.color : '#E5E7EB',
-                        borderWidth: isSelected ? 1.5 : 1,
-                      }}
-                    >
-                      <Text className="text-2xl mr-4">{option.icon}</Text>
-                      <View className="flex-1">
-                        <Text
-                          className="font-medium text-base"
-                          style={{ color: isSelected ? option.color : '#374151' }}
-                        >
-                          {option.label}
-                        </Text>
-                        <Text className="text-sm text-gray-500 mt-1">{option.description}</Text>
-                      </View>
-                      {isSelected && (
-                        <View
-                          className="w-6 h-6 rounded-full items-center justify-center"
-                          style={{ backgroundColor: option.color }}
-                        >
-                          <Text className="text-white text-xs font-bold">✓</Text>
-                        </View>
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
-          )}
-
-          {/* Notes Section */}
-          <View className="mb-8">
-            <Text className="text-lg font-semibold text-black mb-4">Notes (Optional)</Text>
-            <TextInput
-              value={notes}
-              onChangeText={setNotes}
-              placeholder="Additional details about your symptoms..."
-              multiline
-              numberOfLines={4}
-              className="p-4 bg-white rounded-2xl border border-gray-100 text-gray-800"
-              style={{ textAlignVertical: 'top', minHeight: 100 }}
-              placeholderTextColor="#9CA3AF"
-            />
-          </View>
-
-          {/* Summary Card */}
-          {isFormValid && (
-            <View
-              className="rounded-2xl p-5 mb-8 border"
+            <Animated.View
+              className="px-4 pt-6"
               style={{
-                backgroundColor: '#FFF7ED',
-                borderColor: '#FB923C',
-                borderWidth: 1.5,
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
               }}
             >
-              <View className="flex-row items-center mb-3">
-                <AlertCircle size={20} color="#F97316" />
-                <Text className="font-semibold text-orange-800 ml-3 text-base">
-                  Today's Symptoms
+              {/* Header */}
+              <View className="mb-8">
+                <Text className="text-3xl font-bold text-gray-900 mb-4">Track Your Symptoms</Text>
+                <Text className="text-gray-600 text-base">
+                  Select any symptoms you're experiencing today.
                 </Text>
               </View>
 
-              <View className="flex-row flex-wrap mb-3" style={{ gap: 8 }}>
-                {selectedSymptoms.map((symptomValue) => {
-                  const symptom = symptomOptions.find((s) => s.value === symptomValue);
-                  return (
-                    <View
-                      key={symptomValue}
-                      className="flex-row items-center px-3 py-1 rounded-lg"
-                      style={{ backgroundColor: `${symptom?.color}20` }}
-                    >
-                      <Text className="mr-1">{symptom?.emoji}</Text>
-                      <Text className="text-xs font-medium" style={{ color: symptom?.color }}>
-                        {symptom?.label}
-                      </Text>
-                    </View>
-                  );
-                })}
+              {/* Symptom Selection */}
+              <View className="mb-8">
+                <View style={{ gap: 16 }}>
+                  {symptomOptions.map((option) => {
+                    const isSelected = selectedSymptoms.includes(option.value);
+                    return (
+                      <TouchableOpacity
+                        key={option.value}
+                        onPress={() => handleSymptomToggle(option.value)}
+                        className="flex-row items-center p-6 rounded-2xl"
+                        style={{
+                          backgroundColor: isSelected
+                            ? 'rgba(255, 182, 193, 0.3)'
+                            : 'rgba(255, 255, 255, 0.8)',
+                          borderWidth: 0,
+                          shadowColor: '#000',
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: 0.1,
+                          shadowRadius: 8,
+                          elevation: 3,
+                        }}
+                      >
+                        <View className="mr-6">
+                          {option.icon === 'cramps' && <CrampsIcon size={60} />}
+                          {option.icon === 'headache' && <HeadacheIcon size={60} />}
+                          {option.icon === 'mood_swings' && <MoodSwingsIcon size={60} />}
+                          {option.icon === 'bloating' && <BloatingIcon size={60} />}
+                          {option.icon === 'fatigue' && <FatigueIcon size={60} />}
+                          {option.icon === 'breast_tenderness' && (
+                            <BreastTendernessIcon size={60} />
+                          )}
+                          {option.icon === 'back_pain' && <BackPainIcon size={60} />}
+                          {option.icon === 'nausea' && <NauseaIcon size={60} />}
+                          {option.icon === 'acne' && <AcneIcon size={60} />}
+                          {option.icon === 'food_cravings' && <FoodCravingsIcon size={60} />}
+                          {option.icon === 'insomnia' && <InsomniaIcon size={60} />}
+                          {option.icon === 'anxiety' && <AnxietyIcon size={60} />}
+                        </View>
+                        <View className="flex-1">
+                          <Text className="text-xl font-medium text-gray-800">{option.label}</Text>
+                        </View>
+                        {isSelected && (
+                          <View
+                            className="w-6 h-6 rounded-full items-center justify-center"
+                            style={{ backgroundColor: '#EC4899' }}
+                          >
+                            <Check size={16} color="white" />
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
               </View>
 
-              {selectedSeverity && (
-                <View className="flex-row items-center mb-3">
-                  <Text className="text-sm text-orange-700">
-                    Severity: <Text className="font-semibold">{selectedSeverity}</Text>
-                  </Text>
+              {/* Severity Level */}
+              {/* {selectedSymptoms.length > 0 && (
+                <View className="mb-8">
+                  <Text className="text-xl font-semibold text-gray-900 mb-4">Severity Level</Text>
+                  <View style={{ gap: 16 }}>
+                    {severityOptions.map((option) => {
+                      const isSelected = selectedSeverity === option.value;
+                      return (
+                        <TouchableOpacity
+                          key={option.value}
+                          onPress={() => setSelectedSeverity(option.value as any)}
+                          className="flex-row items-center p-4 rounded-2xl"
+                          style={{
+                            backgroundColor: isSelected
+                              ? 'rgba(255, 182, 193, 0.3)'
+                              : 'rgba(255, 255, 255, 0.8)',
+                            borderWidth: 0,
+                            shadowColor: '#000',
+                            shadowOffset: { width: 0, height: 2 },
+                            shadowOpacity: 0.1,
+                            shadowRadius: 8,
+                            elevation: 3,
+                          }}
+                        >
+                          <View className="flex-1">
+                            <Text className="text-lg font-semibold text-gray-900">
+                              {option.label}
+                            </Text>
+                          </View>
+                          {isSelected && (
+                            <View
+                              className="w-6 h-6 rounded-full items-center justify-center"
+                              style={{ backgroundColor: '#EC4899' }}
+                            >
+                              <Check size={16} color="white" />
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
                 </View>
-              )}
+              )} */}
 
-              {notes.trim() && (
-                <View className="mt-3 pt-3 border-t border-orange-200">
-                  <Text className="text-orange-600 text-sm italic">"{notes.trim()}"</Text>
+              {/* Notes Section */}
+              {/* <View className="mb-8">
+                <Text className="text-lg font-semibold text-black mb-4">Notes</Text>
+                <View
+                  className="bg-white rounded-2xl border border-gray-200 p-4"
+                  style={{
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.05,
+                    shadowRadius: 8,
+                    elevation: 3,
+                  }}
+                >
+                  <TextInput
+                    value={notes}
+                    onChangeText={setNotes}
+                    placeholder="Add any additional details..."
+                    multiline
+                    numberOfLines={3}
+                    className="text-gray-800 text-base leading-relaxed"
+                    style={{ textAlignVertical: 'top', minHeight: 80 }}
+                    placeholderTextColor="#9CA3AF"
+                  />
                 </View>
-              )}
-            </View>
-          )}
-        </View>
-      </ScrollView>
-    </SubPageLayout>
+              </View> */}
+            </Animated.View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SubPageLayout>
+    </View>
   );
 }

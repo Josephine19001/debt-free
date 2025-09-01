@@ -6,8 +6,8 @@ import { X, Globe, Check } from 'lucide-react-native';
 import { toast } from 'sonner-native';
 import { supabase } from '@/lib/supabase/client';
 import { Exercise } from '@/data/exercisesData';
-import { DropdownField } from './dropdown-field';
-import { IconDropdownField } from './icon-dropdown-field';
+import { Dropdown, DropdownOption } from '@/components/ui/dropdown';
+import { IconDropdown } from '@/components/ui/icon-dropdown';
 import {
   MUSCLE_GROUPS,
   EQUIPMENT_OPTIONS,
@@ -37,12 +37,26 @@ export const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({
   const [newExerciseInstructions, setNewExerciseInstructions] = useState('');
   const [shareWithCommunity, setShareWithCommunity] = useState(false);
 
-  // Dropdown visibility states
-  const [showIconDropdown, setShowIconDropdown] = useState(false);
-  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
-  const [showMuscleGroupDropdown, setShowMuscleGroupDropdown] = useState(false);
-  const [showEquipmentDropdown, setShowEquipmentDropdown] = useState(false);
-  const [showDifficultyDropdown, setShowDifficultyDropdown] = useState(false);
+  // Convert constants to dropdown options
+  const categoryOptions: DropdownOption[] = EXERCISE_CATEGORIES.map((cat) => ({
+    label: cat.charAt(0).toUpperCase() + cat.slice(1),
+    value: cat,
+  }));
+
+  const muscleGroupOptions: DropdownOption[] = MUSCLE_GROUPS.map((muscle) => ({
+    label: muscle.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
+    value: muscle,
+  }));
+
+  const equipmentOptions: DropdownOption[] = EQUIPMENT_OPTIONS.map((equipment) => ({
+    label: equipment.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
+    value: equipment,
+  }));
+
+  const difficultyOptions: DropdownOption[] = DIFFICULTY_LEVELS.map((difficulty) => ({
+    label: difficulty.charAt(0).toUpperCase() + difficulty.slice(1),
+    value: difficulty,
+  }));
 
   const resetForm = () => {
     setNewExerciseName('');
@@ -54,12 +68,6 @@ export const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({
     setNewExerciseCaloriesPerMinute('5');
     setNewExerciseInstructions('');
     setShareWithCommunity(false);
-    // Close all dropdowns
-    setShowIconDropdown(false);
-    setShowCategoryDropdown(false);
-    setShowMuscleGroupDropdown(false);
-    setShowEquipmentDropdown(false);
-    setShowDifficultyDropdown(false);
   };
 
   const handleClose = () => {
@@ -166,59 +174,45 @@ export const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({
             </View>
 
             {/* Icon Selection Dropdown */}
-            <IconDropdownField
-              selectedIcon={newExerciseIcon}
-              onSelect={setNewExerciseIcon}
-              isVisible={showIconDropdown}
-              setIsVisible={setShowIconDropdown}
-            />
+            <IconDropdown label="Icon" value={newExerciseIcon} onSelect={setNewExerciseIcon} />
 
             {/* Category Dropdown */}
-            <DropdownField
+            <Dropdown
               label="Category *"
               value={newExerciseType}
-              onSelect={setNewExerciseType}
-              options={EXERCISE_CATEGORIES}
+              onSelect={(value) => setNewExerciseType(value as string)}
+              options={categoryOptions}
               placeholder="Select exercise category"
-              isVisible={showCategoryDropdown}
-              setIsVisible={setShowCategoryDropdown}
             />
 
             {/* Muscle Groups Dropdown */}
-            <DropdownField
+            <Dropdown
               label="Muscle Groups"
               value={newExerciseMuscleGroups}
-              onSelect={setNewExerciseMuscleGroups}
-              options={MUSCLE_GROUPS}
+              onSelect={(value) => setNewExerciseMuscleGroups(value as string[])}
+              options={muscleGroupOptions}
               placeholder="Select muscle groups"
-              isVisible={showMuscleGroupDropdown}
-              setIsVisible={setShowMuscleGroupDropdown}
-              isMultiSelect={true}
-              selectedValues={newExerciseMuscleGroups}
+              multiSelect={true}
             />
 
             {/* Equipment Dropdown */}
-            <DropdownField
+            <Dropdown
               label="Equipment"
               value={newExerciseEquipment}
-              onSelect={setNewExerciseEquipment}
-              options={EQUIPMENT_OPTIONS}
+              onSelect={(value) => setNewExerciseEquipment(value as string)}
+              options={equipmentOptions}
               placeholder="Select equipment"
-              isVisible={showEquipmentDropdown}
-              setIsVisible={setShowEquipmentDropdown}
             />
 
             {/* Difficulty & Calories Row */}
             <View className="flex-row gap-4 mb-4">
               <View className="flex-1">
-                <DropdownField
+                <Dropdown
                   label="Difficulty"
                   value={newExerciseDifficulty}
-                  onSelect={setNewExerciseDifficulty}
-                  options={DIFFICULTY_LEVELS}
+                  onSelect={(value) => setNewExerciseDifficulty(value as string)}
+                  options={difficultyOptions}
                   placeholder="Select difficulty"
-                  isVisible={showDifficultyDropdown}
-                  setIsVisible={setShowDifficultyDropdown}
                 />
               </View>
 

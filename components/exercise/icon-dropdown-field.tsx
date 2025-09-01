@@ -67,7 +67,7 @@ export const IconDropdownField: React.FC<IconDropdownFieldProps> = ({
       </TouchableOpacity>
 
       {isVisible && (
-        <View className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl mt-1 max-h-48 z-50 shadow-lg">
+        <View className="absolute top-full left-0 right-0 rounded-xl mt-1 max-h-48 bg-white border border-gray-200 shadow-md">
           <ScrollView showsVerticalScrollIndicator={false}>
             {AVAILABLE_ICONS.map((iconName) => {
               const OptionIconComponent = getIconComponent(iconName);

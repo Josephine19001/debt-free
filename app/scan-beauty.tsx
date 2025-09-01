@@ -3,6 +3,7 @@ import { View, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
 import SubPageLayout from '@/components/layouts/sub-page';
+import { SubscriptionGuard } from '@/components/subscription-guard';
 import { useRouter } from 'expo-router';
 import { toast } from 'sonner-native';
 import { useAnalyzeScan, NonBeautyProductError } from '@/lib/hooks/use-analyze-scan';
@@ -225,89 +226,93 @@ export default function ScanBeautyScreen() {
   };
 
   return (
-    <SubPageLayout title="Scan Skincare Product">
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="px-4 py-8">
-          {/* Header */}
-          <View className="mb-8">
-            <Text className="text-2xl font-bold text-black mb-2">Scan Your Skincare</Text>
-            <Text className="text-gray-600">
-              Get instant insights about skincare ingredients and cycle compatibility
-            </Text>
-          </View>
+    <SubscriptionGuard requireSubscription={true} feature="AI Beauty Scanning">
+      <SubPageLayout title="Scan Skincare Product">
+        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+          <View className="px-4 py-8">
+            {/* Header */}
+            <View className="mb-8">
+              <Text className="text-2xl font-bold text-black mb-2">Scan Your Skincare</Text>
+              <Text className="text-gray-600">
+                Get instant insights about skincare ingredients and cycle compatibility
+              </Text>
+            </View>
 
-          {/* Scan Options */}
-          <View className="gap-4">
-            <TouchableOpacity
-              onPress={handleTakePhoto}
-              disabled={activeButton === 'camera'}
-              className={`
+            {/* Scan Options */}
+            <View className="gap-4">
+              <TouchableOpacity
+                onPress={handleTakePhoto}
+                disabled={activeButton === 'camera'}
+                className={`
                 bg-white rounded-2xl p-6 border border-gray-200 flex-row items-center
                 ${activeButton === 'camera' ? 'opacity-50' : ''}
               `}
-            >
-              <View className="w-12 h-12 rounded-full bg-pink-50 items-center justify-center mr-4">
-                <Camera size={24} color="#EC4899" />
-              </View>
-              <View className="flex-1">
-                <Text className="text-lg font-semibold text-black">Take Photo</Text>
-                <Text className="text-gray-500 text-sm">
-                  {activeButton === 'camera' ? 'Taking photo...' : 'Scan product with camera'}
-                </Text>
-              </View>
-            </TouchableOpacity>
+              >
+                <View className="w-12 h-12 rounded-full bg-pink-50 items-center justify-center mr-4">
+                  <Camera size={24} color="#EC4899" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-lg font-semibold text-black">Take Photo</Text>
+                  <Text className="text-gray-500 text-sm">
+                    {activeButton === 'camera' ? 'Taking photo...' : 'Scan product with camera'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={handleUploadPhoto}
-              disabled={activeButton === 'gallery'}
-              className={`
+              <TouchableOpacity
+                onPress={handleUploadPhoto}
+                disabled={activeButton === 'gallery'}
+                className={`
                 bg-white rounded-2xl p-6 border border-gray-200 flex-row items-center
                 ${activeButton === 'gallery' ? 'opacity-50' : ''}
               `}
-            >
-              <View className="w-12 h-12 rounded-full bg-purple-50 items-center justify-center mr-4">
-                <ImageIcon size={24} color="#8B5CF6" />
+              >
+                <View className="w-12 h-12 rounded-full bg-purple-50 items-center justify-center mr-4">
+                  <ImageIcon size={24} color="#8B5CF6" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-lg font-semibold text-black">Upload Photo</Text>
+                  <Text className="text-gray-500 text-sm">
+                    {activeButton === 'gallery' ? 'Uploading...' : 'Choose from photo library'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+
+            {/* Tips */}
+            <View className="mt-8 bg-gradient-to-r from-pink-50 to-purple-50 rounded-2xl p-6 border border-pink-100">
+              <View className="flex-row items-center mb-3">
+                <Sparkles size={20} color="#EC4899" />
+                <Text className="text-lg font-semibold text-black ml-2">Scanning Tips</Text>
               </View>
-              <View className="flex-1">
-                <Text className="text-lg font-semibold text-black">Upload Photo</Text>
-                <Text className="text-gray-500 text-sm">
-                  {activeButton === 'gallery' ? 'Uploading...' : 'Choose from photo library'}
+              <View className="gap-2">
+                <Text className="text-gray-700 text-sm">
+                  • Make sure the product label is clearly visible
+                </Text>
+                <Text className="text-gray-700 text-sm">
+                  • Ensure good lighting for best results
+                </Text>
+                <Text className="text-gray-700 text-sm">
+                  • Focus on ingredients list if available
+                </Text>
+                <Text className="text-gray-700 text-sm">
+                  • Works best with skincare products (serums, creams, cleansers)
                 </Text>
               </View>
-            </TouchableOpacity>
-          </View>
-
-          {/* Tips */}
-          <View className="mt-8 bg-gradient-to-r from-pink-50 to-purple-50 rounded-2xl p-6 border border-pink-100">
-            <View className="flex-row items-center mb-3">
-              <Sparkles size={20} color="#EC4899" />
-              <Text className="text-lg font-semibold text-black ml-2">Scanning Tips</Text>
-            </View>
-            <View className="gap-2">
-              <Text className="text-gray-700 text-sm">
-                • Make sure the product label is clearly visible
-              </Text>
-              <Text className="text-gray-700 text-sm">• Ensure good lighting for best results</Text>
-              <Text className="text-gray-700 text-sm">
-                • Focus on ingredients list if available
-              </Text>
-              <Text className="text-gray-700 text-sm">
-                • Works best with skincare products (serums, creams, cleansers)
-              </Text>
             </View>
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
 
-      {/* Product Detail Modal */}
-      <ProductDetailModal
-        product={scannedProduct}
-        visible={showProductDetail}
-        onClose={() => setShowProductDetail(false)}
-        onSaveScan={handleSaveScan}
-        isSavingScan={saveScanWithInsights.isPending}
-        modalHeight="80%"
-      />
-    </SubPageLayout>
+        {/* Product Detail Modal */}
+        <ProductDetailModal
+          product={scannedProduct}
+          visible={showProductDetail}
+          onClose={() => setShowProductDetail(false)}
+          onSaveScan={handleSaveScan}
+          isSavingScan={saveScanWithInsights.isPending}
+          modalHeight="80%"
+        />
+      </SubPageLayout>
+    </SubscriptionGuard>
   );
 }

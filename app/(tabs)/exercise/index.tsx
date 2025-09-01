@@ -1,28 +1,10 @@
-import React, { useMemo, useState } from 'react';
-import { View, ScrollView, TouchableOpacity, Modal, TextInput, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import { Text } from '@/components/ui/text';
 
 import PageLayout from '@/components/layouts/page-layout';
 import { router } from 'expo-router';
-import {
-  Activity,
-  Plus,
-  Sparkles,
-  Calendar,
-  Timer,
-  Flame,
-  Dumbbell,
-  TrendingUp,
-  Zap,
-  Heart,
-  CheckCircle,
-  Edit3,
-  Eye,
-  X,
-  Save,
-  Clock,
-  Zap as ZapIcon,
-} from 'lucide-react-native';
+import { Plus, Sparkles, Calendar, Timer, Flame, Dumbbell, TrendingUp } from 'lucide-react-native';
 import WeeklyCalendar from '@/components/nutrition/weekly-calendar';
 import { ExerciseSummaryCard } from '@/components/exercise/exercise-summary-card';
 import { WeeklyPlanDisplay } from '@/components/exercise/weekly-plan-display';
@@ -32,7 +14,7 @@ import {
 } from '@/components/exercise/exercise-skeleton';
 import { useDailyExerciseSummary } from '@/lib/hooks/use-exercise-summary';
 import { usePlannedWorkoutSummary } from '@/lib/hooks/use-planned-workout-summary';
-import { useExerciseEntries, useCreateExerciseEntry } from '@/lib/hooks/use-exercise-tracking';
+import { useExerciseEntries } from '@/lib/hooks/use-exercise-tracking';
 import { useExerciseStreak } from '@/lib/hooks/use-exercise-streak';
 import { useExerciseLoggedDates } from '@/lib/hooks/use-exercise-logged-dates';
 import { useFitnessGoals } from '@/lib/hooks/use-fitness-goals';
@@ -44,11 +26,26 @@ import {
 } from '@/lib/hooks/use-weekly-exercise-planner';
 import { useQueryClient } from '@tanstack/react-query';
 
+// Import new components
+import { TodaysWorkoutSection } from '@/components/exercise/todays-workout-section';
+import { LoggedWorkoutsSection } from '@/components/exercise/logged-workouts-section';
+
 export default function ExerciseScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showWeeklyPlan, setShowWeeklyPlan] = useState(false);
   const [generatedPlan, setGeneratedPlan] = useState<any>(null);
   const queryClient = useQueryClient();
+
+  // Force refresh when new exercises are added
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Refresh exercise data every 5 seconds to catch new entries immediately
+      queryClient.invalidateQueries({ queryKey: ['exerciseEntries'] });
+      queryClient.invalidateQueries({ queryKey: ['dailyExerciseSummary'] });
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [queryClient]);
 
   // Format date for API calls (avoid timezone issues)
   const dateString =
@@ -67,6 +64,7 @@ export default function ExerciseScreen() {
   const { data: bodyMeasurements } = useBodyMeasurements();
   const { data: currentCyclePhase } = useCurrentCyclePhase();
   const { data: currentWeeklyPlan } = useCurrentWeeklyPlan();
+  const generateWeeklyPlan = useGenerateWeeklyExercisePlan();
 
   const plannedSummary = usePlannedWorkoutSummary(currentWeeklyPlan, selectedDate);
 
@@ -84,9 +82,42 @@ export default function ExerciseScreen() {
     return loggedDates || [];
   };
 
+  const handleSavePlan = async (plan: any) => {
+    // The plan is already generated, so we just need to call the generation API
+    // with the same data to save it to the database
+    try {
+      await generateWeeklyPlan.mutateAsync({
+        fitness_goals: fitnessGoals,
+        body_measurements: bodyMeasurements,
+        current_cycle_phase: currentCyclePhase,
+        start_date: new Date().toISOString(),
+      } as any);
+    } catch (error) {
+      console.error('Failed to save plan:', error);
+    }
+  };
+
+  const handleRegeneratePlan = async (context: string) => {
+    try {
+      const result = await generateWeeklyPlan.mutateAsync({
+        fitness_goals: { ...fitnessGoals, additional_context: context },
+        body_measurements: bodyMeasurements,
+        current_cycle_phase: currentCyclePhase,
+        start_date: new Date().toISOString(),
+      } as any);
+      if (result?.plan) {
+        setGeneratedPlan(result.plan);
+        setShowWeeklyPlan(true);
+      }
+    } catch (error) {
+      console.error('Failed to regenerate plan:', error);
+    }
+  };
+
   return (
     <PageLayout
-      title="Exercise"
+      title="Workouts"
+      theme="exercise"
       btn={
         <View className="flex-row items-center">
           {/* Streak Display */}
@@ -121,13 +152,19 @@ export default function ExerciseScreen() {
         />
 
         {/* Exercise Summary Card */}
-        <ExerciseSummaryCard dailySummary={plannedSummary} isLoading={isLoading} />
-
-        {/* Workout Section */}
-        <WorkoutSection
-          dailySummary={dailySummary}
-          isLoading={isLoading}
+        <ExerciseSummaryCard dailySummary={dailySummary} isLoading={isLoading} />
+        {/* <TodaysWorkoutSection
           currentWeeklyPlan={currentWeeklyPlan}
+          exerciseEntries={exerciseEntries}
+          isLoading={isLoading}
+          selectedDate={selectedDate}
+        /> */}
+
+        {/* Logged Workouts Section - Separate section for logged exercises */}
+        <LoggedWorkoutsSection
+          exerciseEntries={exerciseEntries}
+          currentWeeklyPlan={currentWeeklyPlan}
+          isLoading={isLoading}
           selectedDate={selectedDate}
         />
 
@@ -160,17 +197,17 @@ export default function ExerciseScreen() {
       </ScrollView>
 
       {/* Weekly Plan Modal */}
-      <Modal visible={showWeeklyPlan} animationType="slide" presentationStyle="pageSheet">
-        {generatedPlan && (
-          <WeeklyPlanDisplay
-            plan={generatedPlan}
-            onClose={() => {
-              setShowWeeklyPlan(false);
-              setGeneratedPlan(null);
-            }}
-          />
-        )}
-      </Modal>
+      {generatedPlan && (
+        <WeeklyPlanDisplay
+          plan={generatedPlan}
+          onClose={() => {
+            setShowWeeklyPlan(false);
+            setGeneratedPlan(null);
+          }}
+          onSave={handleSavePlan}
+          onRegenerate={handleRegeneratePlan}
+        />
+      )}
     </PageLayout>
   );
 }
@@ -318,7 +355,6 @@ function WeeklyPlanSection({
     // Start the generation process (non-blocking)
     generateWeeklyPlan.mutate(
       {
-        user_id: '', // Will be set by the hook
         fitness_goals: fitnessGoals,
         body_measurements: bodyMeasurements,
         current_cycle_phase: currentCyclePhase,
@@ -473,7 +509,7 @@ function WeeklyPlanSection({
 
               <Text className="text-sm" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
                 {generateWeeklyPlan.isPending
-                  ? 'AI is creating your personalized workout plan...'
+                  ? 'We are creating your personalized workout plan...'
                   : 'Get a personalized 7-day workout plan tailored to your goals, cycle phase, and fitness level'}
               </Text>
             </View>
@@ -491,414 +527,5 @@ function WeeklyPlanSection({
         </TouchableOpacity>
       )}
     </View>
-  );
-}
-
-// Workout Component
-function WorkoutSection({
-  dailySummary,
-  isLoading,
-  currentWeeklyPlan,
-  selectedDate,
-}: {
-  dailySummary?: any;
-  isLoading: boolean;
-  currentWeeklyPlan?: any;
-  selectedDate: Date;
-}) {
-  // Get today's workout from weekly plan
-  const getTodaysWorkoutFromPlan = () => {
-    if (!currentWeeklyPlan?.plan_data?.days) return null;
-
-    const todayString =
-      selectedDate.getFullYear() +
-      '-' +
-      String(selectedDate.getMonth() + 1).padStart(2, '0') +
-      '-' +
-      String(selectedDate.getDate()).padStart(2, '0');
-    const todaysWorkout = currentWeeklyPlan.plan_data.days.find(
-      (day: any) => day.date === todayString
-    );
-
-    return todaysWorkout;
-  };
-
-  const getWorkoutTypeDisplay = () => {
-    if (!dailySummary?.workout_types || Object.keys(dailySummary.workout_types).length === 0) {
-      return [];
-    }
-
-    return Object.entries(dailySummary.workout_types).map(([type, count]) => ({
-      type: type.charAt(0).toUpperCase() + type.slice(1),
-      count: count as number,
-    }));
-  };
-
-  const todaysPlannedWorkout = getTodaysWorkoutFromPlan();
-
-  if (isLoading) {
-    return (
-      <View className="mx-4 mb-6">
-        <View className="h-6 bg-gray-200 rounded w-40 mb-4" />
-        <View className="bg-white rounded-2xl p-6 shadow-sm border border-gray-50">
-          {/* Workout header skeleton */}
-          <View className="bg-gray-100 rounded-2xl p-4 mb-4">
-            <View className="h-6 bg-gray-200 rounded w-32 mb-2" />
-            <View className="h-4 bg-gray-200 rounded w-48" />
-          </View>
-
-          {/* Exercise items skeleton */}
-          <View className="gap-2 mb-4">
-            {Array.from({ length: 3 }).map((_, index) => (
-              <View key={index} className="bg-gray-50 rounded-xl p-3">
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-1">
-                    <View className="h-4 bg-gray-200 rounded w-24 mb-1" />
-                    <View className="h-3 bg-gray-200 rounded w-16" />
-                  </View>
-                  <View className="h-6 w-6 bg-gray-200 rounded" />
-                </View>
-              </View>
-            ))}
-          </View>
-
-          {/* Log Exercise button skeleton */}
-          <View className="h-12 bg-gray-200 rounded-2xl" />
-        </View>
-      </View>
-    );
-  }
-
-  return (
-    <View className="mx-4 mb-6">
-      <Text className="text-xl font-bold text-gray-900 mb-4">
-        {selectedDate.toDateString() === new Date().toDateString()
-          ? "Today's Workout"
-          : `${selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} Workout`}
-      </Text>
-
-      {todaysPlannedWorkout ? (
-        <View className="bg-white rounded-2xl p-6 shadow-sm border border-gray-50 w-full">
-          {todaysPlannedWorkout.is_rest_day ? (
-            <View className="items-center">
-              <View className="w-12 h-12 bg-green-100 rounded-full items-center justify-center mb-3">
-                <Heart size={24} color="#10B981" />
-              </View>
-              <Text className="text-green-700 text-lg font-semibold mb-2">Rest Day</Text>
-              <Text className="text-gray-600 text-center">
-                Take a break and let your body recover
-              </Text>
-            </View>
-          ) : (
-            <View className="w-full">
-              {/* Today's Time Display */}
-              <View className="bg-purple-50 rounded-2xl p-4 mb-4 w-full">
-                <Text className="text-purple-900 text-xl font-bold">
-                  {todaysPlannedWorkout.workout_type}
-                </Text>
-                <Text className="text-purple-700 text-sm mt-1">
-                  {todaysPlannedWorkout.exercises?.length || 0} exercises •{' '}
-                  {todaysPlannedWorkout.duration_minutes} min total
-                </Text>
-              </View>
-
-              {/* Planned Workout Array */}
-              <View className="flex-col w-full">
-                {todaysPlannedWorkout.exercises?.length > 0 && (
-                  <View style={{ gap: 8, marginBottom: 16 }}>
-                    {todaysPlannedWorkout.exercises.map((exercise: any, index: number) => (
-                      <PlannedExerciseItem
-                        key={index}
-                        exercise={exercise}
-                        planId={currentWeeklyPlan?.id || ''}
-                        selectedDate={selectedDate}
-                      />
-                    ))}
-                  </View>
-                )}
-
-                {/* Add More Workout Button */}
-                <TouchableOpacity
-                  onPress={() => router.push('/log-exercise')}
-                  className="bg-purple-500 py-4 rounded-2xl w-full"
-                >
-                  <Text className="text-white font-semibold text-center">Log Exercise</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-        </View>
-      ) : (
-        <View className="bg-white rounded-2xl p-6 shadow-sm border border-gray-50">
-          <Text className="text-gray-500 text-center text-lg font-medium">--</Text>
-          <Text className="text-gray-400 text-center text-sm mt-1">
-            No planned workout for this day
-          </Text>
-        </View>
-      )}
-    </View>
-  );
-}
-
-// Planned Exercise Item Component
-function PlannedExerciseItem({
-  exercise,
-  planId,
-  selectedDate,
-}: {
-  exercise: any;
-  planId: string;
-  selectedDate: Date;
-}) {
-  const [isCompleted, setIsCompleted] = useState(exercise.completed || false);
-
-  // Update completion state when exercise data changes
-  React.useEffect(() => {
-    setIsCompleted(exercise.completed || false);
-  }, [exercise.completed]);
-  const [showViewModal, setShowViewModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editData, setEditData] = useState({
-    duration_minutes: exercise.duration_minutes.toString(),
-    calories_estimate: (exercise.calories_estimate || 0).toString(),
-  });
-
-  const createExerciseEntry = useCreateExerciseEntry();
-
-  const handleMarkDone = () => {
-    // Prepare exercise data for logging
-    const exerciseData = {
-      exercise_name: exercise.name,
-      exercise_type: exercise.category || 'General',
-      duration_minutes: parseInt(editData.duration_minutes) || exercise.duration_minutes,
-      calories_burned: parseInt(editData.calories_estimate) || exercise.calories_estimate || 0,
-      intensity: 'moderate' as const,
-      notes: `Completed from weekly plan: ${exercise.instructions}`,
-      logged_date:
-        new Date().getFullYear() +
-        '-' +
-        String(new Date().getMonth() + 1).padStart(2, '0') +
-        '-' +
-        String(new Date().getDate()).padStart(2, '0'),
-      logged_time: new Date().toTimeString().split(' ')[0],
-    };
-
-    // Log the exercise directly to the database
-    createExerciseEntry.mutate(exerciseData, {
-      onSuccess: () => {
-        setIsCompleted(true);
-        // Mark the exercise as completed in the plan data locally
-        exercise.completed = true;
-      },
-      onError: (error) => {
-        console.error('Failed to log exercise:', error);
-        Alert.alert('Error', 'Failed to log exercise. Please try again.');
-      },
-    });
-  };
-
-  const handleSaveEdit = () => {
-    const duration = parseInt(editData.duration_minutes);
-    const calories = parseInt(editData.calories_estimate);
-
-    if (duration < 1 || duration > 180) {
-      Alert.alert('Invalid Duration', 'Duration must be between 1 and 180 minutes');
-      return;
-    }
-
-    if (calories < 0 || calories > 1000) {
-      Alert.alert('Invalid Calories', 'Calories must be between 0 and 1000');
-      return;
-    }
-
-    // Update the exercise data locally
-    exercise.duration_minutes = duration;
-    exercise.calories_estimate = calories;
-
-    setShowEditModal(false);
-    Alert.alert('Updated!', 'Exercise details have been updated');
-  };
-
-  return (
-    <>
-      <View
-        className={`rounded-2xl border shadow-sm ${
-          isCompleted ? 'bg-green-50 border-green-200' : 'bg-white border-gray-100'
-        }`}
-      >
-        {/* Exercise Info */}
-        <View className="p-4">
-          {/* Exercise Name & Action Icons */}
-          <View className="flex-row items-start justify-between mb-3">
-            <View style={{ flex: 1, marginRight: 16 }}>
-              <Text
-                className={`text-lg font-bold ${
-                  isCompleted ? 'text-green-800 line-through' : 'text-gray-900'
-                }`}
-                numberOfLines={1}
-              >
-                {exercise.name}
-              </Text>
-              <Text className="text-purple-600 text-sm font-medium" numberOfLines={1}>
-                {exercise.category || 'Exercise'}
-              </Text>
-            </View>
-
-            {/* Action Icons */}
-            <View className="flex-row items-center" style={{ gap: 8 }}>
-              {!isCompleted && (
-                <>
-                  {/* View Details Icon */}
-                  <TouchableOpacity
-                    onPress={() => setShowViewModal(true)}
-                    className="w-8 h-8 bg-gray-100 rounded-full items-center justify-center"
-                  >
-                    <Eye size={16} color="#6B7280" />
-                  </TouchableOpacity>
-
-                  {/* Edit Icon */}
-                  <TouchableOpacity
-                    onPress={() => setShowEditModal(true)}
-                    className="w-8 h-8 bg-blue-50 rounded-full items-center justify-center"
-                  >
-                    <Edit3 size={16} color="#3B82F6" />
-                  </TouchableOpacity>
-
-                  {/* Mark Done Icon */}
-                  <TouchableOpacity
-                    onPress={handleMarkDone}
-                    disabled={createExerciseEntry.isPending}
-                    className={`w-8 h-8 rounded-full items-center justify-center ${
-                      createExerciseEntry.isPending ? 'bg-gray-400' : 'bg-purple-500'
-                    }`}
-                  >
-                    <CheckCircle size={16} color="white" />
-                  </TouchableOpacity>
-                </>
-              )}
-
-              {isCompleted && (
-                <View className="w-8 h-8 bg-green-100 rounded-full items-center justify-center">
-                  <CheckCircle size={16} color="#10B981" />
-                </View>
-              )}
-            </View>
-          </View>
-
-          {/* Stats Row */}
-          <View className="flex-row items-center" style={{ gap: 16 }}>
-            <View className="flex-row items-center">
-              <Clock size={14} color="#8B5CF6" />
-              <Text className="text-gray-700 text-sm font-medium ml-1">
-                {exercise.duration_minutes} min
-              </Text>
-            </View>
-            {exercise.calories_estimate > 0 && (
-              <View className="flex-row items-center">
-                <Flame size={14} color="#F59E0B" />
-                <Text className="text-gray-700 text-sm font-medium ml-1">
-                  {exercise.calories_estimate} cal
-                </Text>
-              </View>
-            )}
-          </View>
-        </View>
-      </View>
-
-      {/* View Details Modal */}
-      <Modal visible={showViewModal} animationType="slide" transparent>
-        <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-white rounded-t-3xl p-6 max-h-[80%]">
-            <View className="flex-row items-center justify-between mb-4">
-              <Text className="text-xl font-bold text-gray-900">Exercise Details</Text>
-              <TouchableOpacity onPress={() => setShowViewModal(false)}>
-                <X size={24} color="#6B7280" />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <View className="bg-purple-50 rounded-2xl p-4 mb-4">
-                <Text className="text-purple-900 text-lg font-bold">{exercise.name}</Text>
-                <Text className="text-purple-700 text-sm mt-1">{exercise.category}</Text>
-              </View>
-
-              <View className="flex-row gap-4 mb-4">
-                <View className="flex-1 bg-gray-50 rounded-xl p-3">
-                  <Text className="text-gray-500 text-xs uppercase tracking-wide">Duration</Text>
-                  <Text className="text-gray-900 text-lg font-bold">
-                    {exercise.duration_minutes} min
-                  </Text>
-                </View>
-                <View className="flex-1 bg-gray-50 rounded-xl p-3">
-                  <Text className="text-gray-500 text-xs uppercase tracking-wide">Calories</Text>
-                  <Text className="text-gray-900 text-lg font-bold">
-                    {exercise.calories_estimate || 0}
-                  </Text>
-                </View>
-              </View>
-
-              {exercise.instructions && (
-                <View className="bg-blue-50 rounded-xl p-4">
-                  <Text className="text-blue-900 font-semibold mb-2">Instructions</Text>
-                  <Text className="text-blue-800 leading-relaxed">{exercise.instructions}</Text>
-                </View>
-              )}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Edit Modal */}
-      <Modal visible={showEditModal} animationType="slide" transparent>
-        <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-white rounded-t-3xl p-6">
-            <View className="flex-row items-center justify-between mb-6">
-              <Text className="text-xl font-bold text-gray-900">Edit Exercise</Text>
-              <TouchableOpacity onPress={() => setShowEditModal(false)}>
-                <X size={24} color="#6B7280" />
-              </TouchableOpacity>
-            </View>
-
-            <View className="mb-4">
-              <Text className="text-gray-700 font-medium mb-2">Duration (minutes)</Text>
-              <TextInput
-                value={editData.duration_minutes}
-                onChangeText={(text) => setEditData({ ...editData, duration_minutes: text })}
-                placeholder="Enter duration"
-                keyboardType="numeric"
-                className="bg-gray-50 rounded-xl p-4 text-gray-900 text-lg"
-              />
-            </View>
-
-            <View className="mb-6">
-              <Text className="text-gray-700 font-medium mb-2">Estimated Calories</Text>
-              <TextInput
-                value={editData.calories_estimate}
-                onChangeText={(text) => setEditData({ ...editData, calories_estimate: text })}
-                placeholder="Enter calories"
-                keyboardType="numeric"
-                className="bg-gray-50 rounded-xl p-4 text-gray-900 text-lg"
-              />
-            </View>
-
-            <View className="flex-row gap-3">
-              <TouchableOpacity
-                onPress={() => setShowEditModal(false)}
-                className="flex-1 bg-gray-100 py-4 rounded-xl"
-              >
-                <Text className="text-gray-700 font-semibold text-center">Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleSaveEdit}
-                className="flex-1 bg-purple-500 py-4 rounded-xl flex-row items-center justify-center"
-              >
-                <Save size={16} color="white" />
-                <Text className="text-white font-semibold ml-2">Save</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-    </>
   );
 }

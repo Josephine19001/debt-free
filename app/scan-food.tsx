@@ -3,6 +3,7 @@ import { View, ScrollView, TouchableOpacity, Alert, TextInput } from 'react-nati
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
 import SubPageLayout from '@/components/layouts/sub-page';
+import { SubscriptionGuard } from '@/components/subscription-guard';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { toast } from 'sonner-native';
 import { useScanFood } from '@/lib/hooks/use-food-scanner';
@@ -161,106 +162,112 @@ export default function ScanFoodScreen() {
   };
 
   return (
-    <SubPageLayout title="Scan Food">
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="px-4 py-8">
-          {/* Header */}
-          <View className="mb-8">
-            <Text className="text-2xl font-bold text-black mb-2">Scan Your Food</Text>
-            <Text className="text-gray-600">
-              Get instant nutrition analysis and add to your {selectedMealType} meals
-            </Text>
-          </View>
-
-          {/* Optional Context Input */}
-          <View className="mb-6">
-            <View className="bg-white rounded-2xl border border-gray-200 p-4">
-              <View className="flex-row items-center mb-3">
-                <Text className="text-base font-semibold text-gray-900">
-                  Add Context (Optional)
-                </Text>
-                <View className="ml-2 bg-green-100 px-2 py-1 rounded-full">
-                  <Text className="text-green-800 text-xs font-medium">Helps AI</Text>
-                </View>
-              </View>
-              <TextInput
-                value={foodContext}
-                onChangeText={setFoodContext}
-                placeholder="e.g., Vietnamese Pho, homemade pasta with tomato sauce..."
-                placeholderTextColor="#9CA3AF"
-                className="bg-gray-50 rounded-xl px-4 py-3 text-gray-900 text-base"
-                style={{
-                  minHeight: 48,
-                  maxHeight: 120,
-                  textAlignVertical: 'top',
-                }}
-                multiline
-                numberOfLines={2}
-              />
-              <Text className="text-gray-500 text-xs mt-2">
-                Provide details about the food to help AI identify it more accurately
+    <SubscriptionGuard requireSubscription={true} feature="AI Food Scanning">
+      <SubPageLayout title="Scan Food">
+        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+          <View className="px-4 py-8">
+            {/* Header */}
+            <View className="mb-8">
+              <Text className="text-2xl font-bold text-black mb-2">Scan Your Food</Text>
+              <Text className="text-gray-600">
+                Get instant nutrition analysis and add to your {selectedMealType} meals
               </Text>
             </View>
-          </View>
 
-          {/* Scan Options */}
-          <View className="gap-4">
-            <TouchableOpacity
-              onPress={handleTakePhoto}
-              disabled={activeButton === 'camera'}
-              className={`
+            {/* Optional Context Input */}
+            <View className="mb-6">
+              <View className="bg-white rounded-2xl border border-gray-200 p-4">
+                <View className="flex-row items-center mb-3">
+                  <Text className="text-base font-semibold text-gray-900">
+                    Add Context (Optional)
+                  </Text>
+                  <View className="ml-2 bg-green-100 px-2 py-1 rounded-full">
+                    <Text className="text-green-800 text-xs font-medium">Helps AI</Text>
+                  </View>
+                </View>
+                <TextInput
+                  value={foodContext}
+                  onChangeText={setFoodContext}
+                  placeholder="e.g., Vietnamese Pho, homemade pasta with tomato sauce..."
+                  placeholderTextColor="#9CA3AF"
+                  className="bg-gray-50 rounded-xl px-4 py-3 text-gray-900 text-base"
+                  style={{
+                    minHeight: 48,
+                    maxHeight: 120,
+                    textAlignVertical: 'top',
+                  }}
+                  multiline
+                  numberOfLines={2}
+                />
+                <Text className="text-gray-500 text-xs mt-2">
+                  Provide details about the food to help AI identify it more accurately
+                </Text>
+              </View>
+            </View>
+
+            {/* Scan Options */}
+            <View className="gap-4">
+              <TouchableOpacity
+                onPress={handleTakePhoto}
+                disabled={activeButton === 'camera'}
+                className={`
                 bg-white rounded-2xl p-6 border border-gray-200 flex-row items-center
                 ${activeButton === 'camera' ? 'opacity-50' : ''}
               `}
-            >
-              <View className="w-12 h-12 rounded-full bg-green-50 items-center justify-center mr-4">
-                <Camera size={24} color="#10B981" />
-              </View>
-              <View className="flex-1">
-                <Text className="text-lg font-semibold text-black">Take Photo</Text>
-                <Text className="text-gray-500 text-sm">
-                  {activeButton === 'camera' ? 'Taking photo...' : 'Scan food with camera'}
-                </Text>
-              </View>
-            </TouchableOpacity>
+              >
+                <View className="w-12 h-12 rounded-full bg-green-50 items-center justify-center mr-4">
+                  <Camera size={24} color="#10B981" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-lg font-semibold text-black">Take Photo</Text>
+                  <Text className="text-gray-500 text-sm">
+                    {activeButton === 'camera' ? 'Taking photo...' : 'Scan food with camera'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={handleUploadPhoto}
-              disabled={activeButton === 'gallery'}
-              className={`
+              <TouchableOpacity
+                onPress={handleUploadPhoto}
+                disabled={activeButton === 'gallery'}
+                className={`
                 bg-white rounded-2xl p-6 border border-gray-200 flex-row items-center
                 ${activeButton === 'gallery' ? 'opacity-50' : ''}
               `}
-            >
-              <View className="w-12 h-12 rounded-full bg-blue-50 items-center justify-center mr-4">
-                <ImageIcon size={24} color="#3B82F6" />
+              >
+                <View className="w-12 h-12 rounded-full bg-blue-50 items-center justify-center mr-4">
+                  <ImageIcon size={24} color="#3B82F6" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-lg font-semibold text-black">Upload Photo</Text>
+                  <Text className="text-gray-500 text-sm">
+                    {activeButton === 'gallery' ? 'Uploading...' : 'Choose from photo library'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+
+            {/* Tips */}
+            <View className="mt-8 bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl p-6 border border-green-100">
+              <View className="flex-row items-center mb-3">
+                <Sparkles size={20} color="#10B981" />
+                <Text className="text-lg font-semibold text-black ml-2">Scanning Tips</Text>
               </View>
-              <View className="flex-1">
-                <Text className="text-lg font-semibold text-black">Upload Photo</Text>
-                <Text className="text-gray-500 text-sm">
-                  {activeButton === 'gallery' ? 'Uploading...' : 'Choose from photo library'}
+              <View className="gap-2">
+                <Text className="text-gray-700 text-sm">
+                  • Make sure the food is clearly visible
+                </Text>
+                <Text className="text-gray-700 text-sm">
+                  • Ensure good lighting for best results
+                </Text>
+                <Text className="text-gray-700 text-sm">• Include context for better accuracy</Text>
+                <Text className="text-gray-700 text-sm">
+                  • Works with meals, snacks, and individual ingredients
                 </Text>
               </View>
-            </TouchableOpacity>
-          </View>
-
-          {/* Tips */}
-          <View className="mt-8 bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl p-6 border border-green-100">
-            <View className="flex-row items-center mb-3">
-              <Sparkles size={20} color="#10B981" />
-              <Text className="text-lg font-semibold text-black ml-2">Scanning Tips</Text>
-            </View>
-            <View className="gap-2">
-              <Text className="text-gray-700 text-sm">• Make sure the food is clearly visible</Text>
-              <Text className="text-gray-700 text-sm">• Ensure good lighting for best results</Text>
-              <Text className="text-gray-700 text-sm">• Include context for better accuracy</Text>
-              <Text className="text-gray-700 text-sm">
-                • Works with meals, snacks, and individual ingredients
-              </Text>
             </View>
           </View>
-        </View>
-      </ScrollView>
-    </SubPageLayout>
+        </ScrollView>
+      </SubPageLayout>
+    </SubscriptionGuard>
   );
 }

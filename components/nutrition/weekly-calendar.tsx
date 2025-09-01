@@ -6,7 +6,7 @@ interface WeeklyCalendarProps {
   selectedDate: Date;
   onDateSelect: (date: Date) => void;
   loggedDates?: string[];
-  theme?: 'nutrition' | 'exercise';
+  theme?: 'nutrition' | 'exercise' | 'cycle';
 }
 
 export default function WeeklyCalendar({
@@ -29,6 +29,12 @@ export default function WeeklyCalendar({
       todayBg: 'bg-purple-50 border border-purple-200',
       selectedText: 'text-white',
       todayText: 'text-purple-600',
+    },
+    cycle: {
+      selected: 'bg-pink-500 shadow-md',
+      todayBg: 'bg-pink-50 border border-pink-200',
+      selectedText: 'text-white',
+      todayText: 'text-pink-600',
     },
   };
   const colors = themeColors[theme];
@@ -88,7 +94,7 @@ export default function WeeklyCalendar({
   const weekDays = generateWeekDays(effectiveCenter);
 
   return (
-    <View className="mx-4 mb-8">
+    <View className="mx-4 mb-8 shadow-sm">
       <View className="bg-white rounded-2xl px-5 py-4 shadow-sm border border-gray-50">
         <View className="flex-row justify-between">
           {weekDays.map((date, index) => {
@@ -121,7 +127,9 @@ export default function WeeklyCalendar({
                         : isTodayDate
                           ? colors.todayBg
                           : hasLogs
-                            ? 'bg-orange-50 border border-orange-200'
+                            ? theme === 'cycle'
+                              ? 'bg-pink-50 border border-pink-200'
+                              : 'bg-orange-50 border border-orange-200'
                             : 'bg-gray-50'
                     }`}
                   >
@@ -132,7 +140,9 @@ export default function WeeklyCalendar({
                           : isTodayDate
                             ? colors.todayText
                             : hasLogs
-                              ? 'text-orange-600'
+                              ? theme === 'cycle'
+                                ? 'text-pink-600'
+                                : 'text-orange-600'
                               : 'text-gray-500'
                       }`}
                     >
@@ -145,7 +155,13 @@ export default function WeeklyCalendar({
                     <View className="absolute -bottom-1 left-1/2 transform -translate-x-1/2">
                       <View
                         className={`w-1.5 h-1.5 rounded-full ${
-                          isTodayDate ? 'bg-green-400' : 'bg-orange-400'
+                          isTodayDate
+                            ? theme === 'cycle'
+                              ? 'bg-pink-400'
+                              : 'bg-green-400'
+                            : theme === 'cycle'
+                              ? 'bg-pink-400'
+                              : 'bg-orange-400'
                         }`}
                       />
                     </View>

@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import { Text } from '@/components/ui/text';
 import PageLayout from '@/components/layouts/page-layout';
 import { router } from 'expo-router';
 import { useDailyNutritionSummary, useNutritionProgress } from '@/lib/hooks/use-nutrition-summary';
 import { useNutritionGoals } from '@/lib/hooks/use-nutrition-goals';
-import { useWaterProgress } from '@/lib/hooks/use-simple-water-tracking';
+import { useFitnessGoals } from '@/lib/hooks/use-fitness-goals';
+import { useBodyMeasurements } from '@/lib/hooks/use-weight-tracking';
+import { useWaterProgress, useQuickAddWater } from '@/lib/hooks/use-simple-water-tracking';
 import { useNutritionStreak } from '@/lib/hooks/use-nutrition-streak';
 import { useLoggedDates } from '@/lib/hooks/use-logged-dates';
 import { useUpdateMealNutrition } from '@/lib/hooks/use-meal-editing';
@@ -29,6 +31,7 @@ import {
   StreakDisplaySkeleton,
 } from '@/components/nutrition/nutrition-skeleton';
 import MealEditModal from '@/components/nutrition/meal-edit-modal';
+import { EmptyGoalsState } from '@/components/nutrition/empty-goals-state';
 
 export default function NutritionScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -36,12 +39,9 @@ export default function NutritionScreen() {
   const [editingMeal, setEditingMeal] = useState<any>(null);
   const [forceUpdateKey, setForceUpdateKey] = useState(0);
 
-  // Meal editing hooks
   const updateMealNutrition = useUpdateMealNutrition();
   const deleteMealEntry = useDeleteMealEntry();
-  const createMealEntry = useCreateMealEntry();
 
-  // Set up real-time subscription for automatic updates
   useMealEntriesRealtime(() => {
     setForceUpdateKey((prev) => {
       const newKey = prev + 1;
@@ -49,7 +49,6 @@ export default function NutritionScreen() {
     });
   });
 
-  // Get current date as string for API calls (avoid timezone issues)
   const dateString =
     selectedDate.getFullYear() +
     '-' +
@@ -57,7 +56,6 @@ export default function NutritionScreen() {
     '-' +
     String(selectedDate.getDate()).padStart(2, '0');
 
-  // Calculate date range for weekly calendar (last 5 days + today + next day)
   const getWeekRange = () => {
     const today = new Date();
     const start = new Date(today);
@@ -83,13 +81,14 @@ export default function NutritionScreen() {
   const { data: dailySummary, isLoading: summaryLoading } = useDailyNutritionSummary(dateString);
   const { data: progress, isLoading: progressLoading } = useNutritionProgress(dateString);
   const { data: nutritionGoals, isLoading: goalsLoading } = useNutritionGoals();
+  const { data: fitnessGoals, isLoading: fitnessGoalsLoading } = useFitnessGoals();
+  const { data: bodyMeasurements, isLoading: bodyMeasurementsLoading } = useBodyMeasurements();
   const { data: streakData, isLoading: streakLoading } = useNutritionStreak();
   const { data: loggedDates = [] } = useLoggedDates(startDate, endDate);
 
-  // Get simple water tracking data
   const waterProgress = useWaterProgress(dateString, nutritionGoals?.water_ml || 2000);
+  const quickAddWater = useQuickAddWater();
 
-  // Use real data if available, otherwise fallback to defaults
   const macroData = progress
     ? {
         calories: {
@@ -141,15 +140,22 @@ export default function NutritionScreen() {
     totalGlasses: waterProgress.totalGlasses,
   };
 
-  // Check if we should show loading state - include all critical loading states
-  const isLoading = summaryLoading || progressLoading || goalsLoading;
+  const isLoading = summaryLoading || progressLoading;
+  const goalsDataLoading = goalsLoading || fitnessGoalsLoading || bodyMeasurementsLoading;
 
-  // Get current streak value
+  // Check if essential goals are missing
+  const hasNutritionGoals = !!nutritionGoals;
+  const hasFitnessGoals = !!fitnessGoals;
+  const hasBodyMeasurements = !!bodyMeasurements;
+
+  // Debug logging removed for production
+
+  // Show empty goals state if at least nutrition goals are loaded and missing
+  const shouldShowEmptyGoalsState = !goalsLoading && !hasNutritionGoals;
+
   const currentStreak = streakData?.currentStreak || 0;
 
-  // Handle date selection - this will automatically update all data
   const handleDateSelect = (date: Date) => {
-    // Prevent unnecessary updates if the date is the same
     if (date.toDateString() === selectedDate.toDateString()) {
       return;
     }
@@ -161,7 +167,6 @@ export default function NutritionScreen() {
     }
   };
 
-  // Calendar helper functions
   const generateCalendarDays = () => {
     const year = selectedDate.getFullYear();
     const month = selectedDate.getMonth();
@@ -191,12 +196,10 @@ export default function NutritionScreen() {
   };
 
   const hasLoggedFood = (date: Date) => {
-    // Simulate some logged days for demo
     const dayOfMonth = date.getDate();
     return dayOfMonth % 3 === 0 || dayOfMonth % 7 === 0;
   };
 
-  // Meal editing handlers
   const handleMealEdit = (meal: any) => {
     setEditingMeal(meal);
   };
@@ -215,6 +218,7 @@ export default function NutritionScreen() {
   return (
     <PageLayout
       title="Nutrition"
+      theme="nutrition"
       btn={
         streakLoading ? (
           <StreakDisplaySkeleton />
@@ -232,7 +236,13 @@ export default function NutritionScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
       >
-        {isLoading ? (
+        {shouldShowEmptyGoalsState ? (
+          <EmptyGoalsState
+            hasNutritionGoals={hasNutritionGoals}
+            hasFitnessGoals={hasFitnessGoals}
+            hasBodyMeasurements={hasBodyMeasurements}
+          />
+        ) : isLoading || goalsDataLoading ? (
           <NutritionPageSkeleton />
         ) : (
           <>
@@ -253,6 +263,7 @@ export default function NutritionScreen() {
             <WaterIntakeCard
               waterData={waterData}
               onAddWaterPress={() => router.push('/log-water')}
+              onQuickAdd={() => quickAddWater.mutate({ date: dateString })}
             />
 
             <MealsSection

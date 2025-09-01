@@ -97,3 +97,44 @@ export function useWaterProgress(date: string, goalMl: number = 2000) {
     totalGlasses: Math.round(goalMl / 250),
   };
 }
+
+/**
+ * Hook to quickly add a glass of water (250ml)
+ */
+export function useQuickAddWater() {
+  const queryClient = useQueryClient();
+  const addWaterIntake = useAddWaterIntake();
+
+  return useMutation({
+    mutationFn: async ({ date, glassSize = 250 }: { date?: string; glassSize?: number } = {}) => {
+      const targetDate = date || new Date().toISOString().split('T')[0];
+
+      // Get current water intake for the day
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error('User not authenticated');
+
+      const { data: currentIntake } = await supabase
+        .from('daily_water_intake')
+        .select('total_ml')
+        .eq('user_id', user.user.id)
+        .eq('date', targetDate)
+        .single();
+
+      const currentAmount = currentIntake?.total_ml || 0;
+      const newAmount = currentAmount + glassSize;
+
+      // Update with new total
+      return addWaterIntake.mutateAsync({
+        amount_ml: newAmount,
+        date: targetDate,
+      });
+    },
+    onSuccess: () => {
+      // Visual feedback is provided by the animated progress circle
+    },
+    onError: (error) => {
+      console.error('Failed to add water:', error);
+      toast.error('Failed to add water');
+    },
+  });
+}

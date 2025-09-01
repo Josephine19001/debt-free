@@ -68,7 +68,7 @@ export default function PersonalDetailsScreen() {
   };
 
   const handleGoBack = () => {
-    router.back();
+    router.push('/settings');
   };
 
   if (isLoading) {

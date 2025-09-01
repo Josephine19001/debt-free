@@ -50,10 +50,19 @@ export default function CaloriesSummaryCard({
     { type: 'snack', icon: Cookie, color: '#EC4899', calories: getMealCalories('snack') },
   ];
 
-  // Show skeleton when loading or no valid data
-  if (isLoading || !hasValidTarget) {
+  // Show skeleton only when loading
+  if (isLoading) {
     return <CaloriesSummaryCardSkeleton />;
   }
+
+  // Use default values when no valid target is set
+  const displayCaloriesTarget = hasValidTarget ? macroData.calories.target : 2000;
+  const displayCaloriesConsumed = hasValidTarget ? macroData.calories.consumed : 0;
+  const displayCaloriesLeft = displayCaloriesTarget - displayCaloriesConsumed;
+  const displayIsOverTarget = hasValidTarget && caloriesLeft < 0;
+  const displayProgress = hasValidTarget
+    ? caloriesProgress
+    : calculateProgress(displayCaloriesConsumed, displayCaloriesTarget);
 
   return (
     <View className="px-4 mb-6">
@@ -62,73 +71,77 @@ export default function CaloriesSummaryCard({
           {/* Left side - Large number and text */}
           <View className="flex-1">
             <Text className="text-6xl font-bold text-gray-900 mb-1">
-              {isOverTarget ? `-${Math.round(Math.abs(caloriesLeft))}` : Math.round(caloriesLeft)}
+              {displayIsOverTarget
+                ? `-${Math.round(Math.abs(displayCaloriesLeft))}`
+                : Math.round(displayCaloriesLeft)}
             </Text>
             <View className="flex-row items-center">
               <Text className="text-gray-600 text-lg font-medium">
-                {isOverTarget ? 'Calories over' : 'Calories left'}
+                {displayIsOverTarget ? 'Calories over' : 'Calories left'}
               </Text>
               <View className="flex-row items-center ml-3">
                 <View
                   className={`w-4 h-4 rounded-full mr-1 ${
-                    isOverTarget ? 'bg-red-500' : 'bg-green-500'
+                    displayIsOverTarget ? 'bg-red-500' : 'bg-green-500'
                   }`}
                 />
                 <Text className="text-gray-500 text-sm">
-                  {`${Math.round(caloriesConsumed)} consumed`}
+                  {`${Math.round(displayCaloriesConsumed)} consumed`}
                 </Text>
               </View>
             </View>
           </View>
 
           {/* Right side - Circular progress */}
-          <View className="relative w-20 h-20">
-            {/* Background circle */}
+          <View className="relative w-20 h-20 items-center justify-center">
+            {/* Background circle - always visible, larger than icon */}
             <View
-              className="absolute inset-0 rounded-full border-8"
-              style={{ borderColor: '#F3F4F6' }}
-            />
-
-            {/* Progress circle */}
-            <View
-              className="absolute inset-0 rounded-full border-8"
+              className="absolute rounded-full"
               style={{
-                borderColor: 'transparent',
-                borderTopColor:
-                  caloriesProgress > 12.5 ? (isOverTarget ? '#EF4444' : '#10B981') : 'transparent',
-                borderRightColor:
-                  caloriesProgress > 37.5 ? (isOverTarget ? '#EF4444' : '#10B981') : 'transparent',
-                borderBottomColor:
-                  caloriesProgress > 62.5 ? (isOverTarget ? '#EF4444' : '#10B981') : 'transparent',
-                borderLeftColor:
-                  caloriesProgress > 87.5 ? (isOverTarget ? '#EF4444' : '#10B981') : 'transparent',
-                transform: [{ rotate: `${-90 + Math.min(caloriesProgress, 100) * 3.6}deg` }],
+                width: 76,
+                height: 76,
+                borderWidth: 6,
+                borderColor: '#E5E7EB',
               }}
             />
 
-            {/* Overconsumption indicator - second lap */}
-            {caloriesProgress > 100 && (
+            {/* Progress circle - only show if there's progress */}
+            {displayProgress > 0 && (
               <View
-                className="absolute inset-0 rounded-full border-8"
+                className="absolute rounded-full"
                 style={{
+                  width: 76,
+                  height: 76,
+                  borderWidth: 6,
+                  borderColor: '#E5E7EB',
+                  borderTopColor: displayIsOverTarget ? '#EF4444' : '#10B981',
+                  transform: [{ rotate: `${-90 + Math.min(displayProgress, 100) * 3.6}deg` }],
+                }}
+              />
+            )}
+
+            {/* Overconsumption indicator - second lap */}
+            {displayProgress > 100 && (
+              <View
+                className="absolute rounded-full"
+                style={{
+                  width: 76,
+                  height: 76,
+                  borderWidth: 6,
                   borderColor: 'transparent',
-                  borderTopColor: caloriesProgress - 100 > 12.5 ? '#EF4444' : 'transparent',
-                  borderRightColor: caloriesProgress - 100 > 37.5 ? '#EF4444' : 'transparent',
-                  borderBottomColor: caloriesProgress - 100 > 62.5 ? '#EF4444' : 'transparent',
-                  borderLeftColor: caloriesProgress - 100 > 87.5 ? '#EF4444' : 'transparent',
-                  transform: [
-                    { rotate: `${-90 + Math.min(caloriesProgress - 100, 100) * 3.6}deg` },
-                  ],
+                  borderTopColor: displayProgress - 100 > 12.5 ? '#EF4444' : 'transparent',
+                  borderRightColor: displayProgress - 100 > 37.5 ? '#EF4444' : 'transparent',
+                  borderBottomColor: displayProgress - 100 > 62.5 ? '#EF4444' : 'transparent',
+                  borderLeftColor: displayProgress - 100 > 87.5 ? '#EF4444' : 'transparent',
+                  transform: [{ rotate: `${-90 + Math.min(displayProgress - 100, 100) * 3.6}deg` }],
                   opacity: 0.7,
                 }}
               />
             )}
 
-            {/* Center icon */}
-            <View className="absolute inset-0 items-center justify-center">
-              <View className="w-8 h-8 bg-orange-100 rounded-full items-center justify-center">
-                <Apple size={16} color="#F59E0B" />
-              </View>
+            {/* Center icon - smaller and positioned in the center */}
+            <View className="w-12 h-12 bg-orange-100 rounded-full items-center justify-center">
+              <Apple size={20} color="#F59E0B" />
             </View>
           </View>
         </View>

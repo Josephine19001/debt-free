@@ -1,4 +1,10 @@
 PODS:
+  - Adapty (3.10.1)
+  - AdaptyPlugin (3.10.1):
+    - Adapty (= 3.10.1)
+    - AdaptyUI (= 3.10.1)
+  - AdaptyUI (3.10.1):
+    - Adapty (= 3.10.1)
   - boost (1.84.0)
   - DoubleConversion (1.1.6)
   - EXApplication (6.1.5):
@@ -1778,6 +1784,11 @@ PODS:
     - React-jsiexecutor
     - React-RCTFBReactNativeSpec
     - ReactCommon/turbomodule/core
+  - react-native-adapty-sdk (3.10.0):
+    - Adapty (= 3.10.1)
+    - AdaptyPlugin (= 3.10.1)
+    - AdaptyUI (= 3.10.1)
+    - React
   - react-native-safe-area-context (5.4.0):
     - React-Core
   - React-NativeModulesApple (0.79.5):
@@ -2105,7 +2116,7 @@ PODS:
   - RevenueCat (5.32.0)
   - RevenueCatUI (5.32.0):
     - RevenueCat (= 5.32.0)
-  - RNCAsyncStorage (2.1.2):
+  - RNCAsyncStorage (2.2.0):
     - React-Core
   - RNDateTimePicker (8.4.1):
     - React-Core
@@ -2383,6 +2394,7 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
+  - react-native-adapty-sdk (from `../node_modules/react-native-adapty`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-oscompat (from `../node_modules/react-native/ReactCommon/oscompat`)
@@ -2428,6 +2440,9 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - Adapty
+    - AdaptyPlugin
+    - AdaptyUI
     - GoogleDataTransport
     - GoogleMLKit
     - GoogleToolboxForMac
@@ -2599,6 +2614,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   React-microtasksnativemodule:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
+  react-native-adapty-sdk:
+    :path: "../node_modules/react-native-adapty"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   React-NativeModulesApple:
@@ -2685,6 +2702,9 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
+  Adapty: 0f442bc6513aa2d83d719fd76491df193ad39fca
+  AdaptyPlugin: d703eded378d715887ed4e3b6d7272f5ca82e0ac
+  AdaptyUI: 86bb1aaa8be6172c1841acb11cd82601192b7266
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXApplication: 1e06972201838375ca1ec1ba34d586a98a5dc718
@@ -2776,6 +2796,7 @@ SPEC CHECKSUMS:
   React-logger: 85fa3509931497c72ccd2547fcc91e7299d8591e
   React-Mapbuffer: 96a2f2a176268581733be182fa6eebab1c0193be
   React-microtasksnativemodule: bda561d2648e1e52bd9e5a87f8889836bdbde2e2
+  react-native-adapty-sdk: 835393e4e4e3b0c7ec5ac0af0d52703459133a36
   react-native-safe-area-context: 9d72abf6d8473da73033b597090a80b709c0b2f1
   React-NativeModulesApple: 1ecb83880dd11baf2228f8dd89d8419c387e03ad
   React-oscompat: 0592889a9fcf0eacb205532028e4a364e22907dd
@@ -2810,7 +2831,7 @@ SPEC CHECKSUMS:
   ReactCommon: 1ab5451fc5da87c4cc4c3046e19a8054624ca763
   RevenueCat: 7e1d0768fb287c9983173c9b28e39ccbeeb828a9
   RevenueCatUI: 61ddba6f94803f9b79c470ffe1e8b81d807c11ce
-  RNCAsyncStorage: b9f5f78da5d16a853fe3dc22e8268d932fc45a83
+  RNCAsyncStorage: b44e8a4e798c3e1f56bffccd0f591f674fb9198f
   RNDateTimePicker: 60f9e986d61e42169a2716c1b51f1f93dfa82665
   RNGestureHandler: ce4a87dba81030b374d7f1993c4376f5c230da2e
   RNMLKitTextRecognition: ff4ec181537d3ec3bd53f48038ed3d0c381ff66a
@@ -2825,6 +2846,6 @@ SPEC CHECKSUMS:
   Yoga: adb397651e1c00672c12e9495babca70777e411e
   ZXingObjC: 8898711ab495761b2dbbdec76d90164a6d7e14c5
 
-PODFILE CHECKSUM: 5168ede0bbcb8849327caf9be0d641c38b701207
+PODFILE CHECKSUM: cfea76d9f93f47ee19e44ee7299e404c01e90b5b
 
 COCOAPODS: 1.16.2

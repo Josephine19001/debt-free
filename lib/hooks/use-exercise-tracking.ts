@@ -68,8 +68,15 @@ export function useExerciseEntries(date: string) {
   return useQuery({
     queryKey: [...queryKeys.logs.exerciseEntries, date],
     queryFn: async () => {
+      console.log('🔍 Fetching exercise entries for date:', date);
+
       const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error('User not authenticated');
+      if (!user.user) {
+        console.error('❌ User not authenticated for exercise entries');
+        throw new Error('User not authenticated');
+      }
+
+      console.log('👤 User ID for exercise entries:', user.user.id);
 
       const { data, error } = await supabase
         .from('exercise_entries')
@@ -78,7 +85,12 @@ export function useExerciseEntries(date: string) {
         .eq('logged_date', date)
         .order('logged_time', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error fetching exercise entries:', error);
+        throw error;
+      }
+
+      console.log(`📋 Found ${data?.length || 0} exercise entries for ${date}:`, data);
       return data as ExerciseEntry[];
     },
     staleTime: getStaleTimeForDate(date),
@@ -121,37 +133,53 @@ export function useCreateExerciseEntry() {
 
   return useMutation({
     mutationFn: async (data: CreateExerciseEntryData) => {
+      console.log('🔄 Creating exercise entry with data:', data);
+
       const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error('User not authenticated');
+      if (!user.user) {
+        console.error('❌ User not authenticated');
+        throw new Error('User not authenticated');
+      }
+
+      console.log('👤 User authenticated:', user.user.id);
+
+      const insertData = {
+        user_id: user.user.id,
+        exercise_name: data.exercise_name,
+        exercise_type: data.exercise_type,
+        duration_minutes: data.duration_minutes,
+        calories_burned: data.calories_burned || 0,
+        intensity: data.intensity || 'moderate',
+        notes: data.notes,
+        logged_date:
+          data.logged_date ||
+          (() => {
+            const today = new Date();
+            return (
+              today.getFullYear() +
+              '-' +
+              String(today.getMonth() + 1).padStart(2, '0') +
+              '-' +
+              String(today.getDate()).padStart(2, '0')
+            );
+          })(),
+        logged_time: data.logged_time || new Date().toTimeString().split(' ')[0],
+      };
+
+      console.log('📝 Inserting to exercise_entries table:', insertData);
 
       const { data: result, error } = await supabase
         .from('exercise_entries')
-        .insert({
-          user_id: user.user.id,
-          exercise_name: data.exercise_name,
-          exercise_type: data.exercise_type,
-          duration_minutes: data.duration_minutes,
-          calories_burned: data.calories_burned || 0,
-          intensity: data.intensity || 'moderate',
-          notes: data.notes,
-          logged_date:
-            data.logged_date ||
-            (() => {
-              const today = new Date();
-              return (
-                today.getFullYear() +
-                '-' +
-                String(today.getMonth() + 1).padStart(2, '0') +
-                '-' +
-                String(today.getDate()).padStart(2, '0')
-              );
-            })(),
-          logged_time: data.logged_time || new Date().toTimeString().split(' ')[0],
-        })
+        .insert(insertData)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Supabase error:', error);
+        throw error;
+      }
+
+      console.log('✅ Exercise entry created:', result);
 
       // If user wants to share with community, invoke AI moderation
       if (data.share_with_community) {

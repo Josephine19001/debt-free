@@ -1,14 +1,29 @@
-import { View, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import {
+  View,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Animated,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { Text } from '@/components/ui/text';
 import { router } from 'expo-router';
-import { useAppNavigation } from '@/lib/hooks/use-navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import SubPageLayout from '@/components/layouts/sub-page';
-import { Heart, Sparkles } from 'lucide-react-native';
-import { useLogPeriodData, usePeriodLogs, useTodaysPeriodLog } from '@/lib/hooks/use-cycle-data';
+import { Heart, Zap, Battery, BatteryLow, Calendar, Check } from 'lucide-react-native';
+import { usePeriodLogs, useTodaysPeriodLog } from '@/lib/hooks/use-cycle-data';
+import { useLogMood } from '@/lib/hooks/use-symptoms-mood';
+import {
+  AmazingIcon,
+  SmileIcon,
+  OkayIcon,
+  ToughIcon,
+  StrugglingIcon,
+} from '@/components/icons/mood-icons';
+import { Button } from '@/components/ui/button';
 
 export default function LogMoodScreen() {
-  const { goBack } = useAppNavigation();
   const [selectedMood, setSelectedMood] = useState<
     'happy' | 'normal' | 'sad' | 'irritable' | 'anxious' | ''
   >('');
@@ -16,7 +31,11 @@ export default function LogMoodScreen() {
   const [notes, setNotes] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const logPeriodData = useLogPeriodData();
+  // Animation values
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+
+  const logMood = useLogMood();
   const { data: periodLogs = [] } = usePeriodLogs();
   const todaysLog = useTodaysPeriodLog();
 
@@ -44,22 +63,38 @@ export default function LogMoodScreen() {
     }
   }, [todaysLog]);
 
+  // Entrance animation
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
   const moodOptions = [
-    { value: 'happy', label: 'Happy', emoji: '😊', color: '#EC4899' },
-    { value: 'normal', label: 'Normal', emoji: '😐', color: '#8B5CF6' },
-    { value: 'sad', label: 'Sad', emoji: '😢', color: '#06B6D4' },
-    { value: 'irritable', label: 'Irritable', emoji: '😤', color: '#F59E0B' },
-    { value: 'anxious', label: 'Anxious', emoji: '😰', color: '#EF4444' },
+    { value: 'happy', label: 'Amazing', icon: 'amazing' },
+    { value: 'normal', label: 'Good', icon: 'smile' },
+    { value: 'sad', label: 'Okay', icon: 'okay' },
+    { value: 'irritable', label: 'Tough', icon: 'tough' },
+    { value: 'anxious', label: 'Struggling', icon: 'struggling' },
   ];
 
   const energyOptions = [
-    { value: 'high', label: 'High Energy', color: '#10B981', icon: '⚡' },
-    { value: 'medium', label: 'Medium Energy', color: '#F59E0B', icon: '🔥' },
-    { value: 'low', label: 'Low Energy', color: '#EF4444', icon: '🌙' },
+    { value: 'high', label: 'High Energy', icon: 'zap' },
+    { value: 'medium', label: 'Medium Energy', icon: 'battery' },
+    { value: 'low', label: 'Low Energy', icon: 'battery-low' },
   ];
 
   const handleSave = () => {
-    if (!selectedMood || !selectedEnergy) return;
+    if (!selectedMood) return;
 
     setIsLoading(true);
 
@@ -70,22 +105,19 @@ export default function LogMoodScreen() {
     const day = String(today.getDate()).padStart(2, '0');
     const dateString = `${year}-${month}-${day}`;
 
-    // Store energy level in notes with a special format
-    const moodNotes = notes.trim();
-    const energyNote = `Energy: ${selectedEnergy}`;
-    const combinedNotes = moodNotes ? `${energyNote} | ${moodNotes}` : energyNote;
-
-    // Log mood (backend will handle merging with existing data)
-    logPeriodData.mutate(
+    // Log mood using direct Supabase function
+    logMood.mutate(
       {
         date: dateString,
         mood: selectedMood as any,
-        notes: combinedNotes,
+        energy_level: selectedEnergy || undefined,
+        notes: notes.trim() || undefined,
       },
       {
         onSuccess: () => {
           setIsLoading(false);
-          goBack();
+          // Navigate back to cycle tab specifically
+          router.push('/(tabs)/cycle');
         },
         onError: (error) => {
           console.error('Error saving mood log:', error);
@@ -95,160 +127,166 @@ export default function LogMoodScreen() {
     );
   };
 
-  const isFormValid = selectedMood && selectedEnergy;
+  const isFormValid = selectedMood;
 
   return (
-    <SubPageLayout
-      title="Log Mood"
-      rightElement={
-        <TouchableOpacity
-          onPress={handleSave}
-          disabled={!isFormValid || isLoading}
-          className={`px-6 py-3 rounded-full ${
-            isFormValid && !isLoading ? 'bg-pink-500' : 'bg-gray-300'
-          }`}
+    <View className="flex-1" style={{ backgroundColor: '#F5F1E8' }}>
+      <SubPageLayout
+        title="Log Mood"
+        onBack={() => router.back()}
+        rightElement={
+          <Button
+            title="Log"
+            onPress={handleSave}
+            variant="primary"
+            size="small"
+            disabled={!isFormValid || isLoading}
+            loading={isLoading}
+          />
+        }
+      >
+        <KeyboardAvoidingView
+          className="flex-1"
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          <Text
-            className={`font-semibold ${
-              isFormValid && !isLoading ? 'text-white' : 'text-gray-500'
-            }`}
+          <ScrollView
+            className="flex-1"
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 100 }}
           >
-            {isLoading ? 'Saving...' : 'Save'}
-          </Text>
-        </TouchableOpacity>
-      }
-    >
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="px-4 pt-6">
-          {/* Header */}
-          <View className="mb-8">
-            <View className="flex-row items-center mb-3">
-              <Sparkles size={28} color="#EC4899" />
-              <Text className="text-2xl font-bold text-black ml-3">How are you feeling?</Text>
-            </View>
-            <Text className="text-gray-600 text-base">Track your mood and energy levels</Text>
-          </View>
-
-          {/* Mood Selection */}
-          <View className="mb-8">
-            <Text className="text-lg font-semibold text-black mb-4">Mood</Text>
-            <View className="flex-row flex-wrap" style={{ gap: 12 }}>
-              {moodOptions.map((option) => {
-                const isSelected = selectedMood === option.value;
-                return (
-                  <TouchableOpacity
-                    key={option.value}
-                    onPress={() => setSelectedMood(option.value as any)}
-                    className="flex-1 min-w-[48%] p-5 rounded-2xl border border-gray-100"
-                    style={{
-                      backgroundColor: isSelected ? `${option.color}15` : '#FFFFFF',
-                      borderColor: isSelected ? option.color : '#E5E7EB',
-                      borderWidth: isSelected ? 1.5 : 1,
-                    }}
-                  >
-                    <View className="items-center">
-                      <Text className="text-4xl mb-3">{option.emoji}</Text>
-                      <Text
-                        className="text-sm font-medium"
-                        style={{ color: isSelected ? option.color : '#374151' }}
-                      >
-                        {option.label}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
-
-          {/* Energy Level */}
-          <View className="mb-8">
-            <Text className="text-lg font-semibold text-black mb-4">Energy Level</Text>
-            <View style={{ gap: 12 }}>
-              {energyOptions.map((option) => {
-                const isSelected = selectedEnergy === option.value;
-                return (
-                  <TouchableOpacity
-                    key={option.value}
-                    onPress={() => setSelectedEnergy(option.value as any)}
-                    className="p-5 rounded-2xl border border-gray-100 flex-row items-center"
-                    style={{
-                      backgroundColor: isSelected ? `${option.color}15` : '#FFFFFF',
-                      borderColor: isSelected ? option.color : '#E5E7EB',
-                      borderWidth: isSelected ? 1.5 : 1,
-                    }}
-                  >
-                    <Text className="text-2xl mr-4">{option.icon}</Text>
-                    <Text
-                      className="font-medium text-base flex-1"
-                      style={{ color: isSelected ? option.color : '#374151' }}
-                    >
-                      {option.label}
-                    </Text>
-                    {isSelected && (
-                      <View
-                        className="w-6 h-6 rounded-full items-center justify-center"
-                        style={{ backgroundColor: option.color }}
-                      >
-                        <Text className="text-white text-xs font-bold">✓</Text>
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
-
-          {/* Notes Section */}
-          <View className="mb-8">
-            <Text className="text-lg font-semibold text-black mb-4">Notes (Optional)</Text>
-            <TextInput
-              value={notes}
-              onChangeText={setNotes}
-              placeholder="How are you feeling today? Any thoughts or reflections..."
-              multiline
-              numberOfLines={4}
-              className="p-4 bg-white rounded-2xl border border-gray-100 text-gray-800"
-              style={{ textAlignVertical: 'top', minHeight: 100 }}
-              placeholderTextColor="#9CA3AF"
-            />
-          </View>
-
-          {/* Summary Card */}
-          {isFormValid && (
-            <View
-              className="rounded-2xl p-5 mb-8 border"
+            <Animated.View
+              className="px-4 pt-6"
               style={{
-                backgroundColor: '#FDF2F8',
-                borderColor: '#F9A8D4',
-                borderWidth: 1.5,
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
               }}
             >
-              <View className="flex-row items-center mb-3">
-                <Heart size={20} color="#EC4899" />
-                <Text className="font-semibold text-pink-800 ml-3 text-base">Today's Summary</Text>
-              </View>
-              <View className="flex-row items-center">
-                <Text className="text-2xl mr-3">
-                  {moodOptions.find((m) => m.value === selectedMood)?.emoji}
+              {/* Header */}
+              <View className="mb-8">
+                <Text className="text-3xl font-bold text-gray-900 mb-4">
+                  How are you feeling today?
                 </Text>
-                <Text className="text-pink-700 text-sm flex-1">
-                  Feeling <Text className="font-semibold">{selectedMood}</Text> with{' '}
-                  <Text className="font-semibold">{selectedEnergy}</Text> energy
-                </Text>
-                <Text className="text-xl">
-                  {energyOptions.find((e) => e.value === selectedEnergy)?.icon}
+                <Text className="text-gray-600 text-base">
+                  Choose the emoji that best matches your current mood.
                 </Text>
               </View>
-              {notes.trim() && (
-                <View className="mt-3 pt-3 border-t border-pink-200">
-                  <Text className="text-pink-600 text-sm italic">"{notes.trim()}"</Text>
+
+              {/* Mood Selection */}
+              <View className="mb-8">
+                <View style={{ gap: 20 }}>
+                  {moodOptions.map((option) => {
+                    const isSelected = selectedMood === option.value;
+                    return (
+                      <TouchableOpacity
+                        key={option.value}
+                        onPress={() => setSelectedMood(option.value as any)}
+                        className="flex-row items-center p-6 rounded-2xl"
+                        style={{
+                          backgroundColor: isSelected
+                            ? 'rgba(255, 182, 193, 0.3)'
+                            : 'rgba(255, 255, 255, 0.8)',
+                          borderWidth: 0,
+                          shadowColor: '#000',
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: 0.1,
+                          shadowRadius: 8,
+                          elevation: 3,
+                        }}
+                      >
+                        <View className="mr-6">
+                          {option.icon === 'amazing' && <AmazingIcon size={60} />}
+                          {option.icon === 'smile' && <SmileIcon size={60} />}
+                          {option.icon === 'okay' && <OkayIcon size={60} />}
+                          {option.icon === 'tough' && <ToughIcon size={60} />}
+                          {option.icon === 'struggling' && <StrugglingIcon size={60} />}
+                        </View>
+                        <View className="flex-1">
+                          <Text className="text-xl font-medium text-gray-800">{option.label}</Text>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
-              )}
-            </View>
-          )}
-        </View>
-      </ScrollView>
-    </SubPageLayout>
+              </View>
+
+              {/* Energy Level Selection */}
+              <View className="mb-8">
+                <Text className="text-xl font-semibold text-gray-900 mb-4">Energy Level</Text>
+                <View style={{ gap: 16 }}>
+                  {energyOptions.map((option) => {
+                    const isSelected = selectedEnergy === option.value;
+                    return (
+                      <TouchableOpacity
+                        key={option.value}
+                        onPress={() => setSelectedEnergy(option.value as any)}
+                        className="flex-row items-center p-4 rounded-2xl"
+                        style={{
+                          backgroundColor: isSelected
+                            ? 'rgba(255, 182, 193, 0.3)'
+                            : 'rgba(255, 255, 255, 0.8)',
+                          borderWidth: 0,
+                          shadowColor: '#000',
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: 0.1,
+                          shadowRadius: 8,
+                          elevation: 3,
+                        }}
+                      >
+                        <View className="mr-4">
+                          {option.icon === 'zap' && <Zap size={32} color="#EC4899" />}
+                          {option.icon === 'battery' && <Battery size={32} color="#EC4899" />}
+                          {option.icon === 'battery-low' && (
+                            <BatteryLow size={32} color="#EC4899" />
+                          )}
+                        </View>
+                        <View className="flex-1">
+                          <Text className="text-lg font-semibold text-gray-900">
+                            {option.label}
+                          </Text>
+                        </View>
+                        {isSelected && (
+                          <View
+                            className="w-6 h-6 rounded-full items-center justify-center"
+                            style={{ backgroundColor: '#EC4899' }}
+                          >
+                            <Check size={16} color="white" />
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {/* Notes Section */}
+              <View className="mb-8">
+                <Text className="text-lg font-semibold text-black mb-4">Notes</Text>
+                <View
+                  className="bg-white rounded-2xl border border-gray-200 p-4"
+                  style={{
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.05,
+                    shadowRadius: 8,
+                    elevation: 3,
+                  }}
+                >
+                  <TextInput
+                    value={notes}
+                    onChangeText={setNotes}
+                    placeholder="Add any additional notes..."
+                    multiline
+                    numberOfLines={3}
+                    className="text-gray-800 text-base leading-relaxed"
+                    style={{ textAlignVertical: 'top', minHeight: 80 }}
+                    placeholderTextColor="#9CA3AF"
+                  />
+                </View>
+              </View>
+            </Animated.View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SubPageLayout>
+    </View>
   );
 }

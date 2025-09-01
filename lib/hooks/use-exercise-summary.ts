@@ -34,7 +34,14 @@ export function useDailyExerciseSummary(date: string) {
   return useQuery({
     queryKey: [...queryKeys.logs.dailyExercise, date, exerciseEntries?.length],
     queryFn: async (): Promise<DailyExerciseSummary> => {
+      console.log(`📊 Calculating daily exercise summary for ${date}:`, {
+        exerciseEntries,
+        entriesLoading,
+        entriesCount: exerciseEntries?.length || 0,
+      });
+
       if (!exerciseEntries || exerciseEntries.length === 0) {
+        console.log(`📋 No exercise entries found for ${date}`);
         return {
           total_workouts: 0,
           total_minutes: 0,
@@ -54,13 +61,16 @@ export function useDailyExerciseSummary(date: string) {
         workout_types[entry.exercise_type] = (workout_types[entry.exercise_type] || 0) + 1;
       });
 
-      return {
+      const summary = {
         total_workouts,
         total_minutes,
         total_calories,
         workout_types,
         logged_date: date,
       };
+
+      console.log(`✅ Daily exercise summary calculated for ${date}:`, summary);
+      return summary;
     },
     enabled: !entriesLoading,
     staleTime: getStaleTimeForSummary(date),

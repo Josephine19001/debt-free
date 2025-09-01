@@ -1,7 +1,8 @@
 import React from 'react';
 import { View } from 'react-native';
 import { Text } from '@/components/ui/text';
-import { Flame, Heart, Wheat, Droplets } from 'lucide-react-native';
+import { Flame, Beef, Wheat } from 'lucide-react-native';
+import { OliveOilIcon } from '@/components/icons/olive-oil-icon';
 import { MacroBreakdownSkeleton } from './nutrition-skeleton';
 
 interface MacroBreakdownProps {
@@ -49,34 +50,43 @@ const MacroCard = ({
         </View>
 
         {/* Right side - Circular progress */}
-        <View className="relative w-20 h-20">
-          {/* Background circle */}
+        <View className="relative w-20 h-20 items-center justify-center">
+          {/* Background circle - always visible, larger than icon */}
           <View
-            className="absolute inset-0 rounded-full border-8"
-            style={{ borderColor: '#F3F4F6' }}
-          />
-
-          {/* Progress circle */}
-          <View
-            className="absolute inset-0 rounded-full border-8"
+            className="absolute rounded-full"
             style={{
-              borderColor: 'transparent',
-              borderTopColor: progress > 12.5 ? color : 'transparent',
-              borderRightColor: progress > 37.5 ? color : 'transparent',
-              borderBottomColor: progress > 62.5 ? color : 'transparent',
-              borderLeftColor: progress > 87.5 ? color : 'transparent',
-              transform: [{ rotate: `${-90 + progress * 3.6}deg` }],
+              width: 76,
+              height: 76,
+              borderWidth: 6,
+              borderColor: '#E5E7EB',
             }}
           />
 
-          {/* Center icon */}
-          <View className="absolute inset-0 items-center justify-center">
+          {/* Progress circle - only show if there's progress */}
+          {progress > 0 && (
             <View
-              className="w-10 h-10 rounded-full items-center justify-center"
-              style={{ backgroundColor: `${color}20` }}
-            >
-              {React.createElement(icon, { size: 20, color })}
-            </View>
+              className="absolute rounded-full"
+              style={{
+                width: 76,
+                height: 76,
+                borderWidth: 6,
+                borderColor: '#E5E7EB',
+                borderTopColor: color,
+                transform: [{ rotate: `${-90 + progress * 3.6}deg` }],
+              }}
+            />
+          )}
+
+          {/* Center icon - positioned in the center */}
+          <View
+            className="w-12 h-12 rounded-full items-center justify-center"
+            style={{ backgroundColor: `${color}20` }}
+          >
+            {icon === OliveOilIcon ? (
+              <OliveOilIcon size={22} color={color} />
+            ) : (
+              React.createElement(icon, { size: 22, color })
+            )}
           </View>
         </View>
       </View>
@@ -85,17 +95,20 @@ const MacroCard = ({
 };
 
 export default function MacroBreakdown({ macroData, isLoading = false }: MacroBreakdownProps) {
-  // Check if we have valid targets (same logic as calories summary)
-  const hasValidTargets =
-    !isLoading &&
-    macroData.protein.target > 0 &&
-    macroData.carbs.target > 0 &&
-    macroData.fat.target > 0;
-
-  // Show skeleton when loading or no valid targets (same behavior as calories summary)
-  if (isLoading || !hasValidTargets) {
+  // Show skeleton only when loading
+  if (isLoading) {
     return <MacroBreakdownSkeleton />;
   }
+
+  // Check if we have valid targets
+  const hasValidTargets =
+    macroData.protein.target > 0 && macroData.carbs.target > 0 && macroData.fat.target > 0;
+
+  // Use default targets when no valid targets are set
+  const getDisplayData = (macro: { consumed: number; target: number }, defaultTarget: number) => ({
+    consumed: hasValidTargets ? macro.consumed : 0,
+    target: hasValidTargets ? macro.target : defaultTarget,
+  });
 
   return (
     <View className="px-4 mb-6">
@@ -104,19 +117,19 @@ export default function MacroBreakdown({ macroData, isLoading = false }: MacroBr
         <View className="mb-3">
           <MacroCard
             title="Protein"
-            consumed={macroData.protein.consumed}
-            target={macroData.protein.target}
+            consumed={getDisplayData(macroData.protein, 150).consumed}
+            target={getDisplayData(macroData.protein, 150).target}
             unit="g"
             color="#EF4444"
-            icon={Heart}
+            icon={Beef}
           />
         </View>
 
         <View className="mb-3">
           <MacroCard
             title="Carbs"
-            consumed={macroData.carbs.consumed}
-            target={macroData.carbs.target}
+            consumed={getDisplayData(macroData.carbs, 250).consumed}
+            target={getDisplayData(macroData.carbs, 250).target}
             unit="g"
             color="#F59E0B"
             icon={Wheat}
@@ -125,11 +138,11 @@ export default function MacroBreakdown({ macroData, isLoading = false }: MacroBr
 
         <MacroCard
           title="Fat"
-          consumed={macroData.fat.consumed}
-          target={macroData.fat.target}
+          consumed={getDisplayData(macroData.fat, 67).consumed}
+          target={getDisplayData(macroData.fat, 67).target}
           unit="g"
           color="#3B82F6"
-          icon={Droplets}
+          icon={OliveOilIcon}
         />
       </View>
     </View>

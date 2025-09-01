@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { Text } from '@/components/ui/text';
-import { GlassWater } from 'lucide-react-native';
+import { GlassWater, Plus } from 'lucide-react-native';
 
 interface WaterIntakeCardProps {
   waterData: {
@@ -11,47 +11,80 @@ interface WaterIntakeCardProps {
     totalGlasses: number;
   };
   onAddWaterPress?: () => void;
+  onQuickAdd?: () => void;
 }
 
-export default function WaterIntakeCard({ waterData, onAddWaterPress }: WaterIntakeCardProps) {
+export default function WaterIntakeCard({
+  waterData,
+  onAddWaterPress,
+  onQuickAdd,
+}: WaterIntakeCardProps) {
+  const progress = Math.min((waterData.consumed / waterData.goal) * 100, 100);
+
   return (
-    <View className="px-4 mb-6">
-      <View className="flex-row items-center justify-between mb-4">
-        <Text className="text-xl font-bold text-gray-900">Water Intake</Text>
-        <TouchableOpacity onPress={onAddWaterPress}>
-          <Text className="text-blue-600 font-medium">Add Water</Text>
-        </TouchableOpacity>
-      </View>
-
+    <View className="px-4 mb-3">
       <View className="bg-white rounded-2xl p-4 shadow-sm border border-gray-50">
-        <View className="flex-row items-center justify-between mb-3">
-          <View className="flex-row items-center">
-            <View
-              style={{ backgroundColor: '#DBEAFE' }}
-              className="w-8 h-8 rounded-full items-center justify-center mr-2"
-            >
-              <GlassWater size={16} color="#3B82F6" />
-            </View>
-            <Text className="text-sm font-medium text-gray-600">Water</Text>
+        <View className="flex-row items-center justify-between">
+          {/* Left side - Text content */}
+          <View className="flex-1">
+            <Text className="text-lg font-bold text-gray-900 mb-1">Water</Text>
+            <Text className="text-3xl font-bold text-gray-900 mb-1">{waterData.consumed}ml</Text>
+            <Text className="text-sm text-gray-500">of {waterData.goal}ml</Text>
           </View>
-          <Text className="text-xs text-gray-400">
-            {waterData.goal - waterData.consumed}ml left
-          </Text>
-        </View>
 
-        <View className="mb-2">
-          <Text className="text-2xl font-bold text-gray-900">{waterData.consumed}ml</Text>
-          <Text className="text-xs text-gray-500">of {waterData.goal}ml</Text>
-        </View>
+          {/* Right side - Circular progress with plus button */}
+          <View className="items-center">
+            <View className="relative w-20 h-20 items-center justify-center">
+              {/* Background circle - always visible */}
+              <View
+                className="absolute rounded-full"
+                style={{
+                  width: 76,
+                  height: 76,
+                  borderWidth: 6,
+                  borderColor: '#E5E7EB',
+                }}
+              />
 
-        <View className="bg-gray-100 rounded-full h-2">
-          <View
-            style={{
-              width: `${Math.min((waterData.consumed / waterData.goal) * 100, 100)}%`,
-              backgroundColor: '#3B82F6',
-            }}
-            className="h-2 rounded-full"
-          />
+              {/* Progress circle - show quarters based on progress */}
+              {progress > 0 && (
+                <View
+                  className="absolute rounded-full"
+                  style={{
+                    width: 76,
+                    height: 76,
+                    borderWidth: 6,
+                    borderColor: 'transparent',
+                    borderTopColor: progress > 0 ? '#3B82F6' : 'transparent',
+                    borderRightColor: progress > 25 ? '#3B82F6' : 'transparent',
+                    borderBottomColor: progress > 50 ? '#3B82F6' : 'transparent',
+                    borderLeftColor: progress > 75 ? '#3B82F6' : 'transparent',
+                    transform: [{ rotate: `${-90 + (progress % 25) * 14.4}deg` }],
+                  }}
+                />
+              )}
+
+              {/* Center icon - positioned in the center */}
+              <View className="w-12 h-12 bg-blue-100 rounded-full items-center justify-center">
+                <GlassWater size={22} color="#3B82F6" />
+              </View>
+            </View>
+
+            {/* Plus button */}
+            <TouchableOpacity
+              onPress={onQuickAdd}
+              className="bg-blue-500 rounded-full w-10 h-10 items-center justify-center mt-2"
+              style={{
+                shadowColor: '#3B82F6',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.2,
+                shadowRadius: 4,
+                elevation: 4,
+              }}
+            >
+              <Plus size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>

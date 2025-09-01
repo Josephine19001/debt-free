@@ -3,6 +3,13 @@ import { View, TouchableOpacity } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Heart, Plus } from 'lucide-react-native';
 import { router } from 'expo-router';
+import {
+  AmazingIcon,
+  SmileIcon,
+  OkayIcon,
+  ToughIcon,
+  StrugglingIcon,
+} from '@/components/icons/mood-icons';
 
 interface TodaysMoodProps {
   selectedDate: Date;
@@ -18,20 +25,37 @@ export function TodaysMood({ selectedDate, moodData, isLoading }: TodaysMoodProp
   const isToday = selectedDate.toDateString() === new Date().toDateString();
   const isFuture = selectedDate > new Date() && !isToday;
 
-  const getMoodEmoji = (mood: string) => {
+  const getMoodIcon = (mood: string) => {
     switch (mood) {
       case 'happy':
-        return '😊';
+        return <AmazingIcon size={40} />;
       case 'normal':
-        return '😐';
+        return <SmileIcon size={40} />;
       case 'sad':
-        return '😢';
+        return <OkayIcon size={40} />;
       case 'irritable':
-        return '😤';
+        return <ToughIcon size={40} />;
       case 'anxious':
-        return '😰';
+        return <StrugglingIcon size={40} />;
       default:
-        return '😐';
+        return <SmileIcon size={40} />;
+    }
+  };
+
+  const getMoodLabel = (mood: string) => {
+    switch (mood) {
+      case 'happy':
+        return 'Amazing';
+      case 'normal':
+        return 'Good';
+      case 'sad':
+        return 'Okay';
+      case 'irritable':
+        return 'Tough';
+      case 'anxious':
+        return 'Struggling';
+      default:
+        return 'Unknown';
     }
   };
 
@@ -84,18 +108,42 @@ export function TodaysMood({ selectedDate, moodData, isLoading }: TodaysMoodProp
 
   return (
     <View className="px-4 mb-6">
-      <View className="bg-white rounded-2xl p-4 border border-gray-100">
-        <View className="flex-row items-center justify-between mb-4">
+      <View
+        className="bg-white rounded-2xl p-5 border border-gray-100"
+        style={{
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.04,
+          shadowRadius: 12,
+          elevation: 2,
+        }}
+      >
+        <View className="flex-row items-center justify-between mb-5">
           <View className="flex-row items-center">
-            <View className="w-10 h-10 rounded-2xl bg-purple-100 items-center justify-center mr-3">
+            <View
+              className="w-11 h-11 rounded-2xl items-center justify-center mr-3"
+              style={{
+                backgroundColor: '#F3E8FF',
+                shadowColor: '#A855F7',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.1,
+                shadowRadius: 3,
+                elevation: 1,
+              }}
+            >
               <Heart size={20} color="#8B5CF6" />
             </View>
-            <Text className="text-lg font-semibold text-black">Mood</Text>
+            <Text className="text-lg font-bold text-gray-900">Mood</Text>
           </View>
           {!isFuture && (
             <TouchableOpacity
               onPress={() => router.push('/log-mood')}
-              className="w-8 h-8 rounded-full bg-purple-50 items-center justify-center"
+              className="w-9 h-9 rounded-xl items-center justify-center"
+              style={{
+                backgroundColor: '#F3E8FF',
+                borderWidth: 1,
+                borderColor: '#E9D5FF',
+              }}
             >
               <Plus size={16} color="#8B5CF6" />
             </TouchableOpacity>
@@ -103,21 +151,48 @@ export function TodaysMood({ selectedDate, moodData, isLoading }: TodaysMoodProp
         </View>
 
         {moodData ? (
-          <>
-            {/* Mood Display */}
-            <View className="bg-purple-50 rounded-2xl p-4 mb-4">
+          <View className="flex flex-col gap-4">
+            {/* Main Mood Card */}
+            <View
+              className="rounded-2xl p-5"
+              style={{
+                backgroundColor: '#FEFCFF',
+                borderWidth: 1,
+                borderColor: '#E9D5FF',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.05,
+                shadowRadius: 8,
+                elevation: 2,
+              }}
+            >
               <View className="flex-row items-center">
-                <Text className="text-3xl mr-3">{getMoodEmoji(moodData.mood)}</Text>
-                <View>
-                  <Text className="text-purple-900 text-lg font-bold capitalize">
-                    {moodData.mood}
+                {/* Mood Icon */}
+                <View
+                  className="w-14 h-14 rounded-2xl items-center justify-center mr-4"
+                  style={{
+                    backgroundColor: '#F3E8FF',
+                    borderWidth: 1,
+                    borderColor: '#DDD6FE',
+                  }}
+                >
+                  <View style={{ transform: [{ scale: 1.6 }] }}>{getMoodIcon(moodData.mood)}</View>
+                </View>
+
+                {/* Mood Info */}
+                <View className="flex-1">
+                  <Text className="text-gray-900 text-lg font-bold mb-1">
+                    {getMoodLabel(moodData.mood)}
                   </Text>
-                  <View className="flex-row items-center mt-1">
+                  <View className="flex-row items-center">
                     <View
                       className="w-2 h-2 rounded-full mr-2"
                       style={{ backgroundColor: getEnergyColor(moodData.energy_level) }}
                     />
-                    <Text className="text-purple-700 text-sm">
+                    <Text
+                      className="text-sm font-medium"
+                      style={{ color: getEnergyColor(moodData.energy_level) }}
+                    >
                       {getEnergyLabel(moodData.energy_level)}
                     </Text>
                   </View>
@@ -125,24 +200,68 @@ export function TodaysMood({ selectedDate, moodData, isLoading }: TodaysMoodProp
               </View>
             </View>
 
+            {/* Notes Section */}
             {moodData.notes && (
-              <View className="bg-gray-50 rounded-xl p-3">
-                <Text className="text-gray-700 text-sm">{moodData.notes}</Text>
+              <View
+                className="rounded-xl p-4"
+                style={{
+                  backgroundColor: '#F9FAFB',
+                  borderWidth: 1,
+                  borderColor: '#E5E7EB',
+                }}
+              >
+                <View className="flex-row items-center mb-2">
+                  <View
+                    className="w-1 h-4 rounded-full mr-2"
+                    style={{ backgroundColor: '#A855F7' }}
+                  />
+                  <Text className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Notes
+                  </Text>
+                </View>
+                <Text className="text-gray-700 text-sm leading-relaxed pl-3">{moodData.notes}</Text>
               </View>
             )}
-          </>
+          </View>
         ) : (
-          <View className="items-center py-8">
-            <View className="w-16 h-16 rounded-2xl bg-purple-50 items-center justify-center mb-3">
-              <Heart size={24} color="#8B5CF6" />
+          <View className="items-center py-6">
+            {/* Empty State Icon */}
+            <View
+              className="w-16 h-16 rounded-2xl items-center justify-center mb-4"
+              style={{
+                backgroundColor: '#F8FAFC',
+                borderWidth: 2,
+                borderColor: '#E2E8F0',
+                borderStyle: 'dashed',
+              }}
+            >
+              <Heart size={24} color="#94A3B8" />
             </View>
-            <Text className="text-gray-600 text-center mb-3">No mood logged yet</Text>
+
+            {/* Empty State Text */}
+            <Text className="text-gray-800 text-center text-base font-semibold mb-2">
+              No mood logged
+            </Text>
+            <Text className="text-gray-500 text-center text-sm mb-5 px-6 leading-relaxed">
+              Track your emotional wellness by logging how you're feeling today
+            </Text>
+
+            {/* Action Button */}
             {!isFuture && (
               <TouchableOpacity
                 onPress={() => router.push('/log-mood')}
-                className="bg-purple-500 px-4 py-2 rounded-xl"
+                className="rounded-xl px-6 py-3 flex-row items-center"
+                style={{
+                  backgroundColor: '#A855F7',
+                  shadowColor: '#A855F7',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.15,
+                  shadowRadius: 6,
+                  elevation: 3,
+                }}
               >
-                <Text className="text-white font-medium">Log Your Mood</Text>
+                <Plus size={16} color="white" style={{ marginRight: 6 }} />
+                <Text className="text-white font-semibold text-sm">Log Mood</Text>
               </TouchableOpacity>
             )}
           </View>

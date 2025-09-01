@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, ScrollView, TouchableOpacity, SafeAreaView, Platform } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { OnboardingStepContent } from '@/components/onboarding/onboarding-step-c
 import { CalendarModal } from '@/components/onboarding/calendar-modal';
 import { onboardingSteps } from '@/constants/onboarding-steps';
 import { OnboardingData } from '@/types/onboarding';
+import { OnboardingStorage } from '@/lib/utils/onboarding-storage';
 
 export default function OnboardingScreen() {
   const params = useLocalSearchParams();
@@ -34,18 +35,51 @@ export default function OnboardingScreen() {
     plan: selectedPlan,
   });
 
-  const updateData = (key: keyof OnboardingData, value: any) => {
-    setData((prev) => ({ ...prev, [key]: value }));
+  const updateData = async (key: keyof OnboardingData, value: any) => {
+    const newData = { ...data, [key]: value };
+    setData(newData);
+
+    // Save to local storage immediately
+    try {
+      await OnboardingStorage.save(newData);
+    } catch (error) {
+      console.error('Failed to save onboarding data to storage:', error);
+    }
   };
 
-  const handleNext = () => {
+  // Load data from storage on mount
+  useEffect(() => {
+    const loadStoredData = async () => {
+      try {
+        const storedData = await OnboardingStorage.load();
+        if (storedData) {
+          // Merge stored data with current data (preserve plan from URL)
+          setData({ ...storedData, plan: selectedPlan });
+        }
+      } catch (error) {
+        console.error('Failed to load onboarding data from storage:', error);
+      }
+    };
+
+    loadStoredData();
+  }, [selectedPlan]);
+
+  const handleNext = async () => {
     if (currentStep < onboardingSteps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Complete onboarding and navigate to auth with data
-      router.replace(
-        `/auth?mode=signup&plan=${data.plan}&onboardingData=${encodeURIComponent(JSON.stringify(data))}`
-      );
+      // Save final data to storage and navigate to auth
+      try {
+        await OnboardingStorage.save(data);
+        // Navigate to auth without onboarding data in URL
+        router.push(`/auth?mode=signup&plan=${data.plan}`);
+      } catch (error) {
+        console.error('Failed to save onboarding data:', error);
+        // Fallback to old method if storage fails
+        router.push(
+          `/auth?mode=signup&plan=${data.plan}&onboardingData=${encodeURIComponent(JSON.stringify(data))}`
+        );
+      }
     }
   };
 
@@ -177,17 +211,6 @@ export default function OnboardingScreen() {
           </View>
         )}
 
-        {currentStepData.id === 'complete' && (
-          <View className="items-center mb-8">
-            <Text className="text-3xl font-bold text-gray-900 text-center mb-2">
-              You're all set!
-            </Text>
-            <Text className="text-gray-600 text-center text-lg">
-              Ready to start your wellness journey
-            </Text>
-          </View>
-        )}
-
         <OnboardingStepContent
           stepId={currentStepData.id}
           data={data}
@@ -199,7 +222,7 @@ export default function OnboardingScreen() {
       {/* Footer */}
       <View className="p-6">
         <Button
-          title={currentStep === onboardingSteps.length - 1 ? 'Start 3-Day Free Trial' : 'Continue'}
+          title={currentStep === onboardingSteps.length - 1 ? 'Set Up Account' : 'Continue'}
           onPress={handleNext}
           disabled={!canProceed()}
           variant="primary"

@@ -32,8 +32,9 @@ function getNext7Days(startDate: Date): Date[] {
   return days;
 }
 
-function getCycleAwareIntensity(cyclePhase: string, dayInCycle: number): string {
-  if (!cyclePhase) return 'moderate';
+function getCycleAwareIntensity(cyclePhase: string | null, dayInCycle: number | null): string {
+  // If no cycle data available, return moderate intensity
+  if (!cyclePhase || !dayInCycle) return 'moderate';
 
   switch (cyclePhase.toLowerCase()) {
     case 'menstrual':
@@ -68,13 +69,18 @@ async function generateWeeklyPlanWithAI(
     0
   );
 
+  // Handle missing cycle data gracefully
+  const cycleInfo = currentCyclePhase
+    ? `- Cycle: ${currentCyclePhase.phase} (day ${currentCyclePhase.day_in_cycle})`
+    : '- Cycle: No cycle data available (plan based on fitness goals only)';
+
   const prompt = `Generate a simple 7-day exercise plan and return ONLY valid JSON.
 
 User:
 - Goal: ${fitnessGoals?.primary_goal || 'general fitness'}
 - Level: ${fitnessGoals?.experience_level || 'beginner'}
 - Frequency: ${fitnessGoals?.workout_frequency || '3-4'} per week
-- Cycle: ${currentCyclePhase?.phase || 'unknown'} (day ${currentCyclePhase?.day_in_cycle || '?'})
+${cycleInfo}
 - Recent workouts: ${recentWorkouts || 'None'} (${totalRecentMinutes} total minutes)
 
 Return this structure:
@@ -110,7 +116,8 @@ RULES:
 - If user did similar exercises recently, vary the routine
 - 2-3 simple exercises per workout
 - Clear, short instructions
-- Lower intensity during menstrual phase`;
+- If cycle data available: Lower intensity during menstrual phase, higher during ovulatory
+- If no cycle data: Focus on gradual progression based on fitness goals only`;
 
   const userContent = `Plan for ${fitnessGoals?.primary_goal || 'fitness'} starting ${startDate.toDateString()}.`;
 
@@ -138,8 +145,8 @@ RULES:
         day_name: week[index].toLocaleDateString('en-US', { weekday: 'long' }),
         is_rest_day: restDays.includes(index),
         intensity: getCycleAwareIntensity(
-          currentCyclePhase?.phase,
-          currentCyclePhase?.day_in_cycle + index
+          currentCyclePhase?.phase || null,
+          currentCyclePhase?.day_in_cycle ? currentCyclePhase.day_in_cycle + index : null
         ),
         exercises:
           day.exercises?.map((exercise: any) => ({
@@ -181,8 +188,8 @@ RULES:
           day_name: week[index].toLocaleDateString('en-US', { weekday: 'long' }),
           is_rest_day: restDays.includes(index),
           intensity: getCycleAwareIntensity(
-            currentCyclePhase?.phase,
-            currentCyclePhase?.day_in_cycle + index
+            currentCyclePhase?.phase || null,
+            currentCyclePhase?.day_in_cycle ? currentCyclePhase.day_in_cycle + index : null
           ),
           exercises:
             day.exercises?.map((exercise: any) => ({
@@ -286,11 +293,114 @@ Deno.serve(async (req) => {
       console.warn('⚠️ Could not fetch exercise history:', historyError.message);
     }
 
+    // If no cycle phase provided via request, try to fetch it from database
+    let cyclePhaseData = current_cycle_phase;
+
+    if (!cyclePhaseData) {
+      console.log('🔍 No cycle data provided, attempting to fetch from database...');
+      try {
+        // First try using the helper function we created
+        const { data: cycleFunction, error: functionError } = await supabase.rpc(
+          'get_user_cycle_phase',
+          {
+            target_user_id: user_id,
+          }
+        );
+
+        if (cycleFunction && !functionError) {
+          cyclePhaseData = cycleFunction;
+          console.log(
+            `✅ Got cycle phase from function: ${cycleFunction.phase}, day ${cycleFunction.day_in_cycle}`
+          );
+        } else {
+          console.log('🔄 Function approach failed, trying manual calculation...');
+
+          // Fallback: manual calculation with robust period detection
+          const { data: cycleSettings } = await supabase
+            .from('cycle_settings')
+            .select('*')
+            .eq('user_id', user_id)
+            .single();
+
+          console.log('📊 Cycle settings query result:', { cycleSettings, settingsError: null });
+
+          if (cycleSettings) {
+            const { data: periodLogs } = await supabase
+              .from('period_logs')
+              .select('*')
+              .eq('user_id', user_id)
+              .order('date', { ascending: false })
+              .limit(100);
+
+            console.log('📋 Period logs query result:', {
+              logCount: periodLogs?.length || 0,
+              sampleLogs: periodLogs?.slice(0, 3),
+            });
+
+            // Calculate current cycle phase if we have period data
+            if (periodLogs && periodLogs.length > 0) {
+              const lastPeriodStart = periodLogs
+                .filter(
+                  (log: any) =>
+                    log.is_start_day === true ||
+                    log.period_start === true ||
+                    log.flow ||
+                    log.period_flow ||
+                    log.is_period === true ||
+                    log.period === true ||
+                    log.menstruation === true
+                )
+                .sort(
+                  (a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime()
+                )[0];
+
+              console.log('🩸 Found period start:', lastPeriodStart);
+
+              if (lastPeriodStart) {
+                const daysSinceLastPeriod = Math.floor(
+                  (new Date().getTime() - new Date(lastPeriodStart.date).getTime()) /
+                    (1000 * 60 * 60 * 24)
+                );
+                const cycleLength =
+                  cycleSettings.average_cycle_length || cycleSettings.cycle_length || 28;
+                const periodLength = cycleSettings.period_length || 5;
+                const dayInCycle = (daysSinceLastPeriod % cycleLength) + 1;
+
+                // Determine phase
+                let phase = 'follicular';
+                if (dayInCycle <= periodLength) phase = 'menstrual';
+                else if (dayInCycle <= 13) phase = 'follicular';
+                else if (dayInCycle <= 16) phase = 'ovulatory';
+                else phase = 'luteal';
+
+                cyclePhaseData = { phase, day_in_cycle: dayInCycle };
+                console.log(
+                  `✅ Calculated cycle phase manually: ${phase}, day ${dayInCycle} (${daysSinceLastPeriod} days since period)`
+                );
+              } else {
+                console.log('❌ No period start found in logs');
+              }
+            } else {
+              console.log('❌ No period logs found or error occurred');
+            }
+          } else {
+            console.log('❌ No cycle settings found or error occurred');
+          }
+        }
+      } catch (dbError) {
+        console.error('⚠️ Could not fetch cycle data from database:', dbError);
+      }
+    }
+
+    if (!cyclePhaseData) {
+      console.log('📝 No cycle data available, generating plan based on fitness goals only');
+    }
+
     // Generate the weekly plan
     const weeklyPlan = await generateWeeklyPlanWithAI(
       fitness_goals,
       body_measurements,
-      current_cycle_phase,
+      cyclePhaseData,
       startDate,
       exerciseHistory || []
     );

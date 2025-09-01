@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Pressable, Linking, Platform } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { TextInput } from '@/components/ui/text-input';
@@ -8,9 +8,17 @@ import { toast } from 'sonner-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { Eye, EyeOff } from 'lucide-react-native';
+import { OnboardingStorage } from '@/lib/utils/onboarding-storage';
 
 export default function AuthScreen() {
-  const { signInWithEmail, signUpWithEmail, signUpWithEmailFree, signInWithApple } = useAuth();
+  const {
+    signInWithEmail,
+    signUpWithEmail,
+    signUpWithEmailFree,
+    signInWithApple,
+    signUpWithOnboarding,
+    signUpWithAppleOnboarding,
+  } = useAuth();
 
   const { mode, free, plan, onboardingData } = useLocalSearchParams<{
     mode?: 'signin' | 'signup';
@@ -25,6 +33,7 @@ export default function AuthScreen() {
   const [lastName, setLastName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [hasOnboardingData, setHasOnboardingData] = useState(false);
 
   const canSignUp = mode === 'signup';
   const isFreeSignup = free === 'true';
@@ -35,13 +44,28 @@ export default function AuthScreen() {
     ? JSON.parse(decodeURIComponent(onboardingData))
     : null;
 
-  // Pre-fill name if coming from onboarding
-  React.useEffect(() => {
-    if (parsedOnboardingData?.name) {
-      const nameParts = parsedOnboardingData.name.split(' ');
-      setFirstName(nameParts[0] || '');
-      setLastName(nameParts.slice(1).join(' ') || '');
-    }
+  // Check for onboarding data and pre-fill name
+  useEffect(() => {
+    const checkOnboardingData = async () => {
+      // Check local storage for onboarding data first
+      const storedData = await OnboardingStorage.load();
+      if (storedData?.name) {
+        const nameParts = storedData.name.split(' ');
+        setFirstName(nameParts[0] || '');
+        setLastName(nameParts.slice(1).join(' ') || '');
+        setHasOnboardingData(true);
+      } else if (parsedOnboardingData?.name) {
+        // Fallback to URL params
+        const nameParts = parsedOnboardingData.name.split(' ');
+        setFirstName(nameParts[0] || '');
+        setLastName(nameParts.slice(1).join(' ') || '');
+        setHasOnboardingData(true);
+      } else {
+        setHasOnboardingData(false);
+      }
+    };
+
+    checkOnboardingData();
   }, [parsedOnboardingData]);
 
   const handleEmailAuth = async () => {
@@ -63,23 +87,35 @@ export default function AuthScreen() {
     setIsSubmitting(true);
     try {
       if (isSignUp) {
-        if (isFreeSignup) {
-          await signUpWithEmailFree(
+        // Use new transactional signup if we have onboarding data
+        if (hasOnboardingData) {
+          await signUpWithOnboarding(
             email,
             password,
             firstName.trim(),
             lastName.trim(),
-            parsedOnboardingData
+            isFreeSignup ? 'free' : selectedPlan
           );
         } else {
-          await signUpWithEmail(
-            email,
-            password,
-            firstName.trim(),
-            lastName.trim(),
-            selectedPlan,
-            parsedOnboardingData
-          );
+          // Fallback to old methods for cases without onboarding
+          if (isFreeSignup) {
+            await signUpWithEmailFree(
+              email,
+              password,
+              firstName.trim(),
+              lastName.trim(),
+              parsedOnboardingData
+            );
+          } else {
+            await signUpWithEmail(
+              email,
+              password,
+              firstName.trim(),
+              lastName.trim(),
+              selectedPlan,
+              parsedOnboardingData
+            );
+          }
         }
       } else {
         await signInWithEmail(email, password);
@@ -95,8 +131,13 @@ export default function AuthScreen() {
     setIsSubmitting(true);
     try {
       if (isSignUp) {
-        // For sign up, we'll pass the selected plan if it's a paid signup
-        await signInWithApple(isFreeSignup ? undefined : selectedPlan, parsedOnboardingData);
+        // Use new transactional Apple signup if we have onboarding data
+        if (hasOnboardingData) {
+          await signUpWithAppleOnboarding(isFreeSignup ? 'free' : selectedPlan);
+        } else {
+          // Fallback to old method for cases without onboarding
+          await signInWithApple(isFreeSignup ? undefined : selectedPlan, parsedOnboardingData);
+        }
       } else {
         await signInWithApple();
       }

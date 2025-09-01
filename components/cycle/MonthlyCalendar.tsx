@@ -168,25 +168,28 @@ export function MonthlyCalendar({
             {day ? (
               <View className="relative w-full h-full items-center justify-center">
                 {/* Background circle for different states */}
-                <View
-                  className={`
-                    absolute inset-0 rounded-full items-center justify-center
-                                         ${
-                                           isSelectedDate(day)
-                                             ? 'bg-pink-500'
-                                             : isPeriodDay(day)
-                                               ? 'bg-red-400'
-                                               : isPredictedDate(day)
-                                                 ? 'bg-purple-100 border-2 border-purple-300 border-dashed'
-                                                 : isToday(day)
-                                                   ? 'bg-gray-100'
-                                                   : 'bg-transparent'
-                                         }
-                  `}
-                >
-                  <Text
+                {isToday(day) ? (
+                  <View className="w-10 h-10 rounded-full bg-pink-100 border-2 border-pink-500 items-center justify-center">
+                    <Text className="text-sm font-medium text-pink-700">{day}</Text>
+                  </View>
+                ) : (
+                  <View
                     className={`
-                      text-sm font-medium
+                      absolute inset-0 rounded-full items-center justify-center p-2
+                                           ${
+                                             isSelectedDate(day)
+                                               ? 'bg-pink-500 border-2 border-pink-500'
+                                               : isPeriodDay(day)
+                                                 ? 'bg-red-700 border-2 border-red-700'
+                                                 : isPredictedDate(day)
+                                                   ? 'bg-red-100 border-2 border-red-700 border-dashed'
+                                                   : 'bg-transparent'
+                                           }
+                    `}
+                  >
+                    <Text
+                      className={`
+                        text-sm font-medium
                                              ${
                                                isFutureDate(day)
                                                  ? 'text-gray-300'
@@ -195,16 +198,15 @@ export function MonthlyCalendar({
                                                    : isPeriodDay(day)
                                                      ? 'text-white'
                                                      : isPredictedDate(day)
-                                                       ? 'text-purple-700'
-                                                       : isToday(day)
-                                                         ? 'text-gray-900'
-                                                         : 'text-gray-700'
+                                                       ? 'text-red-700'
+                                                       : 'text-gray-700'
                                              }
                     `}
-                  >
-                    {day}
-                  </Text>
-                </View>
+                    >
+                      {day}
+                    </Text>
+                  </View>
+                )}
 
                 {/* Period indicator dots - only on start and end days */}
                 {(isStartDate(day) || isEndDate(day)) && !isSelectedDate(day) && (
@@ -219,25 +221,22 @@ export function MonthlyCalendar({
       </View>
 
       {/* Legend */}
-      <View className="flex-row justify-center mt-4" style={{ gap: 12 }}>
+      <View className="flex-row justify-center flex-wrap mt-4" style={{ gap: 16 }}>
         <View className="flex-row items-center">
-          <View className="w-3 h-3 rounded-full bg-red-400 mr-1" />
+          <View className="w-3 h-3 rounded-full bg-pink-100 border border-pink-500 mr-1" />
+          <Text className="text-xs text-gray-600">Today</Text>
+        </View>
+        <View className="flex-row items-center">
+          <View className="w-3 h-3 rounded-full bg-red-700 mr-1" />
           <Text className="text-xs text-gray-600">Period days</Text>
-        </View>
-        <View className="flex-row items-center">
-          <View className="relative">
-            <View className="w-3 h-3 rounded-full bg-red-400 mr-1" />
-            <Circle size={3} color="#EF4444" fill="#EF4444" className="absolute bottom-0 left-0" />
-          </View>
-          <Text className="text-xs text-gray-600 ml-1">Start/End</Text>
-        </View>
-        <View className="flex-row items-center">
-          <View className="w-3 h-3 rounded-full bg-purple-100 border border-purple-300 border-dashed mr-1" />
-          <Text className="text-xs text-gray-600">Predicted</Text>
         </View>
         <View className="flex-row items-center">
           <View className="w-3 h-3 rounded-full bg-pink-500 mr-1" />
           <Text className="text-xs text-gray-600">Selected</Text>
+        </View>
+        <View className="flex-row items-center">
+          <View className="w-3 h-3 rounded-full bg-red-100 border border-red-700 border-dashed mr-1" />
+          <Text className="text-xs text-gray-600">Predicted</Text>
         </View>
       </View>
     </View>

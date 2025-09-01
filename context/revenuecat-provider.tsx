@@ -80,6 +80,14 @@ export function RevenueCatProvider({ children }: { children: ReactNode }) {
 
   const initializeRevenueCat = async () => {
     try {
+      // Debug: Log environment info
+      console.log('Initializing RevenueCat...', {
+        platform: Platform.OS,
+        hasAPIKey: !!APIKeys.apple,
+        apiKeyLength: APIKeys.apple ? APIKeys.apple.length : 0,
+        isDev: __DEV__,
+      });
+
       // Configure RevenueCat for the platform
       if (Platform.OS === 'ios' && APIKeys.apple) {
         await Purchases.configure({
@@ -87,8 +95,16 @@ export function RevenueCatProvider({ children }: { children: ReactNode }) {
           appUserID: null, // Anonymous user initially
           userDefaultsSuiteName: undefined,
         });
+        console.log('RevenueCat configured successfully');
       } else {
-        console.warn('RevenueCat API key not found or not on iOS platform');
+        const errorMsg = !APIKeys.apple
+          ? 'RevenueCat API key not found. Please set EXPO_PUBLIC_REVENUECAT_IOS_API_KEY environment variable.'
+          : 'RevenueCat only configured for iOS platform';
+        console.warn(errorMsg);
+        setState((prev) => ({
+          ...prev,
+          error: errorMsg,
+        }));
         return;
       }
 
@@ -107,6 +123,10 @@ export function RevenueCatProvider({ children }: { children: ReactNode }) {
       await loadOfferingsWithRetry();
     } catch (error) {
       console.error('Error initializing RevenueCat:', error);
+      setState((prev) => ({
+        ...prev,
+        error: `Failed to initialize RevenueCat: ${error.message}`,
+      }));
     }
   };
 
@@ -114,6 +134,18 @@ export function RevenueCatProvider({ children }: { children: ReactNode }) {
     for (let i = 0; i < retries; i++) {
       try {
         const offerings = await Purchases.getOfferings();
+
+        // Check if we have any offerings
+        if (!offerings || !offerings.current) {
+          console.warn('No current offering found in RevenueCat');
+          if (i === retries - 1) {
+            setState((prev) => ({
+              ...prev,
+              error: 'No subscription plans configured. Please check RevenueCat dashboard.',
+            }));
+          }
+          throw new Error('No current offering available');
+        }
 
         // Get all packages from all offerings
         const allPackages: PurchasesPackage[] = [];
@@ -123,10 +155,17 @@ export function RevenueCatProvider({ children }: { children: ReactNode }) {
           }
         });
 
+        console.log('Successfully loaded offerings:', {
+          currentOffering: offerings.current?.identifier,
+          totalOfferings: Object.keys(offerings.all).length,
+          totalPackages: allPackages.length,
+        });
+
         setState((prev) => ({
           ...prev,
           offerings,
           packages: allPackages,
+          error: null,
         }));
 
         return; // Success, exit retry loop
@@ -135,6 +174,11 @@ export function RevenueCatProvider({ children }: { children: ReactNode }) {
         if (i === retries - 1) {
           // Last attempt failed
           console.error('Failed to load offerings after all retries');
+          setState((prev) => ({
+            ...prev,
+            error:
+              'Unable to load subscription plans. Please check your internet connection and try again.',
+          }));
         } else {
           // Wait before retry
           await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)));

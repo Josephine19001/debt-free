@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { View, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import { Text } from '@/components/ui/text';
 import PageLayout from '@/components/layouts/page-layout';
-import { router } from 'expo-router';
-import { Calendar, Plus, Activity, Heart, Clock, Camera, Info, X } from 'lucide-react-native';
+import { Calendar, Heart, Info, X } from 'lucide-react-native';
 
 // Import hooks for real data
 import { useCycleSettings, useCurrentCyclePhase } from '@/lib/hooks/use-cycle-settings';
@@ -15,68 +14,18 @@ import {
 } from '@/lib/hooks/use-cycle-data';
 import { useTodaysSupplements } from '@/lib/hooks/use-supplements';
 import { MonthlyCalendar } from '@/components/cycle/MonthlyCalendar';
+import WeeklyCalendar from '@/components/nutrition/weekly-calendar';
 import { TodaysMood } from '@/components/cycle/TodaysMood';
 import { TodaysSupplements } from '@/components/cycle/TodaysSupplements';
 import { TodaysSymptoms } from '@/components/cycle/TodaysSymptoms';
-import { TodaysBeautyScans } from '@/components/cycle/TodaysBeautyScans';
-import { FertilityWindow } from '@/components/cycle/FertilityWindow';
-import { SimpleCycleHistory } from '@/components/cycle/SimpleCycleHistory';
+import { CyclePhase } from '@/components/cycle/CyclePhase';
 import { PeriodModal } from '@/components/cycle/PeriodModal';
-
-// Helper function to get phase-specific expectations
-const getPhaseExpectations = (phaseName: string): string => {
-  switch (phaseName?.toLowerCase()) {
-    case 'menstrual':
-    case 'menstrual phase':
-      return 'You might feel tired and need more rest. Focus on gentle movement and iron-rich foods.';
-
-    case 'follicular':
-    case 'follicular phase':
-      return 'Energy is building! You may feel more motivated and optimistic. Great time to start new projects.';
-
-    case 'ovulatory':
-    case 'ovulatory phase':
-    case 'ovulation':
-      return 'Peak energy and confidence! Perfect time for important meetings and social activities.';
-
-    case 'luteal':
-    case 'luteal phase':
-      return 'Energy may decline. You might crave comfort foods. Focus on self-care and rest.';
-
-    default:
-      return 'Track your period to see personalized insights for your cycle.';
-  }
-};
-
-// Helper function to get phase-specific quick tips
-const getPhaseQuickTips = (phaseName: string): string => {
-  switch (phaseName?.toLowerCase()) {
-    case 'menstrual':
-    case 'menstrual phase':
-      return 'Try gentle yoga and warm baths to ease cramps.';
-
-    case 'follicular':
-    case 'follicular phase':
-      return 'Perfect time to plan your month and try new workouts.';
-
-    case 'ovulatory':
-    case 'ovulatory phase':
-    case 'ovulation':
-      return "Schedule important conversations - you're at your most charismatic!";
-
-    case 'luteal':
-    case 'luteal phase':
-      return 'Stock up on healthy snacks and plan cozy activities.';
-
-    default:
-      return '';
-  }
-};
 
 export default function CycleScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [showPredictionInfoModal, setShowPredictionInfoModal] = useState(false);
+  const [showFullCalendar, setShowFullCalendar] = useState(false);
   const [modalDate, setModalDate] = useState(new Date());
 
   // Format date for API calls
@@ -567,12 +516,21 @@ export default function CycleScreen() {
   return (
     <PageLayout
       title="Cycle"
+      theme="cycle"
       btn={
-        <View className="bg-pink-50 px-3 py-2 rounded-full">
-          <Text className="text-sm font-medium text-pink-700">
-            {formatSelectedDate(selectedDate)}
-          </Text>
-        </View>
+        <TouchableOpacity
+          className="bg-pink-500 p-3 rounded-full"
+          onPress={() => setShowFullCalendar(true)}
+          style={{
+            shadowColor: '#EC4899',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.3,
+            shadowRadius: 4,
+            elevation: 3,
+          }}
+        >
+          <Calendar size={18} color="#FFFFFF" />
+        </TouchableOpacity>
       }
     >
       <ScrollView
@@ -580,46 +538,52 @@ export default function CycleScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
       >
-        {/* Monthly Calendar */}
-        <MonthlyCalendar
+        {/* Weekly Calendar */}
+        <WeeklyCalendar
           selectedDate={selectedDate}
           onDateSelect={handleDateSelect}
           loggedDates={getAllPeriodDays()}
-          startDates={getStartDates()}
-          endDates={getEndDates()}
-          predictedDates={nextPeriodPrediction?.predictedPeriodDates || []}
-          onDatePress={handleDatePress}
+          theme="cycle"
         />
 
-        {/* Log Period Button */}
-        <View className="mx-4 mb-6">
-          <TouchableOpacity
-            onPress={handleLogPeriodPress}
-            className={`py-4 rounded-2xl flex-row items-center justify-center ${
-              selectedDate > new Date() && selectedDate.toDateString() !== new Date().toDateString()
-                ? 'bg-gray-300'
-                : 'bg-pink-500'
-            }`}
-            disabled={
-              selectedDate > new Date() && selectedDate.toDateString() !== new Date().toDateString()
-            }
-          >
-            <Calendar size={20} color="#FFFFFF" />
-            <Text className="text-white font-semibold text-lg ml-2">
-              {(() => {
-                const dateString = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
-                const isLoggedDate = getAllPeriodDays().includes(dateString);
-                const isToday = selectedDate.toDateString() === new Date().toDateString();
+        {/* Start Period Button - Only show when period is predicted to start soon */}
+        {(() => {
+          const today = new Date();
+          const todayString = today.toISOString().split('T')[0];
+          const isPredictedToday =
+            nextPeriodPrediction?.predictedPeriodDates?.includes(todayString);
+          const daysUntilPeriod = nextPeriodPrediction?.daysUntil || 0;
 
-                if (isLoggedDate) {
-                  return `Edit Period (${isToday ? 'Today' : formatSelectedDate(selectedDate)})`;
-                } else {
-                  return `Log Period (${isToday ? 'Today' : formatSelectedDate(selectedDate)})`;
-                }
-              })()}
-            </Text>
-          </TouchableOpacity>
-        </View>
+          // Show button if period is predicted today or within 2 days
+          if (isPredictedToday || (daysUntilPeriod >= 0 && daysUntilPeriod <= 2)) {
+            return (
+              <View className="mx-4 mb-6">
+                <TouchableOpacity
+                  onPress={() => {
+                    setModalDate(today);
+                    setShowPeriodModal(true);
+                  }}
+                  className="py-4 rounded-2xl flex-row items-center justify-center bg-gradient-to-r from-pink-500 to-pink-600 shadow-lg"
+                  style={{
+                    shadowColor: '#EC4899',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 8,
+                    elevation: 6,
+                  }}
+                >
+                  <Calendar size={20} color="#FFFFFF" />
+                  <Text className="text-white font-bold text-lg ml-2">
+                    {isPredictedToday
+                      ? 'Start Period (Today)'
+                      : `Period Expected ${daysUntilPeriod === 0 ? 'Today' : `in ${daysUntilPeriod} day${daysUntilPeriod === 1 ? '' : 's'}`}`}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            );
+          }
+          return null;
+        })()}
 
         {/* Current Phase Card */}
         {safeCurrentPhase && (
@@ -665,8 +629,8 @@ export default function CycleScreen() {
           </View>
         )}
 
-        {/* Next Period Prediction Section */}
-        {nextPeriodPrediction && (
+        {/* Hidden original complex version */}
+        {false && nextPeriodPrediction && (
           <View className="mx-4 mb-6">
             <Text className="text-xl font-bold text-gray-900 mb-4">Next Period</Text>
             <View className="bg-white rounded-3xl p-5 shadow-sm border border-purple-100">
@@ -679,18 +643,19 @@ export default function CycleScreen() {
                       </View>
                       <View>
                         <Text className="text-purple-900 font-bold text-lg">
-                          {nextPeriodPrediction.daysUntil > 0
-                            ? `In ${nextPeriodPrediction.daysUntil} days`
-                            : nextPeriodPrediction.daysUntil === 0
+                          {(nextPeriodPrediction?.daysUntil ?? 0) > 0
+                            ? `In ${nextPeriodPrediction?.daysUntil} days`
+                            : (nextPeriodPrediction?.daysUntil ?? 0) === 0
                               ? 'Today'
                               : 'Overdue'}
                         </Text>
                         <Text className="text-purple-700 text-sm">
-                          {new Date(nextPeriodPrediction.date).toLocaleDateString('en-US', {
-                            weekday: 'long',
-                            month: 'long',
-                            day: 'numeric',
-                          })}
+                          {nextPeriodPrediction?.date &&
+                            new Date(nextPeriodPrediction.date).toLocaleDateString('en-US', {
+                              weekday: 'long',
+                              month: 'long',
+                              day: 'numeric',
+                            })}
                         </Text>
                         <Text className="text-purple-600 text-xs mt-1">
                           Based on your cycle history
@@ -718,6 +683,53 @@ export default function CycleScreen() {
           isLoading={false}
         />
         */}
+
+        {/* Cycle Phase Information */}
+        <CyclePhase
+          selectedDate={selectedDate}
+          periodStartDate={
+            periodLogs && periodLogs.length > 0
+              ? (() => {
+                  // Sort logs by date to find the most recent period start
+                  const sortedLogs = [...periodLogs].sort(
+                    (a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime()
+                  );
+
+                  // Find the most recent period start
+                  const recentPeriodStart = sortedLogs.find((log: any) => log.period_start);
+                  if (recentPeriodStart?.date) {
+                    // Use local date parsing to avoid timezone issues
+                    return new Date(recentPeriodStart.date + 'T00:00:00');
+                  }
+
+                  // If no explicit period_start, find the most recent period-related log
+                  const recentPeriodLog = sortedLogs.find(
+                    (log: any) =>
+                      log.flow ||
+                      log.period_flow ||
+                      log.period_start !== undefined ||
+                      log.is_period ||
+                      log.period ||
+                      log.menstruation
+                  );
+                  if (recentPeriodLog?.date) {
+                    // Use local date parsing to avoid timezone issues
+                    return new Date(recentPeriodLog.date + 'T00:00:00');
+                  }
+
+                  // Fallback: Use the earliest logged date as potential period start
+                  if (sortedLogs.length > 0) {
+                    const earliestLog = sortedLogs[sortedLogs.length - 1];
+                    return new Date(earliestLog.date + 'T00:00:00');
+                  }
+
+                  return undefined;
+                })()
+              : undefined
+          }
+          onLogPeriod={() => setShowFullCalendar(true)}
+          nextPeriodPrediction={nextPeriodPrediction}
+        />
 
         {/* Today's Symptoms Section */}
         <TodaysSymptoms
@@ -806,6 +818,108 @@ export default function CycleScreen() {
             >
               <Text className="text-white font-semibold text-center">Got it!</Text>
             </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Full Calendar Modal */}
+      <Modal
+        visible={showFullCalendar}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowFullCalendar(false)}
+      >
+        <View className="flex-1 bg-black/30">
+          <View className="flex-1 mt-16 bg-white rounded-t-3xl shadow-2xl">
+            {/* Modal Header */}
+            <View className="px-6 pt-6 pb-4">
+              <View className="flex-row items-center justify-between mb-2">
+                <Text className="text-2xl font-bold text-gray-900">Period Calendar</Text>
+                <TouchableOpacity
+                  onPress={() => setShowFullCalendar(false)}
+                  className="w-10 h-10 bg-gray-100 rounded-full items-center justify-center"
+                >
+                  <X size={18} color="#6B7280" />
+                </TouchableOpacity>
+              </View>
+              <Text className="text-gray-600 text-sm">Track your cycle and log period days</Text>
+            </View>
+
+            {/* Calendar Content */}
+            <View className="flex-1 px-4">
+              <MonthlyCalendar
+                selectedDate={selectedDate}
+                onDateSelect={(date) => {
+                  handleDateSelect(date);
+                }}
+                loggedDates={getAllPeriodDays()}
+                startDates={getStartDates()}
+                endDates={getEndDates()}
+                predictedDates={nextPeriodPrediction?.predictedPeriodDates || []}
+                onDatePress={(date) => {
+                  setModalDate(date);
+                  setSelectedDate(date);
+                  setShowPeriodModal(true);
+                }}
+              />
+            </View>
+
+            {/* Log Period Button */}
+            <View className="px-6 pb-6 pt-4 border-t border-gray-100">
+              <TouchableOpacity
+                onPress={() => {
+                  setModalDate(selectedDate);
+                  setShowPeriodModal(true);
+                }}
+                className={`py-4 rounded-2xl flex-row items-center justify-center ${
+                  selectedDate > new Date() &&
+                  selectedDate.toDateString() !== new Date().toDateString()
+                    ? 'bg-gray-300'
+                    : (() => {
+                        // Check if today is a predicted period day
+                        const today = new Date();
+                        const todayString = today.toISOString().split('T')[0];
+                        const isPredictedDay =
+                          nextPeriodPrediction?.predictedPeriodDates?.includes(todayString);
+                        const isSelectedDateToday =
+                          selectedDate.toDateString() === today.toDateString();
+
+                        return isPredictedDay && isSelectedDateToday
+                          ? 'bg-pink-600'
+                          : 'bg-pink-500';
+                      })()
+                }`}
+                disabled={
+                  selectedDate > new Date() &&
+                  selectedDate.toDateString() !== new Date().toDateString()
+                }
+              >
+                <Calendar size={20} color="#FFFFFF" />
+                <Text className="text-white font-semibold text-lg ml-2">
+                  {(() => {
+                    const dateString = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
+                    const isLoggedDate = getAllPeriodDays().includes(dateString);
+                    const isToday = selectedDate.toDateString() === new Date().toDateString();
+                    const today = new Date();
+                    const todayString = today.toISOString().split('T')[0];
+                    const isPredictedDay =
+                      nextPeriodPrediction?.predictedPeriodDates?.includes(todayString);
+
+                    if (isLoggedDate) {
+                      return `Edit Period (${isToday ? 'Today' : formatSelectedDate(selectedDate)})`;
+                    } else if (
+                      isPredictedDay &&
+                      isToday &&
+                      selectedDate.toDateString() === today.toDateString()
+                    ) {
+                      return `Start Period (Today)`;
+                    } else {
+                      return `Log Period (${isToday ? 'Today' : formatSelectedDate(selectedDate)})`;
+                    }
+                  })()}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>

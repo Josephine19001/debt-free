@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { useAppNavigation } from '@/lib/hooks/use-navigation';
 import { useState } from 'react';
 import SubPageLayout from '@/components/layouts/sub-page';
+import { SubscriptionGuard } from '@/components/subscription-guard';
 import { Heart, Droplets, Calendar, Plus, X } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
@@ -99,215 +100,217 @@ export default function PeriodTrackerScreen() {
   const isFormValid = selectedFlow || selectedMood || selectedSymptoms.length > 0;
 
   return (
-    <SubPageLayout
-      title="Log Period"
-      rightElement={
-        <Button
-          title="Save"
-          onPress={handleSave}
-          variant="primary"
-          size="small"
-          disabled={!isFormValid || logPeriodData.isPending}
-          loading={logPeriodData.isPending}
-        />
-      }
-    >
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="px-4 pt-6">
-          {/* Date Selection */}
-          <View className="mb-6">
-            <Text className="text-base font-medium text-black mb-3">Date</Text>
-            <TouchableOpacity
-              onPress={handleDatePress}
-              className="bg-white rounded-xl p-4 shadow-sm border border-gray-100"
-            >
-              <View className="flex-row items-center justify-between">
-                <View className="flex-row items-center">
-                  <Calendar size={20} color="#EC4899" />
-                  <Text className="text-black ml-3 font-medium">
-                    {selectedDate.toLocaleDateString('en-US', {
-                      weekday: 'short',
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                    })}
-                  </Text>
-                </View>
-                <Text className="text-pink-600 text-sm font-medium">Change</Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-
-          {/* Period Start Toggle */}
-          <View className="mb-6">
-            <Text className="text-base font-medium text-black mb-3">Period Status</Text>
-            <TouchableOpacity
-              onPress={() => setIsStartDay(!isStartDay)}
-              className={`p-4 rounded-xl border-2 ${
-                isStartDay ? 'bg-pink-50 border-pink-200' : 'bg-gray-50 border-gray-200'
-              }`}
-            >
-              <View className="flex-row items-center">
-                <Droplets size={20} color={isStartDay ? '#EC4899' : '#6B7280'} />
-                <Text
-                  className={`ml-3 font-medium ${isStartDay ? 'text-pink-700' : 'text-gray-700'}`}
-                >
-                  {isStartDay ? 'Period started today' : 'Regular period day'}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-
-          {/* Flow Intensity */}
-          <View className="mb-6">
-            <Text className="text-base font-medium text-black mb-3">Flow</Text>
-            <View className="flex-row gap-3">
-              {flowOptions.map((option) => (
-                <TouchableOpacity
-                  key={option.value}
-                  onPress={() => setSelectedFlow(option.value as any)}
-                  className={`flex-1 p-3 rounded-xl border ${
-                    selectedFlow === option.value
-                      ? 'bg-pink-50 border-pink-200'
-                      : 'bg-gray-50 border-gray-200'
-                  }`}
-                >
-                  <Text
-                    className={`text-center font-medium ${
-                      selectedFlow === option.value ? 'text-pink-700' : 'text-gray-700'
-                    }`}
-                  >
-                    {option.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          {/* Mood */}
-          <View className="mb-6">
-            <Text className="text-base font-medium text-black mb-3">Mood</Text>
-            <View className="flex-row flex-wrap gap-2">
-              {moodOptions.map((mood) => (
-                <TouchableOpacity
-                  key={mood.value}
-                  onPress={() => setSelectedMood(mood.value as any)}
-                  className={`px-4 py-3 rounded-xl border ${
-                    selectedMood === mood.value
-                      ? 'bg-purple-50 border-purple-200'
-                      : 'bg-gray-50 border-gray-200'
-                  }`}
-                >
+    <SubscriptionGuard requireSubscription={true} feature="Cycle Tracking">
+      <SubPageLayout
+        title="Log Period"
+        rightElement={
+          <Button
+            title="Save"
+            onPress={handleSave}
+            variant="primary"
+            size="small"
+            disabled={!isFormValid || logPeriodData.isPending}
+            loading={logPeriodData.isPending}
+          />
+        }
+      >
+        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+          <View className="px-4 pt-6">
+            {/* Date Selection */}
+            <View className="mb-6">
+              <Text className="text-base font-medium text-black mb-3">Date</Text>
+              <TouchableOpacity
+                onPress={handleDatePress}
+                className="bg-white rounded-xl p-4 shadow-sm border border-gray-100"
+              >
+                <View className="flex-row items-center justify-between">
                   <View className="flex-row items-center">
-                    <Text className="text-lg mr-2">{mood.emoji}</Text>
-                    <Text
-                      className={`font-medium ${
-                        selectedMood === mood.value ? 'text-purple-700' : 'text-gray-700'
-                      }`}
-                    >
-                      {mood.label}
+                    <Calendar size={20} color="#EC4899" />
+                    <Text className="text-black ml-3 font-medium">
+                      {selectedDate.toLocaleDateString('en-US', {
+                        weekday: 'short',
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
                     </Text>
                   </View>
-                </TouchableOpacity>
-              ))}
+                  <Text className="text-pink-600 text-sm font-medium">Change</Text>
+                </View>
+              </TouchableOpacity>
             </View>
-          </View>
 
-          {/* Symptoms */}
-          <View className="mb-6">
-            <Text className="text-base font-medium text-black mb-3">Symptoms</Text>
-            <View className="flex-row flex-wrap gap-2">
-              {symptoms.map((symptom) => (
-                <TouchableOpacity
-                  key={symptom}
-                  onPress={() => toggleSymptom(symptom)}
-                  className={`px-3 py-2 rounded-lg border ${
-                    selectedSymptoms.includes(symptom)
-                      ? 'bg-orange-50 border-orange-200'
-                      : 'bg-gray-50 border-gray-200'
-                  }`}
-                >
+            {/* Period Start Toggle */}
+            <View className="mb-6">
+              <Text className="text-base font-medium text-black mb-3">Period Status</Text>
+              <TouchableOpacity
+                onPress={() => setIsStartDay(!isStartDay)}
+                className={`p-4 rounded-xl border-2 ${
+                  isStartDay ? 'bg-pink-50 border-pink-200' : 'bg-gray-50 border-gray-200'
+                }`}
+              >
+                <View className="flex-row items-center">
+                  <Droplets size={20} color={isStartDay ? '#EC4899' : '#6B7280'} />
                   <Text
-                    className={`text-sm font-medium ${
-                      selectedSymptoms.includes(symptom) ? 'text-orange-700' : 'text-gray-700'
+                    className={`ml-3 font-medium ${isStartDay ? 'text-pink-700' : 'text-gray-700'}`}
+                  >
+                    {isStartDay ? 'Period started today' : 'Regular period day'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+
+            {/* Flow Intensity */}
+            <View className="mb-6">
+              <Text className="text-base font-medium text-black mb-3">Flow</Text>
+              <View className="flex-row gap-3">
+                {flowOptions.map((option) => (
+                  <TouchableOpacity
+                    key={option.value}
+                    onPress={() => setSelectedFlow(option.value as any)}
+                    className={`flex-1 p-3 rounded-xl border ${
+                      selectedFlow === option.value
+                        ? 'bg-pink-50 border-pink-200'
+                        : 'bg-gray-50 border-gray-200'
                     }`}
                   >
-                    {symptom}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+                    <Text
+                      className={`text-center font-medium ${
+                        selectedFlow === option.value ? 'text-pink-700' : 'text-gray-700'
+                      }`}
+                    >
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
+
+            {/* Mood */}
+            <View className="mb-6">
+              <Text className="text-base font-medium text-black mb-3">Mood</Text>
+              <View className="flex-row flex-wrap gap-2">
+                {moodOptions.map((mood) => (
+                  <TouchableOpacity
+                    key={mood.value}
+                    onPress={() => setSelectedMood(mood.value as any)}
+                    className={`px-4 py-3 rounded-xl border ${
+                      selectedMood === mood.value
+                        ? 'bg-purple-50 border-purple-200'
+                        : 'bg-gray-50 border-gray-200'
+                    }`}
+                  >
+                    <View className="flex-row items-center">
+                      <Text className="text-lg mr-2">{mood.emoji}</Text>
+                      <Text
+                        className={`font-medium ${
+                          selectedMood === mood.value ? 'text-purple-700' : 'text-gray-700'
+                        }`}
+                      >
+                        {mood.label}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* Symptoms */}
+            <View className="mb-6">
+              <Text className="text-base font-medium text-black mb-3">Symptoms</Text>
+              <View className="flex-row flex-wrap gap-2">
+                {symptoms.map((symptom) => (
+                  <TouchableOpacity
+                    key={symptom}
+                    onPress={() => toggleSymptom(symptom)}
+                    className={`px-3 py-2 rounded-lg border ${
+                      selectedSymptoms.includes(symptom)
+                        ? 'bg-orange-50 border-orange-200'
+                        : 'bg-gray-50 border-gray-200'
+                    }`}
+                  >
+                    <Text
+                      className={`text-sm font-medium ${
+                        selectedSymptoms.includes(symptom) ? 'text-orange-700' : 'text-gray-700'
+                      }`}
+                    >
+                      {symptom}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* Summary */}
+            {isFormValid && (
+              <View className="bg-pink-50 rounded-xl p-4 mb-6 border border-pink-200">
+                <Text className="font-medium text-pink-900 mb-2">Summary</Text>
+                <View className="space-y-1">
+                  {isStartDay && <Text className="text-pink-700 text-sm">• Period started</Text>}
+                  {selectedFlow && (
+                    <Text className="text-pink-700 text-sm">• {selectedFlow} flow</Text>
+                  )}
+                  {selectedMood && (
+                    <Text className="text-pink-700 text-sm">• Feeling {selectedMood}</Text>
+                  )}
+                  {selectedSymptoms.length > 0 && (
+                    <Text className="text-pink-700 text-sm">
+                      • {selectedSymptoms.length} symptom{selectedSymptoms.length > 1 ? 's' : ''}
+                    </Text>
+                  )}
+                </View>
+              </View>
+            )}
           </View>
+        </ScrollView>
 
-          {/* Summary */}
-          {isFormValid && (
-            <View className="bg-pink-50 rounded-xl p-4 mb-6 border border-pink-200">
-              <Text className="font-medium text-pink-900 mb-2">Summary</Text>
-              <View className="space-y-1">
-                {isStartDay && <Text className="text-pink-700 text-sm">• Period started</Text>}
-                {selectedFlow && (
-                  <Text className="text-pink-700 text-sm">• {selectedFlow} flow</Text>
-                )}
-                {selectedMood && (
-                  <Text className="text-pink-700 text-sm">• Feeling {selectedMood}</Text>
-                )}
-                {selectedSymptoms.length > 0 && (
-                  <Text className="text-pink-700 text-sm">
-                    • {selectedSymptoms.length} symptom{selectedSymptoms.length > 1 ? 's' : ''}
-                  </Text>
-                )}
+        {/* Date Picker */}
+        {Platform.OS === 'ios' ? (
+          <Modal
+            visible={showDatePicker}
+            transparent
+            animationType="slide"
+            onRequestClose={() => setShowDatePicker(false)}
+          >
+            <View className="flex-1 justify-end bg-black/50">
+              <View className="bg-white rounded-t-3xl">
+                {/* Header */}
+                <View className="flex-row items-center justify-between p-4 border-b border-gray-100">
+                  <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                    <Text className="text-pink-600 font-medium">Cancel</Text>
+                  </TouchableOpacity>
+                  <Text className="text-lg font-semibold text-black">Select Date</Text>
+                  <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                    <Text className="text-pink-600 font-medium">Done</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Date Picker */}
+                <View className="pb-8">
+                  <DateTimePicker
+                    value={selectedDate}
+                    mode="date"
+                    display="spinner"
+                    onChange={handleDateChange}
+                    maximumDate={new Date()}
+                    style={{ height: 200 }}
+                  />
+                </View>
               </View>
             </View>
-          )}
-        </View>
-      </ScrollView>
-
-      {/* Date Picker */}
-      {Platform.OS === 'ios' ? (
-        <Modal
-          visible={showDatePicker}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setShowDatePicker(false)}
-        >
-          <View className="flex-1 justify-end bg-black/50">
-            <View className="bg-white rounded-t-3xl">
-              {/* Header */}
-              <View className="flex-row items-center justify-between p-4 border-b border-gray-100">
-                <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                  <Text className="text-pink-600 font-medium">Cancel</Text>
-                </TouchableOpacity>
-                <Text className="text-lg font-semibold text-black">Select Date</Text>
-                <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                  <Text className="text-pink-600 font-medium">Done</Text>
-                </TouchableOpacity>
-              </View>
-
-              {/* Date Picker */}
-              <View className="pb-8">
-                <DateTimePicker
-                  value={selectedDate}
-                  mode="date"
-                  display="spinner"
-                  onChange={handleDateChange}
-                  maximumDate={new Date()}
-                  style={{ height: 200 }}
-                />
-              </View>
-            </View>
-          </View>
-        </Modal>
-      ) : (
-        showDatePicker && (
-          <DateTimePicker
-            value={selectedDate}
-            mode="date"
-            display="default"
-            onChange={handleDateChange}
-            maximumDate={new Date()}
-          />
-        )
-      )}
-    </SubPageLayout>
+          </Modal>
+        ) : (
+          showDatePicker && (
+            <DateTimePicker
+              value={selectedDate}
+              mode="date"
+              display="default"
+              onChange={handleDateChange}
+              maximumDate={new Date()}
+            />
+          )
+        )}
+      </SubPageLayout>
+    </SubscriptionGuard>
   );
 }

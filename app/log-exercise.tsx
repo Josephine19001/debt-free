@@ -58,16 +58,25 @@ export default function LogExerciseScreen() {
     intensity?: string;
     notes?: string;
   }) => {
+    console.log('🏃‍♀️ Attempting to log exercise:', data);
     try {
-      await createExerciseEntry.mutateAsync({
+      const result = await createExerciseEntry.mutateAsync({
         ...data,
         duration_minutes: data.duration_minutes || 0,
         intensity: (data.intensity as 'low' | 'moderate' | 'high') || 'moderate',
       });
+      console.log('✅ Exercise logged successfully:', result);
       goBack();
     } catch (error) {
-      console.error('Error logging exercise:', error);
-      toast.error('Failed to log exercise. Please try again.');
+      console.error('❌ Error logging exercise:', error);
+      // More detailed error logging
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+      }
+      toast.error(
+        `Failed to log exercise: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`
+      );
     }
   };
 

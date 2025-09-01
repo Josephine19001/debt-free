@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { Text } from '@/components/ui/text';
-import { Target, Flame, Heart, Wheat, Droplets, GlassWater, Edit3 } from 'lucide-react-native';
+import { Target, Flame, Beef, Wheat, GlassWater, Edit3 } from 'lucide-react-native';
+import { OliveOilIcon } from '@/components/icons/olive-oil-icon';
 import { NutritionGoals } from '@/lib/hooks/use-nutrition-goals';
 import { formatGoal, formatActivityLevel } from '@/constants/nutrition-questionnaire';
 
@@ -65,7 +66,7 @@ export function NutritionGoalsEmptyState({
           <View className="flex-row items-center justify-between bg-gray-50 p-4 rounded-xl">
             <View className="flex-row items-center">
               <View className="bg-red-100 p-3 rounded-full">
-                <Heart size={28} color="#dc2626" />
+                <Beef size={28} color="#dc2626" />
               </View>
               <View className="ml-4">
                 <Text className="text-sm font-medium text-gray-600 uppercase tracking-wide">
@@ -101,7 +102,7 @@ export function NutritionGoalsEmptyState({
           <View className="flex-row items-center justify-between bg-gray-50 p-4 rounded-xl">
             <View className="flex-row items-center">
               <View className="bg-blue-100 p-3 rounded-full">
-                <Droplets size={28} color="#2563eb" />
+                <OliveOilIcon size={28} color="#2563eb" />
               </View>
               <View className="ml-4">
                 <Text className="text-sm font-medium text-gray-600 uppercase tracking-wide">

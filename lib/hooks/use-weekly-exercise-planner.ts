@@ -55,7 +55,6 @@ export interface WeeklyPlanExercise {
 }
 
 export interface GenerateWeeklyPlanData {
-  user_id: string;
   fitness_goals?: any;
   body_measurements?: any;
   current_cycle_phase?: any;
@@ -68,11 +67,18 @@ export function useGenerateWeeklyExercisePlan() {
 
   return useMutation<any, Error, GenerateWeeklyPlanData>({
     mutationFn: async (data) => {
+      console.log('🤖 Generating weekly exercise plan with data:', data);
+
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
-      if (!session) throw new Error('Not authenticated');
+      if (!session) {
+        console.error('❌ No session for plan generation');
+        throw new Error('Not authenticated');
+      }
+
+      console.log('👤 User ID for plan generation:', session.user.id);
 
       const requestBody = {
         user_id: session.user.id,
@@ -81,6 +87,8 @@ export function useGenerateWeeklyExercisePlan() {
         current_cycle_phase: data.current_cycle_phase,
         start_date: data.start_date || new Date().toISOString(),
       };
+
+      console.log('📤 Sending request to ai-weekly-exercise-planner:', requestBody);
 
       const response = await supabase.functions.invoke('ai-weekly-exercise-planner', {
         body: requestBody,
@@ -91,6 +99,7 @@ export function useGenerateWeeklyExercisePlan() {
         throw new Error(response.error.message || 'Failed to generate weekly plan');
       }
 
+      console.log('✅ Weekly plan generated successfully:', response.data);
       return response.data;
     },
     onSuccess: () => {
@@ -131,10 +140,17 @@ export function useCurrentWeeklyPlan() {
   return useQuery<WeeklyExercisePlan | null, Error>({
     queryKey: [...queryKeys.logs.weeklyExercisePlans, 'current', today],
     queryFn: async () => {
+      console.log('🔍 Fetching current weekly plan for date:', today);
+
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
+      if (!session) {
+        console.error('❌ No session found for weekly plan fetch');
+        throw new Error('Not authenticated');
+      }
+
+      console.log('👤 User ID for weekly plan:', session.user.id);
 
       const { data, error } = await supabase
         .from('weekly_exercise_plans')
@@ -147,7 +163,12 @@ export function useCurrentWeeklyPlan() {
         .limit(1)
         .single();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error && error.code !== 'PGRST116') {
+        console.error('❌ Error fetching weekly plan:', error);
+        throw error;
+      }
+
+      console.log('📋 Current weekly plan result:', data);
       return data || null;
     },
     staleTime: 15 * 60 * 1000, // 15 minutes

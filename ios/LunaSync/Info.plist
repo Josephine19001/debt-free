@@ -61,6 +61,8 @@
     <string>Allow $(PRODUCT_NAME) to access your Face ID biometric data.</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your microphone</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>Allow $(PRODUCT_NAME) to save photos</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>LunaSync accesses your photo library to select product images for ingredient analysis, upload meal photos for nutrition tracking, and choose profile avatar pictures.</string>
     <key>NSUserActivityTypes</key>

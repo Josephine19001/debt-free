@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, Pressable, Animated, PanResponder } from 'react-native';
+import { View, TouchableOpacity, Pressable, Animated, PanResponder, Modal } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { router } from 'expo-router';
 import { useRef } from 'react';
@@ -10,8 +10,8 @@ import {
   Moon,
   Smile,
   Apple,
-  Bed,
-  Sparkles,
+  // Bed, // Commented out - Log sleep temporarily removed
+  // Sparkles, // Commented out - Scan skincare temporarily removed
 } from 'lucide-react-native';
 
 interface LoggerModalProps {
@@ -90,52 +90,63 @@ export function LoggerModal({ visible, onClose }: LoggerModalProps) {
     },
   });
 
-  if (!visible) return null;
-
   return (
-    <Pressable className="flex-1 bg-black/30" onPress={handleClose} style={{ flex: 1 }}>
-      <View className="flex-1 justify-end">
-        <Animated.View
-          style={{
-            transform: [{ translateY }],
-          }}
-          {...panResponder.panHandlers}
-        >
-          <Pressable onPress={(e) => e.stopPropagation()}>
-            {/* Logger Content */}
-            <View className="bg-white rounded-t-3xl px-4 pt-6 pb-8 mx-4 mb-4">
-              {/* Close Handle */}
-              <View className="w-12 h-1 bg-gray-300 rounded-full self-center mb-6" />
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={handleClose}>
+      <Pressable className="flex-1 bg-black/30" onPress={handleClose} style={{ flex: 1 }}>
+        <View className="flex-1 justify-end">
+          <Animated.View
+            style={{
+              transform: [{ translateY }],
+            }}
+            {...panResponder.panHandlers}
+          >
+            <Pressable onPress={(e) => e.stopPropagation()}>
+              {/* Logger Content */}
+              <View className="bg-white rounded-t-3xl px-4 pt-6 pb-8 mx-4 mb-4">
+                {/* Close Handle */}
+                <View className="w-12 h-1 bg-gray-300 rounded-full self-center mb-6" />
 
-              {/* Quick Actions Grid - Perfect 3x3 layout */}
-              <View className="gap-4">
-                {/* Row 1 */}
-                <View className="flex-row justify-between">
-                  <LoggerCard
-                    title="Log exercise"
-                    icon={Activity}
-                    iconColor="#F59E0B"
-                    bgColor="#FEF3E2"
-                    onPress={() =>
-                      handleAction(() => {
-                        router.push('/log-exercise' as any);
-                      })
-                    }
-                  />
+                {/* Quick Actions Grid - Responsive layout */}
+                <View className="gap-4">
+                  {/* Row 1 */}
+                  <View className="flex-row justify-between">
+                    <LoggerCard
+                      title="Log exercise"
+                      icon={Activity}
+                      iconColor="#F59E0B"
+                      bgColor="#FEF3E2"
+                      onPress={() =>
+                        handleAction(() => {
+                          router.push('/log-exercise' as any);
+                        })
+                      }
+                    />
 
-                  <LoggerCard
-                    title="Scan food"
-                    icon={Camera}
-                    iconColor="#3B82F6"
-                    bgColor="#EFF6FF"
-                    onPress={() =>
-                      handleAction(() => {
-                        router.push(`/scan-food?mealType=${getCurrentMealType()}` as any);
-                      })
-                    }
-                  />
+                    <LoggerCard
+                      title="Scan food"
+                      icon={Camera}
+                      iconColor="#3B82F6"
+                      bgColor="#EFF6FF"
+                      onPress={() =>
+                        handleAction(() => {
+                          router.push(`/scan-food?mealType=${getCurrentMealType()}` as any);
+                        })
+                      }
+                    />
 
-                  <LoggerCard
+                    <LoggerCard
+                      title="Log mood"
+                      icon={Smile}
+                      iconColor="#8B5CF6"
+                      bgColor="#F3F4F6"
+                      onPress={() =>
+                        handleAction(() => {
+                          router.push('/log-mood' as any);
+                        })
+                      }
+                    />
+
+                    {/* <LoggerCard
                     title="Scan skincare"
                     icon={Sparkles}
                     iconColor="#EC4899"
@@ -145,24 +156,24 @@ export function LoggerModal({ visible, onClose }: LoggerModalProps) {
                         router.push('/scan-beauty' as any);
                       })
                     }
-                  />
-                </View>
+                  /> */}
+                  </View>
 
-                {/* Row 2 */}
-                <View className="flex-row justify-between">
-                  <LoggerCard
-                    title="Log mood"
-                    icon={Smile}
-                    iconColor="#8B5CF6"
-                    bgColor="#F3F4F6"
-                    onPress={() =>
-                      handleAction(() => {
-                        router.push('/log-mood' as any);
-                      })
-                    }
-                  />
+                  {/* Row 2 */}
+                  <View className="flex-row justify-between">
+                    <LoggerCard
+                      title="Water intake"
+                      icon={Droplets}
+                      iconColor="#06B6D4"
+                      bgColor="#ECFEFF"
+                      onPress={() =>
+                        handleAction(() => {
+                          router.push('/log-water' as any);
+                        })
+                      }
+                    />
 
-                  <LoggerCard
+                    {/* <LoggerCard
                     title="Log sleep"
                     icon={Bed}
                     iconColor="#6B7280"
@@ -172,65 +183,54 @@ export function LoggerModal({ visible, onClose }: LoggerModalProps) {
                         router.push('/log-sleep' as any);
                       })
                     }
-                  />
+                  /> */}
+                  </View>
 
-                  <LoggerCard
-                    title="Water intake"
-                    icon={Droplets}
-                    iconColor="#06B6D4"
-                    bgColor="#ECFEFF"
-                    onPress={() =>
-                      handleAction(() => {
-                        router.push('/log-water' as any);
-                      })
-                    }
-                  />
-                </View>
+                  {/* Row 3 */}
+                  <View className="flex-row justify-between">
+                    <LoggerCard
+                      title="Period tracking"
+                      icon={Moon}
+                      iconColor="#EC4899"
+                      bgColor="#FDF2F8"
+                      onPress={() =>
+                        handleAction(() => {
+                          router.push('/(tabs)/cycle');
+                        })
+                      }
+                    />
 
-                {/* Row 3 */}
-                <View className="flex-row justify-between">
-                  <LoggerCard
-                    title="Period tracking"
-                    icon={Moon}
-                    iconColor="#EC4899"
-                    bgColor="#FDF2F8"
-                    onPress={() =>
-                      handleAction(() => {
-                        router.push('/(tabs)/cycle');
-                      })
-                    }
-                  />
+                    <LoggerCard
+                      title="Log supplements"
+                      icon={Pill}
+                      iconColor="#F59E0B"
+                      bgColor="#FFFBEB"
+                      onPress={() =>
+                        handleAction(() => {
+                          router.push('/log-supplements' as any);
+                        })
+                      }
+                    />
 
-                  <LoggerCard
-                    title="Log supplements"
-                    icon={Pill}
-                    iconColor="#F59E0B"
-                    bgColor="#FFFBEB"
-                    onPress={() =>
-                      handleAction(() => {
-                        router.push('/log-supplements' as any);
-                      })
-                    }
-                  />
-
-                  <LoggerCard
-                    title="Log meal"
-                    icon={Apple}
-                    iconColor="#10B981"
-                    bgColor="#F0FDF4"
-                    onPress={() =>
-                      handleAction(() => {
-                        router.push('/log-meal' as any);
-                      })
-                    }
-                  />
+                    <LoggerCard
+                      title="Log meal"
+                      icon={Apple}
+                      iconColor="#10B981"
+                      bgColor="#F0FDF4"
+                      onPress={() =>
+                        handleAction(() => {
+                          router.push('/log-meal' as any);
+                        })
+                      }
+                    />
+                  </View>
                 </View>
               </View>
-            </View>
-          </Pressable>
-        </Animated.View>
-      </View>
-    </Pressable>
+            </Pressable>
+          </Animated.View>
+        </View>
+      </Pressable>
+    </Modal>
   );
 }
 
