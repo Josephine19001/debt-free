@@ -2,6 +2,7 @@ import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { GlassWater, Plus } from 'lucide-react-native';
+import { getAccurateCircularProgressStyles } from '@/lib/utils/progress-circle';
 
 interface WaterIntakeCardProps {
   waterData: {
@@ -19,7 +20,11 @@ export default function WaterIntakeCard({
   onAddWaterPress,
   onQuickAdd,
 }: WaterIntakeCardProps) {
-  const progress = Math.min((waterData.consumed / waterData.goal) * 100, 100);
+  const progressStyles = getAccurateCircularProgressStyles(
+    waterData.consumed,
+    waterData.goal,
+    '#3B82F6'
+  );
 
   return (
     <View className="px-4 mb-3">
@@ -36,32 +41,16 @@ export default function WaterIntakeCard({
           <View className="items-center">
             <View className="relative w-20 h-20 items-center justify-center">
               {/* Background circle - always visible */}
-              <View
-                className="absolute rounded-full"
-                style={{
-                  width: 76,
-                  height: 76,
-                  borderWidth: 6,
-                  borderColor: '#E5E7EB',
-                }}
-              />
+              <View className="absolute rounded-full" style={progressStyles.backgroundCircle} />
 
-              {/* Progress circle - show quarters based on progress */}
-              {progress > 0 && (
-                <View
-                  className="absolute rounded-full"
-                  style={{
-                    width: 76,
-                    height: 76,
-                    borderWidth: 6,
-                    borderColor: 'transparent',
-                    borderTopColor: progress > 0 ? '#3B82F6' : 'transparent',
-                    borderRightColor: progress > 25 ? '#3B82F6' : 'transparent',
-                    borderBottomColor: progress > 50 ? '#3B82F6' : 'transparent',
-                    borderLeftColor: progress > 75 ? '#3B82F6' : 'transparent',
-                    transform: [{ rotate: `${-90 + (progress % 25) * 14.4}deg` }],
-                  }}
-                />
+              {/* Progress circle - partial progress */}
+              {progressStyles.progressCircle && (
+                <View className="absolute rounded-full" style={progressStyles.progressCircle} />
+              )}
+
+              {/* Complete circle when 100% or more */}
+              {progressStyles.fullCircle && (
+                <View className="absolute rounded-full" style={progressStyles.fullCircle} />
               )}
 
               {/* Center icon - positioned in the center */}

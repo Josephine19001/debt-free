@@ -96,7 +96,7 @@ export function WeeklyPlanDisplay({ plan, onClose, onSave, onRegenerate }: Weekl
   return (
     <Modal visible={true} animationType="slide" transparent>
       <View className="flex-1 bg-black/50 justify-end">
-        <View className="bg-white rounded-t-3xl max-h-[90%]">
+        <View className="bg-white rounded-t-3xl flex-1 max-h-[90%]">
           {/* Header */}
           <View className="flex-row items-center justify-between p-6 border-b border-gray-100">
             <View className="flex-1">
@@ -108,7 +108,11 @@ export function WeeklyPlanDisplay({ plan, onClose, onSave, onRegenerate }: Weekl
             </TouchableOpacity>
           </View>
 
-          <ScrollView className="flex-1 px-6" showsVerticalScrollIndicator={false}>
+          <ScrollView
+            className="flex-1 px-6"
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 20 }}
+          >
             {/* Weekly Summary */}
             <View className="my-6 p-4 bg-purple-50 rounded-2xl">
               <View className="flex-row justify-between">
@@ -179,12 +183,10 @@ export function WeeklyPlanDisplay({ plan, onClose, onSave, onRegenerate }: Weekl
                 </View>
               </TouchableOpacity>
             ))}
-
-            <View className="h-4" />
           </ScrollView>
 
           {/* Action Buttons */}
-          <View className="p-6 pt-4 border-t border-gray-100">
+          <View className="p-6 pt-4 border-t border-gray-100 bg-white">
             <View className="flex-row gap-3">
               <TouchableOpacity
                 onPress={() => setShowRegenerateModal(true)}

@@ -50,38 +50,43 @@ function getCycleAwareIntensity(cyclePhase: string | null, dayInCycle: number | 
   }
 }
 
-async function generateWeeklyPlanWithAI(
-  fitnessGoals: any,
-  bodyMeasurements: any,
-  currentCyclePhase: any,
-  startDate: Date,
-  exerciseHistory: any[]
-) {
+async function generateWeeklyPlanWithAI(planData: any, startDate: Date) {
   const week = getNext7Days(startDate);
   const restDays = [2, 5]; // Wednesday and Saturday indices
 
-  // Analyze exercise history
-  const recentWorkouts = exerciseHistory
-    .map((ex) => `${ex.exercise_name} (${ex.duration_minutes}min)`)
-    .join(', ');
-  const totalRecentMinutes = exerciseHistory.reduce(
-    (sum, ex) => sum + (ex.duration_minutes || 0),
-    0
-  );
+  // Extract data from the structured plan data
+  const fitnessGoals = planData.fitness_goals;
+  const cycleData = planData.cycle_data;
+  const exerciseHistory = planData.exercise_history;
+  const bodyMeasurements = planData.body_measurements;
 
-  // Handle missing cycle data gracefully
-  const cycleInfo = currentCyclePhase
-    ? `- Cycle: ${currentCyclePhase.phase} (day ${currentCyclePhase.day_in_cycle})`
-    : '- Cycle: No cycle data available (plan based on fitness goals only)';
+  // Build cycle info
+  const cycleInfo = cycleData
+    ? `- Cycle: ${cycleData.phase} phase (day ${cycleData.day_in_cycle}, energy: ${cycleData.energy_level})`
+    : '- Cycle: No cycle data available';
+
+  // Build user profile info
+  const userAge = bodyMeasurements?.age ? ` (age ${bodyMeasurements.age})` : '';
+  const weightInfo = bodyMeasurements?.current_weight
+    ? ` ${bodyMeasurements.current_weight}${bodyMeasurements.units || 'kg'}`
+    : '';
+  const heightInfo = bodyMeasurements?.height ? ` ${bodyMeasurements.height}cm` : '';
+  const physicalProfile =
+    userAge || weightInfo || heightInfo
+      ? `- Physical: ${heightInfo}${weightInfo}${userAge}`
+      : '- Physical: No data provided';
 
   const prompt = `Generate a simple 7-day exercise plan and return ONLY valid JSON.
 
-User:
+User Profile:
 - Goal: ${fitnessGoals?.primary_goal || 'general fitness'}
 - Level: ${fitnessGoals?.experience_level || 'beginner'}
 - Frequency: ${fitnessGoals?.workout_frequency || '3-4'} per week
+- Duration preference: ${fitnessGoals?.preferred_duration || '30'} minutes
+- Equipment: ${fitnessGoals?.equipment_access || 'basic'}
+${physicalProfile}
 ${cycleInfo}
-- Recent workouts: ${recentWorkouts || 'None'} (${totalRecentMinutes} total minutes)
+- Recent activity: ${exerciseHistory?.summary || 'No recent history'}
 
 Return this structure:
 {
@@ -96,7 +101,9 @@ Return this structure:
       "exercises": [
         {
           "name": "Exercise name",
+          "category": "cardio/strength/flexibility",
           "duration_minutes": number,
+          "calories_estimate": number,
           "instructions": "Simple instruction",
           "completed": false
         }
@@ -112,14 +119,15 @@ Return this structure:
 
 RULES:
 - Rest days Wednesday & Saturday (is_rest_day: true, exercises: [])
-- Workouts 20-45 minutes max
-- If user did similar exercises recently, vary the routine
-- 2-3 simple exercises per workout
-- Clear, short instructions
-- If cycle data available: Lower intensity during menstrual phase, higher during ovulatory
-- If no cycle data: Focus on gradual progression based on fitness goals only`;
+- Match user's preferred duration (${fitnessGoals?.preferred_duration || '30'} min sessions)
+- Avoid repeating exercises from recent history: ${exerciseHistory?.dominant_types?.join(', ') || 'none'}
+- 2-3 exercises per workout session
+- Clear, actionable instructions
+- Age-appropriate exercises: ${bodyMeasurements?.age ? `Suitable for age ${bodyMeasurements.age}` : 'General adult exercises'}
+- Cycle-aware intensity: ${cycleData ? `Currently ${cycleData.phase} phase with ${cycleData.energy_level} energy` : 'Standard progression'}
+- Include calorie estimates based on duration, intensity, and user's physical profile`;
 
-  const userContent = `Plan for ${fitnessGoals?.primary_goal || 'fitness'} starting ${startDate.toDateString()}.`;
+  const userContent = `Generate a ${fitnessGoals?.primary_goal || 'fitness'} plan starting ${startDate.toDateString()}.`;
 
   // Try OpenAI first
   try {
@@ -145,8 +153,8 @@ RULES:
         day_name: week[index].toLocaleDateString('en-US', { weekday: 'long' }),
         is_rest_day: restDays.includes(index),
         intensity: getCycleAwareIntensity(
-          currentCyclePhase?.phase || null,
-          currentCyclePhase?.day_in_cycle ? currentCyclePhase.day_in_cycle + index : null
+          cycleData?.phase || null,
+          cycleData?.day_in_cycle ? cycleData.day_in_cycle + index : null
         ),
         exercises:
           day.exercises?.map((exercise: any) => ({
@@ -188,15 +196,16 @@ RULES:
           day_name: week[index].toLocaleDateString('en-US', { weekday: 'long' }),
           is_rest_day: restDays.includes(index),
           intensity: getCycleAwareIntensity(
-            currentCyclePhase?.phase || null,
-            currentCyclePhase?.day_in_cycle ? currentCyclePhase.day_in_cycle + index : null
+            cycleData?.phase || null,
+            cycleData?.day_in_cycle ? cycleData.day_in_cycle + index : null
           ),
           exercises:
             day.exercises?.map((exercise: any) => ({
               ...exercise,
-              completed: false, // Ensure all exercises start as not completed
+              completed: false,
+              category: exercise.category || 'general',
               calories_estimate:
-                exercise.calories_estimate || Math.round(exercise.duration_minutes * 3), // Estimate calories if not provided
+                exercise.calories_estimate || Math.round(exercise.duration_minutes * 4),
             })) || [],
         }));
 
@@ -215,31 +224,50 @@ RULES:
 
 async function saveWeeklyPlan(userId: string, plan: any) {
   try {
-    // First, deactivate any existing active plans for this user
-    await supabase
-      .from('weekly_exercise_plans')
-      .update({ is_active: false })
-      .eq('user_id', userId)
-      .eq('is_active', true);
+    // Use a transaction to ensure atomicity
+    const { data, error } = await supabase.rpc('save_weekly_exercise_plan', {
+      p_user_id: userId,
+      p_plan_name: plan.plan_name,
+      p_start_date: plan.days[0].date,
+      p_end_date: plan.days[6].date,
+      p_total_duration_minutes: plan.weekly_goals.total_minutes,
+      p_estimated_calories: plan.weekly_goals.estimated_calories,
+      p_plan_data: plan,
+    });
 
-    // Save to a weekly_exercise_plans table
-    const { data, error } = await supabase
-      .from('weekly_exercise_plans')
-      .insert({
-        user_id: userId,
-        plan_name: plan.plan_name,
-        start_date: plan.days[0].date,
-        end_date: plan.days[6].date,
-        total_duration_minutes: plan.weekly_goals.total_minutes,
-        estimated_calories: plan.weekly_goals.estimated_calories,
-        plan_data: plan,
-        is_active: true,
-        created_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
+    if (error) {
+      console.warn('RPC function not available, falling back to direct insert:', error);
 
-    if (error) throw error;
+      // Fallback: First deactivate existing plans, then insert new one
+      await supabase
+        .from('weekly_exercise_plans')
+        .update({ is_active: false })
+        .eq('user_id', userId)
+        .eq('is_active', true);
+
+      // Add a small delay to ensure the update completes
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const { data: insertData, error: insertError } = await supabase
+        .from('weekly_exercise_plans')
+        .insert({
+          user_id: userId,
+          plan_name: plan.plan_name,
+          start_date: plan.days[0].date,
+          end_date: plan.days[6].date,
+          total_duration_minutes: plan.weekly_goals.total_minutes,
+          estimated_calories: plan.weekly_goals.estimated_calories,
+          plan_data: plan,
+          is_active: true,
+          created_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+      return insertData;
+    }
+
     return data;
   } catch (error) {
     console.error('Failed to save weekly plan:', error);
@@ -267,143 +295,31 @@ Deno.serve(async (req) => {
   try {
     const requestBody = await req.json();
 
-    const { user_id, fitness_goals, body_measurements, current_cycle_phase, start_date } =
-      requestBody;
+    const { user_id, plan_data, start_date } = requestBody;
 
     if (!user_id) {
       console.error('❌ Missing user_id');
       return jsonError('user_id is required', 400);
     }
 
+    if (!plan_data) {
+      console.error('❌ Missing plan_data');
+      return jsonError('plan_data is required', 400);
+    }
+
     const startDate = start_date ? new Date(start_date) : new Date();
 
-    // Get user's exercise history from the past 7 days
-    const sevenDaysAgo = new Date(startDate);
-    sevenDaysAgo.setDate(startDate.getDate() - 7);
+    console.log('🤖 Generating plan with data:', {
+      user_id,
+      fitness_goal: plan_data.fitness_goals?.primary_goal,
+      age: plan_data.body_measurements?.age,
+      cycle_phase: plan_data.cycle_data?.phase,
+      exercise_history: plan_data.exercise_history?.summary,
+      start_date: startDate.toDateString(),
+    });
 
-    const { data: exerciseHistory, error: historyError } = await supabase
-      .from('exercise_entries')
-      .select('exercise_name, exercise_type, duration_minutes, calories_burned, logged_date')
-      .eq('user_id', user_id)
-      .gte('logged_date', sevenDaysAgo.toISOString().split('T')[0])
-      .lt('logged_date', startDate.toISOString().split('T')[0])
-      .order('logged_date', { ascending: false });
-
-    if (historyError) {
-      console.warn('⚠️ Could not fetch exercise history:', historyError.message);
-    }
-
-    // If no cycle phase provided via request, try to fetch it from database
-    let cyclePhaseData = current_cycle_phase;
-
-    if (!cyclePhaseData) {
-      console.log('🔍 No cycle data provided, attempting to fetch from database...');
-      try {
-        // First try using the helper function we created
-        const { data: cycleFunction, error: functionError } = await supabase.rpc(
-          'get_user_cycle_phase',
-          {
-            target_user_id: user_id,
-          }
-        );
-
-        if (cycleFunction && !functionError) {
-          cyclePhaseData = cycleFunction;
-          console.log(
-            `✅ Got cycle phase from function: ${cycleFunction.phase}, day ${cycleFunction.day_in_cycle}`
-          );
-        } else {
-          console.log('🔄 Function approach failed, trying manual calculation...');
-
-          // Fallback: manual calculation with robust period detection
-          const { data: cycleSettings } = await supabase
-            .from('cycle_settings')
-            .select('*')
-            .eq('user_id', user_id)
-            .single();
-
-          console.log('📊 Cycle settings query result:', { cycleSettings, settingsError: null });
-
-          if (cycleSettings) {
-            const { data: periodLogs } = await supabase
-              .from('period_logs')
-              .select('*')
-              .eq('user_id', user_id)
-              .order('date', { ascending: false })
-              .limit(100);
-
-            console.log('📋 Period logs query result:', {
-              logCount: periodLogs?.length || 0,
-              sampleLogs: periodLogs?.slice(0, 3),
-            });
-
-            // Calculate current cycle phase if we have period data
-            if (periodLogs && periodLogs.length > 0) {
-              const lastPeriodStart = periodLogs
-                .filter(
-                  (log: any) =>
-                    log.is_start_day === true ||
-                    log.period_start === true ||
-                    log.flow ||
-                    log.period_flow ||
-                    log.is_period === true ||
-                    log.period === true ||
-                    log.menstruation === true
-                )
-                .sort(
-                  (a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime()
-                )[0];
-
-              console.log('🩸 Found period start:', lastPeriodStart);
-
-              if (lastPeriodStart) {
-                const daysSinceLastPeriod = Math.floor(
-                  (new Date().getTime() - new Date(lastPeriodStart.date).getTime()) /
-                    (1000 * 60 * 60 * 24)
-                );
-                const cycleLength =
-                  cycleSettings.average_cycle_length || cycleSettings.cycle_length || 28;
-                const periodLength = cycleSettings.period_length || 5;
-                const dayInCycle = (daysSinceLastPeriod % cycleLength) + 1;
-
-                // Determine phase
-                let phase = 'follicular';
-                if (dayInCycle <= periodLength) phase = 'menstrual';
-                else if (dayInCycle <= 13) phase = 'follicular';
-                else if (dayInCycle <= 16) phase = 'ovulatory';
-                else phase = 'luteal';
-
-                cyclePhaseData = { phase, day_in_cycle: dayInCycle };
-                console.log(
-                  `✅ Calculated cycle phase manually: ${phase}, day ${dayInCycle} (${daysSinceLastPeriod} days since period)`
-                );
-              } else {
-                console.log('❌ No period start found in logs');
-              }
-            } else {
-              console.log('❌ No period logs found or error occurred');
-            }
-          } else {
-            console.log('❌ No cycle settings found or error occurred');
-          }
-        }
-      } catch (dbError) {
-        console.error('⚠️ Could not fetch cycle data from database:', dbError);
-      }
-    }
-
-    if (!cyclePhaseData) {
-      console.log('📝 No cycle data available, generating plan based on fitness goals only');
-    }
-
-    // Generate the weekly plan
-    const weeklyPlan = await generateWeeklyPlanWithAI(
-      fitness_goals,
-      body_measurements,
-      cyclePhaseData,
-      startDate,
-      exerciseHistory || []
-    );
+    // Generate the weekly plan using the provided data
+    const weeklyPlan = await generateWeeklyPlanWithAI(plan_data, startDate);
 
     // Try to save the plan to the database (optional, continues if it fails)
     let savedPlan = null;

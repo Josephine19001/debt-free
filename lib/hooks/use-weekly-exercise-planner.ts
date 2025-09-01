@@ -55,9 +55,7 @@ export interface WeeklyPlanExercise {
 }
 
 export interface GenerateWeeklyPlanData {
-  fitness_goals?: any;
-  body_measurements?: any;
-  current_cycle_phase?: any;
+  plan_data: any;
   start_date?: string;
 }
 
@@ -82,9 +80,7 @@ export function useGenerateWeeklyExercisePlan() {
 
       const requestBody = {
         user_id: session.user.id,
-        fitness_goals: data.fitness_goals,
-        body_measurements: data.body_measurements,
-        current_cycle_phase: data.current_cycle_phase,
+        plan_data: data.plan_data,
         start_date: data.start_date || new Date().toISOString(),
       };
 
@@ -102,9 +98,21 @@ export function useGenerateWeeklyExercisePlan() {
       console.log('✅ Weekly plan generated successfully:', response.data);
       return response.data;
     },
-    onSuccess: () => {
-      // Invalidate weekly plans query to refetch
-      queryClient.invalidateQueries({ queryKey: queryKeys.logs.weeklyExercisePlans });
+    onSuccess: async () => {
+      console.log('🔄 Invalidating and refreshing weekly plan queries...');
+
+      // Invalidate all weekly plan queries to ensure fresh data
+      await queryClient.invalidateQueries({ queryKey: queryKeys.logs.weeklyExercisePlans });
+
+      // Force refresh the latest and current plan queries
+      await queryClient.refetchQueries({
+        queryKey: [...queryKeys.logs.weeklyExercisePlans, 'latest'],
+      });
+      await queryClient.refetchQueries({
+        queryKey: [...queryKeys.logs.weeklyExercisePlans, 'current'],
+      });
+
+      console.log('✅ Weekly plan queries refreshed');
     },
   });
 }
@@ -133,7 +141,45 @@ export function useWeeklyExercisePlans() {
   });
 }
 
-// Get current active weekly plan
+// Get most recently created weekly plan (for newly generated plans)
+export function useLatestWeeklyPlan() {
+  return useQuery<WeeklyExercisePlan | null, Error>({
+    queryKey: [...queryKeys.logs.weeklyExercisePlans, 'latest'],
+    queryFn: async () => {
+      console.log('🔍 Fetching latest weekly plan');
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) {
+        console.error('❌ No session found for latest weekly plan fetch');
+        throw new Error('Not authenticated');
+      }
+
+      console.log('👤 User ID for latest weekly plan:', session.user.id);
+
+      const { data, error } = await supabase
+        .from('weekly_exercise_plans')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('❌ Error fetching latest weekly plan:', error);
+        throw error;
+      }
+
+      console.log('📋 Latest weekly plan result:', data);
+      return data || null;
+    },
+    staleTime: 1 * 60 * 1000, // 1 minute (short stale time for fresh data)
+    gcTime: 24 * 60 * 60 * 1000, // 24 hours
+  });
+}
+
+// Get current active weekly plan (improved logic)
 export function useCurrentWeeklyPlan() {
   const today = new Date().toISOString().split('T')[0];
 
@@ -152,7 +198,8 @@ export function useCurrentWeeklyPlan() {
 
       console.log('👤 User ID for weekly plan:', session.user.id);
 
-      const { data, error } = await supabase
+      // First try to get active plan for today's date range
+      let { data, error } = await supabase
         .from('weekly_exercise_plans')
         .select('*')
         .eq('user_id', session.user.id)
@@ -161,7 +208,23 @@ export function useCurrentWeeklyPlan() {
         .gte('end_date', today)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
+
+      // If no active plan found for current date, get the most recent active plan
+      if (!data && (!error || error.code === 'PGRST116')) {
+        console.log('🔍 No plan for current date, fetching most recent active plan');
+        const { data: recentData, error: recentError } = await supabase
+          .from('weekly_exercise_plans')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        data = recentData;
+        error = recentError;
+      }
 
       if (error && error.code !== 'PGRST116') {
         console.error('❌ Error fetching weekly plan:', error);
@@ -171,7 +234,7 @@ export function useCurrentWeeklyPlan() {
       console.log('📋 Current weekly plan result:', data);
       return data || null;
     },
-    staleTime: 15 * 60 * 1000, // 15 minutes
+    staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 24 * 60 * 60 * 1000, // 24 hours
   });
 }

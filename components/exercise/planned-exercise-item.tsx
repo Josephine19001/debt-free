@@ -3,6 +3,7 @@ import { View, TouchableOpacity, Modal, TextInput, Alert, ScrollView } from 'rea
 import { Text } from '@/components/ui/text';
 import { CheckCircle, Edit3, Eye, X, Save, Clock, Flame } from 'lucide-react-native';
 import { useCreateExerciseEntry } from '@/lib/hooks/use-exercise-tracking';
+import { getLocalDateString, getLocalTimeString } from '@/lib/utils/date-helpers';
 
 interface PlannedExerciseItemProps {
   exercise: any;
@@ -35,13 +36,8 @@ export function PlannedExerciseItem({ exercise, planId, selectedDate }: PlannedE
       calories_burned: parseInt(editData.calories_estimate) || exercise.calories_estimate || 0,
       intensity: 'moderate' as const,
       notes: `Completed from weekly plan: ${exercise.instructions}`,
-      logged_date:
-        new Date().getFullYear() +
-        '-' +
-        String(new Date().getMonth() + 1).padStart(2, '0') +
-        '-' +
-        String(new Date().getDate()).padStart(2, '0'),
-      logged_time: new Date().toTimeString().split(' ')[0],
+      logged_date: getLocalDateString(selectedDate),
+      logged_time: getLocalTimeString(),
     };
 
     // Log the exercise directly to the database

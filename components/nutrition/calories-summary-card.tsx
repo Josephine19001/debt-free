@@ -3,6 +3,7 @@ import { Text } from '@/components/ui/text';
 import { Apple, Coffee, Utensils, Sandwich, Cookie } from 'lucide-react-native';
 import { DailyNutritionSummary } from '@/lib/types/nutrition-tracking';
 import { CaloriesSummaryCardSkeleton } from './nutrition-skeleton';
+import { getAccurateCircularProgressStyles } from '@/lib/utils/progress-circle';
 
 interface CaloriesSummaryCardProps {
   macroData: {
@@ -20,19 +21,19 @@ export default function CaloriesSummaryCard({
   dailySummary,
   isLoading = false,
 }: CaloriesSummaryCardProps) {
-  const calculateProgress = (consumed: number, target: number) => {
-    if (target === 0) return 0;
-    return (consumed / target) * 100;
-  };
-
   const caloriesConsumed = isLoading ? 0 : macroData.calories.consumed;
   const caloriesLeft = isLoading ? 0 : macroData.calories.target - macroData.calories.consumed;
   const isOverTarget = !isLoading && macroData.calories.target > 0 && caloriesLeft < 0;
   const hasValidTarget = !isLoading && macroData.calories.target > 0;
-  const caloriesProgress =
-    isLoading || !hasValidTarget
-      ? 0
-      : calculateProgress(macroData.calories.consumed, macroData.calories.target);
+
+  // Get progress styles using utility function
+  const progressStyles = hasValidTarget
+    ? getAccurateCircularProgressStyles(
+        macroData.calories.consumed,
+        macroData.calories.target,
+        isOverTarget ? '#EF4444' : '#10B981'
+      )
+    : getAccurateCircularProgressStyles(0, 2000, '#10B981');
 
   // Calculate calories by meal type
   const getMealCalories = (mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack') => {
@@ -60,9 +61,6 @@ export default function CaloriesSummaryCard({
   const displayCaloriesConsumed = hasValidTarget ? macroData.calories.consumed : 0;
   const displayCaloriesLeft = displayCaloriesTarget - displayCaloriesConsumed;
   const displayIsOverTarget = hasValidTarget && caloriesLeft < 0;
-  const displayProgress = hasValidTarget
-    ? caloriesProgress
-    : calculateProgress(displayCaloriesConsumed, displayCaloriesTarget);
 
   return (
     <View className="px-4 mb-6">
@@ -94,49 +92,17 @@ export default function CaloriesSummaryCard({
 
           {/* Right side - Circular progress */}
           <View className="relative w-20 h-20 items-center justify-center">
-            {/* Background circle - always visible, larger than icon */}
-            <View
-              className="absolute rounded-full"
-              style={{
-                width: 76,
-                height: 76,
-                borderWidth: 6,
-                borderColor: '#E5E7EB',
-              }}
-            />
+            {/* Background circle - always visible */}
+            <View className="absolute rounded-full" style={progressStyles.backgroundCircle} />
 
-            {/* Progress circle - only show if there's progress */}
-            {displayProgress > 0 && (
-              <View
-                className="absolute rounded-full"
-                style={{
-                  width: 76,
-                  height: 76,
-                  borderWidth: 6,
-                  borderColor: '#E5E7EB',
-                  borderTopColor: displayIsOverTarget ? '#EF4444' : '#10B981',
-                  transform: [{ rotate: `${-90 + Math.min(displayProgress, 100) * 3.6}deg` }],
-                }}
-              />
+            {/* Progress circle - partial progress */}
+            {progressStyles.progressCircle && (
+              <View className="absolute rounded-full" style={progressStyles.progressCircle} />
             )}
 
-            {/* Overconsumption indicator - second lap */}
-            {displayProgress > 100 && (
-              <View
-                className="absolute rounded-full"
-                style={{
-                  width: 76,
-                  height: 76,
-                  borderWidth: 6,
-                  borderColor: 'transparent',
-                  borderTopColor: displayProgress - 100 > 12.5 ? '#EF4444' : 'transparent',
-                  borderRightColor: displayProgress - 100 > 37.5 ? '#EF4444' : 'transparent',
-                  borderBottomColor: displayProgress - 100 > 62.5 ? '#EF4444' : 'transparent',
-                  borderLeftColor: displayProgress - 100 > 87.5 ? '#EF4444' : 'transparent',
-                  transform: [{ rotate: `${-90 + Math.min(displayProgress - 100, 100) * 3.6}deg` }],
-                  opacity: 0.7,
-                }}
-              />
+            {/* Complete circle when 100% or more */}
+            {progressStyles.fullCircle && (
+              <View className="absolute rounded-full" style={progressStyles.fullCircle} />
             )}
 
             {/* Center icon - smaller and positioned in the center */}

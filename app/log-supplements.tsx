@@ -22,6 +22,7 @@ import {
   useLogSupplement,
   useAddSupplement,
 } from '@/lib/hooks/use-supplements';
+import { getTodayDateString, getLocalTimeString } from '@/lib/utils/date-helpers';
 
 export default function LogSupplementsScreen() {
   const [selectedSupplements, setSelectedSupplements] = useState<{ [key: string]: boolean }>({});
@@ -79,7 +80,7 @@ export default function LogSupplementsScreen() {
   };
 
   const handleSave = () => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getTodayDateString();
 
     // Log each selected supplement
     Object.entries(selectedSupplements).forEach(([supplementName, taken]) => {
@@ -88,6 +89,7 @@ export default function LogSupplementsScreen() {
           date: today,
           supplement_name: supplementName,
           taken: true,
+          time_logged: getLocalTimeString(), // Add local time
         });
       }
     });
@@ -213,37 +215,58 @@ export default function LogSupplementsScreen() {
                         <TouchableOpacity
                           key={supplement.id}
                           onPress={() => toggleSupplement(supplement.name)}
-                          className="flex-row items-center p-6 rounded-2xl"
+                          className={`flex-row items-center p-6 rounded-2xl border-2 ${
+                            isSelected ? 'bg-green-50 border-green-300' : 'bg-white border-gray-200'
+                          }`}
                           style={{
-                            backgroundColor: isSelected
-                              ? 'rgba(255, 182, 193, 0.3)'
-                              : 'rgba(255, 255, 255, 0.8)',
-                            borderWidth: 0,
                             shadowColor: '#000',
-                            shadowOffset: { width: 0, height: 2 },
-                            shadowOpacity: 0.1,
-                            shadowRadius: 8,
-                            elevation: 3,
+                            shadowOffset: { width: 0, height: 3 },
+                            shadowOpacity: isSelected ? 0.15 : 0.08,
+                            shadowRadius: 12,
+                            elevation: isSelected ? 6 : 3,
                           }}
                         >
-                          <View className="flex-1">
-                            <Text className="text-lg font-semibold text-gray-900 mb-1">
-                              {supplement.name}
-                            </Text>
-                            <Text className="text-gray-600 text-sm">
-                              {supplement.default_dosage}
-                            </Text>
+                          <View className="flex-row items-center flex-1">
+                            {/* Supplement Icon */}
+                            <View
+                              className={`w-12 h-12 rounded-2xl items-center justify-center mr-4 ${
+                                isSelected ? 'bg-green-100' : 'bg-gray-100'
+                              }`}
+                            >
+                              <View className="w-8 h-8 rounded-full bg-white items-center justify-center">
+                                <Text className="text-lg font-bold text-gray-700">💊</Text>
+                              </View>
+                            </View>
+
+                            <View className="flex-1">
+                              <Text
+                                className={`text-lg font-bold mb-1 ${
+                                  isSelected ? 'text-green-900' : 'text-gray-900'
+                                }`}
+                              >
+                                {supplement.name}
+                              </Text>
+                              <Text
+                                className={`text-sm ${
+                                  isSelected ? 'text-green-600' : 'text-gray-600'
+                                }`}
+                              >
+                                {supplement.default_dosage}
+                              </Text>
+                            </View>
                           </View>
 
+                          {/* Selection Indicator */}
                           <View className="ml-4">
-                            {isSelected && (
-                              <View
-                                className="w-6 h-6 rounded-full items-center justify-center"
-                                style={{ backgroundColor: '#EC4899' }}
-                              >
-                                <Check size={16} color="white" />
-                              </View>
-                            )}
+                            <View
+                              className={`w-8 h-8 rounded-full items-center justify-center border-2 ${
+                                isSelected
+                                  ? 'bg-green-500 border-green-500'
+                                  : 'bg-transparent border-gray-300'
+                              }`}
+                            >
+                              {isSelected && <Check size={18} color="white" strokeWidth={3} />}
+                            </View>
                           </View>
                         </TouchableOpacity>
                       );

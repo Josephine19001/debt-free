@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner-native';
+import { getTodayDateString } from '@/lib/utils/date-helpers';
 
 // Types
 interface UserSupplement {
@@ -100,10 +101,22 @@ export function useSupplementLogs(startDate?: string, endDate?: string) {
 }
 
 export function useTodaysSupplements() {
+  const todayString = getTodayDateString();
+
   return useQuery({
-    queryKey: supplementQueryKeys.today(),
-    queryFn: () => callSupplementFunction('today'),
-    staleTime: 2 * 60 * 1000, // 2 minutes - more frequent for today's data
+    queryKey: [...supplementQueryKeys.today(), todayString],
+    queryFn: async () => {
+      console.log(`[useTodaysSupplements] Fetching for date: ${todayString}`);
+      console.log(`[useTodaysSupplements] Local time: ${new Date().toLocaleString()}`);
+      console.log(`[useTodaysSupplements] UTC time: ${new Date().toISOString()}`);
+
+      const result = await callSupplementFunction(`today?date=${todayString}`);
+      console.log(`[useTodaysSupplements] Received ${result?.length || 0} supplements:`, result);
+
+      return result;
+    },
+    staleTime: 30 * 1000, // 30 seconds - very frequent for today's data
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
   });
 }
 
@@ -194,8 +207,23 @@ export function useLogSupplement() {
         method: 'POST',
         body: JSON.stringify(log),
       }),
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
+      // Invalidate all supplement queries
       queryClient.invalidateQueries({ queryKey: supplementQueryKeys.all });
+
+      // Also specifically invalidate today's supplements query
+      const todayString = getTodayDateString();
+
+      queryClient.invalidateQueries({ queryKey: [...supplementQueryKeys.today(), todayString] });
+      queryClient.refetchQueries({ queryKey: [...supplementQueryKeys.today(), todayString] });
+
+      // If logging for a different date, invalidate that too
+      if (variables.date !== todayString) {
+        queryClient.invalidateQueries({
+          queryKey: [...supplementQueryKeys.today(), variables.date],
+        });
+      }
+
       // Don't show toast for individual supplement logs - too noisy
     },
     onError: (error: Error) => {

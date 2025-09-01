@@ -129,7 +129,9 @@ export function LoggerModal({ visible, onClose }: LoggerModalProps) {
                       bgColor="#EFF6FF"
                       onPress={() =>
                         handleAction(() => {
-                          router.push(`/scan-food?mealType=${getCurrentMealType()}` as any);
+                          router.push(
+                            `/scan-food?mealType=${getCurrentMealType()}&returnTo=/(tabs)/nutrition` as any
+                          );
                         })
                       }
                     />

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { View, TouchableOpacity, Modal, TextInput, Alert } from 'react-native';
+import { View, TouchableOpacity, Modal, TextInput, Alert, ScrollView } from 'react-native';
 import { Text } from '@/components/ui/text';
-import { router } from 'expo-router';
+// import { router } from 'expo-router';
 import {
   Edit3,
   X,
@@ -93,6 +93,7 @@ interface LoggedWorkoutsSectionProps {
   currentWeeklyPlan?: any;
   isLoading: boolean;
   selectedDate: Date;
+  onNavigateToLogExercise?: () => void;
 }
 
 export function LoggedWorkoutsSection({
@@ -100,6 +101,7 @@ export function LoggedWorkoutsSection({
   currentWeeklyPlan,
   isLoading,
   selectedDate,
+  onNavigateToLogExercise,
 }: LoggedWorkoutsSectionProps) {
   const [editingExercise, setEditingExercise] = useState<any>(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -222,6 +224,8 @@ export function LoggedWorkoutsSection({
         </TouchableOpacity>
       </View> */}
 
+      <Text className="text-xl font-bold text-gray-900 mb-4">Today's Workouts</Text>
+
       {allExercises.length > 0 ? (
         <View className="gap-3">
           {allExercises.map((exercise: any, index: number) => {
@@ -246,87 +250,49 @@ export function LoggedWorkoutsSection({
                     </View>
 
                     <View className="flex-1">
-                      <View className="flex-row items-center justify-between">
-                        <Text className="text-base font-semibold text-gray-900 mb-1">
-                          {exerciseName}
-                        </Text>
-                        <View
-                          className={`px-2 py-1 rounded-full ${
-                            isPlanned ? 'bg-yellow-100' : 'bg-green-100'
-                          }`}
-                        >
-                          <Text
-                            className={`text-xs font-medium ${
-                              isPlanned ? 'text-yellow-700' : 'text-green-700'
-                            }`}
-                          >
-                            {isPlanned ? 'Planned' : 'Completed'}
-                          </Text>
-                        </View>
-                        <View className="flex-row items-center" style={{ gap: 8 }}>
-                          {isPlanned && (
-                            <TouchableOpacity
-                              onPress={() => handleViewExercise(exercise)}
-                              className="w-8 h-8 bg-blue-100 rounded-full items-center justify-center"
-                            >
-                              <Eye size={16} color="#3B82F6" />
-                            </TouchableOpacity>
-                          )}
-                          <TouchableOpacity
-                            onPress={() => handleEditExercise(exercise)}
-                            className="w-8 h-8 bg-gray-100 rounded-full items-center justify-center"
-                          >
-                            <Edit3 size={16} color="#6B7280" />
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            onPress={() => handleDeleteExercise(exercise.id)}
-                            className="w-8 h-8 bg-red-100 rounded-full items-center justify-center"
-                          >
-                            <X size={16} color="#DC2626" />
-                          </TouchableOpacity>
-                          {isPlanned && (
-                            <TouchableOpacity
-                              onPress={() => handleMarkDone(exercise)}
-                              className="w-8 h-8 bg-green-100 rounded-full items-center justify-center"
-                            >
-                              <CheckCircle size={16} color="#10B981" />
-                            </TouchableOpacity>
-                          )}
-                        </View>
-                      </View>
-                      <View className="flex-row items-center justify-between">
-                        <Text className="text-sm font-medium text-gray-500 capitalize">
-                          {exerciseType}
-                        </Text>
-                      </View>
+                      <Text
+                        className={`text-base font-semibold ${
+                          !isPlanned ? 'text-gray-400 line-through' : 'text-gray-900'
+                        }`}
+                      >
+                        {exerciseName}
+                      </Text>
+                      <Text className="text-sm text-gray-500 capitalize">{exerciseType}</Text>
                     </View>
+                  </View>
+
+                  <View className="flex-row items-center gap-2">
+                    <TouchableOpacity
+                      onPress={() => handleEditExercise(exercise)}
+                      className="w-8 h-8 bg-gray-100 rounded-full items-center justify-center"
+                    >
+                      <Edit3 size={16} color="#6B7280" />
+                    </TouchableOpacity>
+
+                    {isPlanned ? (
+                      <TouchableOpacity
+                        onPress={() => handleMarkDone(exercise)}
+                        className="w-8 h-8 bg-green-100 rounded-full items-center justify-center"
+                      >
+                        <CheckCircle size={16} color="#10B981" />
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity
+                        onPress={() => handleDeleteExercise(exercise.id)}
+                        className="w-8 h-8 bg-red-100 rounded-full items-center justify-center"
+                      >
+                        <X size={16} color="#DC2626" />
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </View>
 
-                {/* Exercise breakdown */}
-                <View className="flex-row justify-between pt-3 border-t border-gray-50">
-                  <View className="items-center">
-                    <Text className="text-xs text-gray-400">Duration</Text>
-                    <Text className="text-sm font-medium text-gray-700">
-                      {exercise.duration_minutes}m
-                    </Text>
-                  </View>
-                  <View className="items-center">
-                    <Text className="text-xs text-gray-400">
-                      {isPlanned ? 'Est. Calories' : 'Intensity'}
-                    </Text>
-                    <Text className="text-sm font-medium text-gray-700 capitalize">
-                      {isPlanned
-                        ? exercise.calories_estimate || 0
-                        : exercise.intensity || 'moderate'}
-                    </Text>
-                  </View>
-                  <View className="items-center">
-                    <Text className="text-xs text-gray-400">Calories</Text>
-                    <Text className="text-sm font-medium text-gray-700">
-                      {exercise.calories_burned || exercise.calories_estimate || 0}
-                    </Text>
-                  </View>
+                {/* Bottom details */}
+                <View className="pt-3 border-t border-gray-50">
+                  <Text className="text-sm text-gray-600">
+                    {exercise.calories_burned || exercise.calories_estimate || 0} cal •{' '}
+                    {exercise.duration_minutes} min
+                  </Text>
                 </View>
               </View>
             );
@@ -342,7 +308,7 @@ export function LoggedWorkoutsSection({
             No exercises planned or logged today
           </Text>
           <TouchableOpacity
-            onPress={() => router.push('/log-exercise')}
+            onPress={onNavigateToLogExercise}
             className="bg-purple-500 px-4 py-2 rounded-xl"
           >
             <Text className="text-white font-medium">Log Your First Exercise</Text>
@@ -365,10 +331,10 @@ export function LoggedWorkoutsSection({
               <View>
                 <View className="bg-purple-50 rounded-2xl p-4 mb-4">
                   <Text className="text-purple-900 text-lg font-bold">
-                    {editingExercise.exercise_name}
+                    {editingExercise.exercise_name || editingExercise.name}
                   </Text>
                   <Text className="text-purple-700 text-sm mt-1 capitalize">
-                    {editingExercise.exercise_type}
+                    {editingExercise.exercise_type || editingExercise.category}
                   </Text>
                 </View>
 
@@ -395,11 +361,14 @@ export function LoggedWorkoutsSection({
                       <View className="flex-1">
                         <Text className="text-gray-500 text-xs mb-2">Calories</Text>
                         <TextInput
-                          value={editingExercise.calories_burned?.toString()}
+                          value={(
+                            editingExercise.calories_burned || editingExercise.calories_estimate
+                          )?.toString()}
                           onChangeText={(text) =>
                             setEditingExercise({
                               ...editingExercise,
                               calories_burned: parseInt(text) || 0,
+                              calories_estimate: parseInt(text) || 0,
                             })
                           }
                           className="bg-white border border-slate-100 rounded-lg px-3 py-2 text-center font-medium text-base min-w-[70px]"
@@ -451,10 +420,10 @@ export function LoggedWorkoutsSection({
       </Modal>
 
       {/* View Exercise Details Modal */}
-      <Modal visible={showViewModal} animationType="slide" transparent>
-        <View className="flex-1 justify-center items-center bg-black/50">
-          <View className="bg-white rounded-2xl p-6 m-4 max-w-sm w-full">
-            <View className="flex-row items-center justify-between mb-4">
+      <Modal visible={showViewModal} animationType="fade" transparent>
+        <View className="flex-1 bg-black/50 justify-center items-center p-4">
+          <View className="bg-white rounded-2xl p-6 w-full max-w-sm" style={{ maxHeight: '70%' }}>
+            <View className="flex-row items-center justify-between mb-6">
               <Text className="text-xl font-bold text-gray-900">Exercise Details</Text>
               <TouchableOpacity onPress={() => setShowViewModal(false)}>
                 <X size={24} color="#6B7280" />
@@ -462,51 +431,85 @@ export function LoggedWorkoutsSection({
             </View>
 
             {viewingExercise && (
-              <View>
-                <View className="bg-purple-50 rounded-2xl p-4 mb-4">
-                  <Text className="text-purple-900 text-lg font-bold">{viewingExercise.name}</Text>
-                  <Text className="text-purple-700 text-sm mt-1 capitalize">
-                    {viewingExercise.category}
-                  </Text>
-                </View>
-
-                <View className="flex-row gap-4 mb-4">
-                  <View className="flex-1 bg-gray-50 rounded-xl p-3 items-center">
-                    <Clock size={16} color="#6B7280" />
-                    <Text className="text-gray-500 text-xs mt-1">Duration</Text>
-                    <Text className="text-gray-900 text-lg font-bold">
-                      {viewingExercise.duration_minutes}m
-                    </Text>
-                  </View>
-                  <View className="flex-1 bg-gray-50 rounded-xl p-3 items-center">
-                    <Flame size={16} color="#F59E0B" />
-                    <Text className="text-gray-500 text-xs mt-1">Est. Calories</Text>
-                    <Text className="text-gray-900 text-lg font-bold">
-                      {viewingExercise.calories_estimate || 0}
-                    </Text>
-                  </View>
-                </View>
-
-                {viewingExercise.instructions && (
-                  <View className="bg-blue-50 rounded-xl p-4 mb-4">
-                    <Text className="text-blue-900 font-semibold mb-2">Instructions</Text>
-                    <Text className="text-blue-800 leading-relaxed">
-                      {viewingExercise.instructions}
-                    </Text>
-                  </View>
-                )}
-
-                <TouchableOpacity
-                  onPress={() => {
-                    setShowViewModal(false);
-                    handleMarkDone(viewingExercise);
-                  }}
-                  className="bg-green-500 py-4 rounded-xl flex-row items-center justify-center"
+              <>
+                <ScrollView
+                  className="flex-1"
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ paddingBottom: 20 }}
                 >
-                  <CheckCircle size={16} color="white" />
-                  <Text className="text-white font-semibold ml-2">Mark as Done</Text>
-                </TouchableOpacity>
-              </View>
+                  {/* Exercise Header */}
+                  <View className="bg-purple-50 rounded-2xl p-4 mb-6">
+                    <Text className="text-purple-900 text-lg font-bold">
+                      {viewingExercise.exercise_name || viewingExercise.name}
+                    </Text>
+                    <Text className="text-purple-700 text-sm mt-1 capitalize">
+                      {viewingExercise.exercise_type || viewingExercise.category}
+                    </Text>
+                    <View className="flex-row items-center mt-2">
+                      <View
+                        className={`px-2 py-1 rounded-full ${
+                          !viewingExercise.id ? 'bg-yellow-100' : 'bg-green-100'
+                        }`}
+                      >
+                        <Text
+                          className={`text-xs font-medium ${
+                            !viewingExercise.id ? 'text-yellow-700' : 'text-green-700'
+                          }`}
+                        >
+                          {!viewingExercise.id ? 'Planned' : 'Completed'}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Exercise Stats */}
+                  <View className="flex-row gap-3 mb-6">
+                    <View className="flex-1 bg-gray-50 rounded-xl p-3 items-center">
+                      <Clock size={20} color="#6B7280" />
+                      <Text className="text-gray-500 text-xs mt-1">Duration</Text>
+                      <Text className="text-gray-900 text-lg font-bold">
+                        {viewingExercise.duration_minutes}m
+                      </Text>
+                    </View>
+                    <View className="flex-1 bg-gray-50 rounded-xl p-3 items-center">
+                      <Flame size={20} color="#F59E0B" />
+                      <Text className="text-gray-500 text-xs mt-1">
+                        {!viewingExercise.id ? 'Est. Calories' : 'Calories'}
+                      </Text>
+                      <Text className="text-gray-900 text-lg font-bold">
+                        {viewingExercise.calories_burned || viewingExercise.calories_estimate || 0}
+                      </Text>
+                    </View>
+                    {viewingExercise.intensity && (
+                      <View className="flex-1 bg-gray-50 rounded-xl p-3 items-center">
+                        <Zap size={20} color="#8B5CF6" />
+                        <Text className="text-gray-500 text-xs mt-1">Intensity</Text>
+                        <Text className="text-gray-900 text-lg font-bold capitalize">
+                          {viewingExercise.intensity}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Instructions */}
+                  {viewingExercise.instructions && (
+                    <View className="bg-blue-50 rounded-xl p-4 mb-6">
+                      <Text className="text-blue-900 font-semibold mb-2">Instructions</Text>
+                      <Text className="text-blue-800 leading-relaxed">
+                        {viewingExercise.instructions}
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Notes */}
+                  {viewingExercise.notes && (
+                    <View className="bg-gray-50 rounded-xl p-4 mb-6">
+                      <Text className="text-gray-900 font-semibold mb-2">Notes</Text>
+                      <Text className="text-gray-700 leading-relaxed">{viewingExercise.notes}</Text>
+                    </View>
+                  )}
+                </ScrollView>
+              </>
             )}
           </View>
         </View>

@@ -11,6 +11,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 // Import real data hooks
 import { useLogPeriodData } from '@/lib/hooks/use-cycle-data';
+import { getLocalDateString } from '@/lib/utils/date-helpers';
 
 export default function PeriodTrackerScreen() {
   const { goBack } = useAppNavigation();
@@ -74,7 +75,7 @@ export default function PeriodTrackerScreen() {
   };
 
   const handleSave = () => {
-    const dateString = selectedDate.toISOString().split('T')[0];
+    const dateString = getLocalDateString(selectedDate);
 
     logPeriodData.mutate(
       {

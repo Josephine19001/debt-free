@@ -20,6 +20,11 @@ interface CyclePhaseProps {
     daysUntil: number;
     date: string;
   } | null;
+  pregnancyChances?: {
+    level: string;
+    color: string;
+    description: string;
+  };
 }
 
 // Detailed cycle data with specific messages for each day
@@ -218,6 +223,7 @@ export function CyclePhase({
   periodStartDate,
   onLogPeriod,
   nextPeriodPrediction,
+  pregnancyChances,
 }: CyclePhaseProps) {
   // If no period data, show tracking encouragement
   if (!periodStartDate) {
@@ -303,18 +309,28 @@ export function CyclePhase({
         </TouchableOpacity>
 
         {/* Chances of Pregnancy */}
-        <View className="bg-gray-50 rounded-2xl p-4 mb-4">
-          <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center">
-              <Calendar size={16} color="#6B7280" />
-              <Text className="text-gray-700 ml-2 text-sm">Chances of Pregnancy</Text>
+        {pregnancyChances && (
+          <View className="bg-gray-50 rounded-2xl p-4 mb-4">
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center">
+                <Calendar size={16} color="#6B7280" />
+                <Text className="text-gray-700 ml-2 text-sm">Chances of Pregnancy</Text>
+              </View>
+              <View className="flex-row items-center">
+                <View
+                  className="w-2 h-2 rounded-full mr-2"
+                  style={{ backgroundColor: pregnancyChances.color }}
+                />
+                <Text className="text-sm font-medium text-gray-900">{pregnancyChances.level}</Text>
+              </View>
             </View>
-            <View className="flex-row items-center">
-              <View className="w-2 h-2 rounded-full bg-orange-400 mr-2" />
-              <Text className="text-sm font-medium text-gray-900">Low</Text>
-            </View>
+            {pregnancyChances.description && (
+              <Text className="text-xs text-gray-500 mt-2 ml-6">
+                {pregnancyChances.description}
+              </Text>
+            )}
           </View>
-        </View>
+        )}
 
         {/* Next Period */}
         {nextPeriodPrediction && (

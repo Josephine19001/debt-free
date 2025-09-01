@@ -252,7 +252,7 @@ export default function MealsSection({
   });
 
   return (
-    <View className="px-4 mb-6">
+    <View className="px-4 mb-6 mt-4">
       <View className="flex-row items-center justify-between mb-4">
         <Text className="text-xl font-bold text-gray-900">Today's Meals</Text>
         <TouchableOpacity onPress={onAddMealPress}>

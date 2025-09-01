@@ -14,6 +14,7 @@ import SubPageLayout from '@/components/layouts/sub-page';
 import { Heart, Zap, Battery, BatteryLow, Calendar, Check } from 'lucide-react-native';
 import { usePeriodLogs, useTodaysPeriodLog } from '@/lib/hooks/use-cycle-data';
 import { useLogMood } from '@/lib/hooks/use-symptoms-mood';
+import { getLocalDateString } from '@/lib/utils/date-helpers';
 import {
   AmazingIcon,
   SmileIcon,
@@ -99,11 +100,7 @@ export default function LogMoodScreen() {
     setIsLoading(true);
 
     // Use local date format to avoid timezone issues
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    const dateString = `${year}-${month}-${day}`;
+    const dateString = getLocalDateString();
 
     // Log mood using direct Supabase function
     logMood.mutate(

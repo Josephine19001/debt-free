@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
 import { queryKeys } from './query-keys';
 import { toast } from 'sonner-native';
+import { getLocalDateString, getLocalTimeString } from '@/lib/utils/date-helpers';
 
 // Helper function to determine stale time based on date
 function getStaleTimeForDate(date: string): number {
@@ -151,19 +152,8 @@ export function useCreateExerciseEntry() {
         calories_burned: data.calories_burned || 0,
         intensity: data.intensity || 'moderate',
         notes: data.notes,
-        logged_date:
-          data.logged_date ||
-          (() => {
-            const today = new Date();
-            return (
-              today.getFullYear() +
-              '-' +
-              String(today.getMonth() + 1).padStart(2, '0') +
-              '-' +
-              String(today.getDate()).padStart(2, '0')
-            );
-          })(),
-        logged_time: data.logged_time || new Date().toTimeString().split(' ')[0],
+        logged_date: data.logged_date || getLocalDateString(),
+        logged_time: data.logged_time || getLocalTimeString(),
       };
 
       console.log('📝 Inserting to exercise_entries table:', insertData);

@@ -4,6 +4,7 @@ import { Text } from '@/components/ui/text';
 import { Flame, Beef, Wheat } from 'lucide-react-native';
 import { OliveOilIcon } from '@/components/icons/olive-oil-icon';
 import { MacroBreakdownSkeleton } from './nutrition-skeleton';
+import { getAccurateCircularProgressStyles } from '@/lib/utils/progress-circle';
 
 interface MacroBreakdownProps {
   macroData: {
@@ -30,15 +31,11 @@ const MacroCard = ({
   color: string;
   icon: React.ElementType;
 }) => {
-  const calculateProgress = (consumed: number, target: number) => {
-    return Math.min(100, (consumed / target) * 100);
-  };
-
-  const progress = calculateProgress(consumed, target);
   const remaining = target - consumed;
+  const progressStyles = getAccurateCircularProgressStyles(consumed, target, color);
 
   return (
-    <View className="bg-white rounded-2xl p-4 shadow-sm border border-gray-50">
+    <View className="bg-white rounded-2xl p-4 border border-gray-50 shadow-sm">
       <View className="flex-row items-center justify-between">
         {/* Left side - Large number and text */}
         <View className="flex-1">
@@ -51,30 +48,17 @@ const MacroCard = ({
 
         {/* Right side - Circular progress */}
         <View className="relative w-20 h-20 items-center justify-center">
-          {/* Background circle - always visible, larger than icon */}
-          <View
-            className="absolute rounded-full"
-            style={{
-              width: 76,
-              height: 76,
-              borderWidth: 6,
-              borderColor: '#E5E7EB',
-            }}
-          />
+          {/* Background circle - always visible */}
+          <View className="absolute rounded-full" style={progressStyles.backgroundCircle} />
 
-          {/* Progress circle - only show if there's progress */}
-          {progress > 0 && (
-            <View
-              className="absolute rounded-full"
-              style={{
-                width: 76,
-                height: 76,
-                borderWidth: 6,
-                borderColor: '#E5E7EB',
-                borderTopColor: color,
-                transform: [{ rotate: `${-90 + progress * 3.6}deg` }],
-              }}
-            />
+          {/* Progress circle - partial progress */}
+          {progressStyles.progressCircle && (
+            <View className="absolute rounded-full" style={progressStyles.progressCircle} />
+          )}
+
+          {/* Complete circle when 100% or more */}
+          {progressStyles.fullCircle && (
+            <View className="absolute rounded-full" style={progressStyles.fullCircle} />
           )}
 
           {/* Center icon - positioned in the center */}
@@ -141,7 +125,7 @@ export default function MacroBreakdown({ macroData, isLoading = false }: MacroBr
           consumed={getDisplayData(macroData.fat, 67).consumed}
           target={getDisplayData(macroData.fat, 67).target}
           unit="g"
-          color="#3B82F6"
+          color="#8B5CF6"
           icon={OliveOilIcon}
         />
       </View>

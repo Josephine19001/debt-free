@@ -2,6 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { DailyExerciseSummary } from '@/lib/hooks/use-exercise-tracking';
+import { getAccurateCircularProgressStyles } from '@/lib/utils/progress-circle';
 
 interface ExerciseSummaryCardProps {
   dailySummary?: DailyExerciseSummary;
@@ -21,7 +22,16 @@ export function ExerciseSummaryCard({ dailySummary, isLoading }: ExerciseSummary
   const dailyMinutesTarget = 30; // 30 minutes per day is a good daily goal
   const currentStreak = 5; // This would come from a streak calculation hook
 
-  const minutesProgress = Math.min((totalMinutes / dailyMinutesTarget) * 100, 100);
+  // Get progress styles using utility function
+  const progressStyles = getAccurateCircularProgressStyles(
+    totalMinutes,
+    dailyMinutesTarget,
+    '#8B5CF6',
+    80, // size
+    4 // strokeWidth
+  );
+
+  const minutesProgress = (totalMinutes / dailyMinutesTarget) * 100;
 
   return (
     <View className="mx-4 mb-6">
@@ -48,18 +58,16 @@ export function ExerciseSummaryCard({ dailySummary, isLoading }: ExerciseSummary
           {/* Circular Progress Ring */}
           <View className="relative w-24 h-24 items-center justify-center">
             {/* Background Circle */}
-            <View className="w-20 h-20 rounded-full border-4" style={{ borderColor: '#F3F4F6' }} />
+            <View className="absolute rounded-full" style={progressStyles.backgroundCircle} />
 
-            {/* Progress Circle */}
-            {minutesProgress > 0 && (
-              <View
-                className="w-20 h-20 rounded-full border-4 absolute"
-                style={{
-                  borderColor: '#F3F4F6',
-                  borderTopColor: '#8B5CF6',
-                  transform: [{ rotate: `${-90 + minutesProgress * 3.6}deg` }],
-                }}
-              />
+            {/* Progress Circle - partial progress */}
+            {progressStyles.progressCircle && (
+              <View className="absolute rounded-full" style={progressStyles.progressCircle} />
+            )}
+
+            {/* Complete circle when 100% or more */}
+            {progressStyles.fullCircle && (
+              <View className="absolute rounded-full" style={progressStyles.fullCircle} />
             )}
 
             {/* Center Content */}

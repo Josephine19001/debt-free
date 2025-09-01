@@ -1,0 +1,48 @@
+{
+  "user_id": "ae191376-b756-4cfc-b678-5903863df460",
+  "start_date": "2025-01-20",
+  "plan_data": {
+    "fitness_goals": {
+      "primary_goal": "general_fitness",
+      "experience_level": "intermediate",
+      "workout_frequency": "4-5",
+      "preferred_duration": "30",
+      "equipment_access": "home_and_gym"
+    },
+    "body_measurements": {
+      "age": 25,
+      "current_weight": 60,
+      "height": 160,
+      "units": "kg"
+    },
+    "cycle_data": {
+      "phase": "luteal",
+      "day_in_cycle": 22,
+      "energy_level": "moderate"
+    },
+    "exercise_history": {
+      "summary": "Recent activities include kickboxing, cycling, and calisthenics with 20-minute sessions",
+      "dominant_types": ["cardio", "strength"],
+      "recent_activities": [
+        {
+          "type": "kickboxing",
+          "duration": 20,
+          "calories": 100,
+          "date": "2025-09-01"
+        },
+        {
+          "type": "cycling",
+          "duration": 20,
+          "calories": 160,
+          "date": "2025-09-01"
+        },
+        {
+          "type": "calisthenics",
+          "duration": 20,
+          "calories": 90,
+          "date": "2025-09-01"
+        }
+      ]
+    }
+  }
+}

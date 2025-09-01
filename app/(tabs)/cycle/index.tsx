@@ -269,14 +269,14 @@ export default function CycleScreen() {
   };
 
   // Calculate next period prediction using complete cycles (start to start)
-  const getNextPeriodPrediction = () => {
+  // Now calculates relative to selected date, not just today
+  const getNextPeriodPrediction = (referenceDate: Date = selectedDate) => {
     const cycles = getPeriodCycles();
     if (cycles.length === 0) return null;
 
     // Use last 3-5 complete cycles for prediction
     let avgCycleLength = cycleSettings?.cycle_length || 28;
     let cyclesUsed = 0;
-    const today = new Date();
 
     // Get completed cycles (cycles that have ended)
     const completedCycles = cycles.filter((cycle) => cycle.end !== null);
@@ -325,8 +325,9 @@ export default function CycleScreen() {
     const nextPredictedDate = new Date(lastStartDate);
     nextPredictedDate.setDate(nextPredictedDate.getDate() + avgCycleLength);
 
+    // Calculate days until next period relative to the reference date (selected date)
     const daysUntilNext = Math.ceil(
-      (nextPredictedDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+      (nextPredictedDate.getTime() - referenceDate.getTime()) / (1000 * 60 * 60 * 24)
     );
 
     // Generate predicted period dates (5-day period by default)
@@ -400,10 +401,68 @@ export default function CycleScreen() {
     };
   };
 
-  // Memoize prediction to ensure it updates when period data changes
+  // Calculate pregnancy chances based on cycle phase for selected date
+  const getPregnancyChances = (date: Date) => {
+    const cyclePhase = getCyclePhaseForDate(date);
+    if (!cyclePhase) return { level: 'Unknown', color: '#6B7280', description: 'No cycle data' };
+
+    const { day_in_cycle } = cyclePhase;
+
+    // Pregnancy chances based on cycle day
+    if (day_in_cycle <= 5) {
+      // Menstrual phase - very low chance
+      return {
+        level: 'Very Low',
+        color: '#10B981',
+        description: 'Menstrual phase - very low fertility',
+      };
+    } else if (day_in_cycle <= 9) {
+      // Early follicular - low chance
+      return {
+        level: 'Low',
+        color: '#10B981',
+        description: 'Early follicular phase - low fertility',
+      };
+    } else if (day_in_cycle <= 11) {
+      // Late follicular - increasing chance
+      return {
+        level: 'Medium',
+        color: '#F59E0B',
+        description: 'Late follicular phase - fertility increasing',
+      };
+    } else if (day_in_cycle >= 12 && day_in_cycle <= 16) {
+      // Ovulatory phase - highest chance
+      return {
+        level: 'High',
+        color: '#EF4444',
+        description: 'Ovulatory phase - peak fertility window',
+      };
+    } else if (day_in_cycle <= 21) {
+      // Early luteal - medium chance
+      return {
+        level: 'Medium',
+        color: '#F59E0B',
+        description: 'Early luteal phase - moderate fertility',
+      };
+    } else {
+      // Late luteal - low chance
+      return {
+        level: 'Low',
+        color: '#10B981',
+        description: 'Late luteal phase - low fertility',
+      };
+    }
+  };
+
+  // Memoize prediction to ensure it updates when period data changes or selected date changes
   const nextPeriodPrediction = React.useMemo(() => {
-    return getNextPeriodPrediction();
-  }, [periodLogs, cycleSettings]);
+    return getNextPeriodPrediction(selectedDate);
+  }, [periodLogs, cycleSettings, selectedDate]);
+
+  // Memoize pregnancy chances for selected date
+  const pregnancyChances = React.useMemo(() => {
+    return getPregnancyChances(selectedDate);
+  }, [selectedDate, cycleSettings, periodLogs]);
 
   // Simple cycle stats
   const cycleStats = {
@@ -729,6 +788,7 @@ export default function CycleScreen() {
           }
           onLogPeriod={() => setShowFullCalendar(true)}
           nextPeriodPrediction={nextPeriodPrediction}
+          pregnancyChances={pregnancyChances}
         />
 
         {/* Today's Symptoms Section */}
@@ -746,11 +806,7 @@ export default function CycleScreen() {
         />
 
         {/* Today's Supplements Section */}
-        <TodaysSupplements
-          selectedDate={selectedDate}
-          supplementData={todaysSupplements}
-          isLoading={supplementsLoading}
-        />
+        <TodaysSupplements selectedDate={selectedDate} />
 
         {/* Beauty Scans Section */}
         {/* <TodaysBeautyScans selectedDate={selectedDate} isLoading={false} /> */}

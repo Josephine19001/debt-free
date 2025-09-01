@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import SubPageLayout from '@/components/layouts/sub-page';
 import { SubscriptionGuard } from '@/components/subscription-guard';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useAppNavigation } from '@/lib/hooks/use-navigation';
 import { toast } from 'sonner-native';
 import { useScanFood } from '@/lib/hooks/use-food-scanner';
 
@@ -13,6 +14,7 @@ import * as ImagePicker from 'expo-image-picker';
 
 export default function ScanFoodScreen() {
   const router = useRouter();
+  const { goBack } = useAppNavigation();
   const params = useLocalSearchParams();
   const scanFood = useScanFood();
 
@@ -65,8 +67,9 @@ export default function ScanFoodScreen() {
 
   const analyzeFoodImage = async (imageUri: string) => {
     try {
-      // Navigate to nutrition page to see the update when it happens
-      router.push('/(tabs)/nutrition');
+      // Navigate to the return screen (usually log-meal) or fallback to nutrition
+      const returnTo = (params.returnTo as string) || '/(tabs)/nutrition';
+      router.push(returnTo as any);
 
       // Show loading toast
       toast.loading('Analyzing food...', {

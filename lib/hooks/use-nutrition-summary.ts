@@ -114,34 +114,25 @@ export function useNutritionProgress(date: string) {
           consumed: dailySummary.total_calories,
           goal: nutritionGoals.calories || 2000,
           remaining: Math.max(0, (nutritionGoals.calories || 2000) - dailySummary.total_calories),
-          percentage: Math.min(
-            100,
-            (dailySummary.total_calories / (nutritionGoals.calories || 2000)) * 100
-          ),
+          percentage: (dailySummary.total_calories / (nutritionGoals.calories || 2000)) * 100,
         },
         protein: {
           consumed: dailySummary.total_protein,
           goal: nutritionGoals.protein || 150,
           remaining: Math.max(0, (nutritionGoals.protein || 150) - dailySummary.total_protein),
-          percentage: Math.min(
-            100,
-            (dailySummary.total_protein / (nutritionGoals.protein || 150)) * 100
-          ),
+          percentage: (dailySummary.total_protein / (nutritionGoals.protein || 150)) * 100,
         },
         carbs: {
           consumed: dailySummary.total_carbs,
           goal: nutritionGoals.carbs || 250,
           remaining: Math.max(0, (nutritionGoals.carbs || 250) - dailySummary.total_carbs),
-          percentage: Math.min(
-            100,
-            (dailySummary.total_carbs / (nutritionGoals.carbs || 250)) * 100
-          ),
+          percentage: (dailySummary.total_carbs / (nutritionGoals.carbs || 250)) * 100,
         },
         fat: {
           consumed: dailySummary.total_fat,
           goal: nutritionGoals.fat || 67,
           remaining: Math.max(0, (nutritionGoals.fat || 67) - dailySummary.total_fat),
-          percentage: Math.min(100, (dailySummary.total_fat / (nutritionGoals.fat || 67)) * 100),
+          percentage: (dailySummary.total_fat / (nutritionGoals.fat || 67)) * 100,
         },
         water: {
           consumed: dailySummary.total_water_ml,

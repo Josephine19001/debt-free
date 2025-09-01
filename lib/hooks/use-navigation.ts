@@ -40,11 +40,15 @@ export function useAppNavigation() {
       return '/(tabs)/settings';
     }
 
-    // Food/nutrition related screens
+    // Scan food should go back to log meal if user came from there
+    if (currentPath.includes('/scan-food')) {
+      return '/log-meal';
+    }
+
+    // Other food/nutrition related screens
     if (
       currentPath.includes('/log-meal') ||
       currentPath.includes('/log-water') ||
-      currentPath.includes('/scan-food') ||
       currentPath.includes('/log-supplements') ||
       currentPath.includes('nutrition')
     ) {

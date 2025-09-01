@@ -25,6 +25,7 @@ import {
   useCurrentWeeklyPlan,
 } from '@/lib/hooks/use-weekly-exercise-planner';
 import { useQueryClient } from '@tanstack/react-query';
+import { useExercisePlanData } from '@/lib/hooks/use-exercise-plan-data';
 
 // Import new components
 import { TodaysWorkoutSection } from '@/components/exercise/todays-workout-section';
@@ -60,11 +61,12 @@ export default function ExerciseScreen() {
   const { data: exerciseEntries, isLoading: entriesLoading } = useExerciseEntries(dateString);
   const { data: exerciseStreak } = useExerciseStreak();
   const { data: loggedDates } = useExerciseLoggedDates();
-  const { data: fitnessGoals } = useFitnessGoals();
-  const { data: bodyMeasurements } = useBodyMeasurements();
-  const { data: currentCyclePhase } = useCurrentCyclePhase();
   const { data: currentWeeklyPlan } = useCurrentWeeklyPlan();
   const generateWeeklyPlan = useGenerateWeeklyExercisePlan();
+
+  // Get all plan generation data from our centralized hook
+  const { planGenerationData, fitnessGoals, bodyMeasurements, currentCyclePhase } =
+    useExercisePlanData();
 
   const plannedSummary = usePlannedWorkoutSummary(currentWeeklyPlan, selectedDate);
 
@@ -83,15 +85,12 @@ export default function ExerciseScreen() {
   };
 
   const handleSavePlan = async (plan: any) => {
-    // The plan is already generated, so we just need to call the generation API
-    // with the same data to save it to the database
+    // Save the plan using the current plan generation data
     try {
       await generateWeeklyPlan.mutateAsync({
-        fitness_goals: fitnessGoals,
-        body_measurements: bodyMeasurements,
-        current_cycle_phase: currentCyclePhase,
+        plan_data: planGenerationData,
         start_date: new Date().toISOString(),
-      } as any);
+      });
     } catch (error) {
       console.error('Failed to save plan:', error);
     }
@@ -99,12 +98,20 @@ export default function ExerciseScreen() {
 
   const handleRegeneratePlan = async (context: string) => {
     try {
+      // Add the additional context to the fitness goals
+      const enhancedPlanData = {
+        ...planGenerationData,
+        fitness_goals: {
+          ...planGenerationData.fitness_goals,
+          additional_context: context,
+        },
+      };
+
       const result = await generateWeeklyPlan.mutateAsync({
-        fitness_goals: { ...fitnessGoals, additional_context: context },
-        body_measurements: bodyMeasurements,
-        current_cycle_phase: currentCyclePhase,
+        plan_data: enhancedPlanData,
         start_date: new Date().toISOString(),
-      } as any);
+      });
+
       if (result?.plan) {
         setGeneratedPlan(result.plan);
         setShowWeeklyPlan(true);
@@ -160,23 +167,6 @@ export default function ExerciseScreen() {
           selectedDate={selectedDate}
         /> */}
 
-        {/* Logged Workouts Section - Separate section for logged exercises */}
-        <LoggedWorkoutsSection
-          exerciseEntries={exerciseEntries}
-          currentWeeklyPlan={currentWeeklyPlan}
-          isLoading={isLoading}
-          selectedDate={selectedDate}
-        />
-
-        {/* Today's Plan Section */}
-        {isLoading ? (
-          <CycleAwarePlanSkeleton />
-        ) : (
-          currentCyclePhase && (
-            <CycleAwarePlan cyclePhase={currentCyclePhase} fitnessGoals={fitnessGoals} />
-          )
-        )}
-
         {/* Weekly Plan Section */}
         {isLoading ? (
           <WeeklyPlanSectionSkeleton />
@@ -186,6 +176,7 @@ export default function ExerciseScreen() {
             bodyMeasurements={bodyMeasurements}
             currentCyclePhase={currentCyclePhase}
             currentWeeklyPlan={currentWeeklyPlan}
+            planGenerationData={planGenerationData}
             onShowPlan={(plan) => {
               setGeneratedPlan(plan);
               setShowWeeklyPlan(true);
@@ -194,6 +185,15 @@ export default function ExerciseScreen() {
             }}
           />
         )}
+
+        {/* Logged Workouts Section - Separate section for logged exercises */}
+        <LoggedWorkoutsSection
+          exerciseEntries={exerciseEntries}
+          currentWeeklyPlan={currentWeeklyPlan}
+          isLoading={isLoading}
+          selectedDate={selectedDate}
+          onNavigateToLogExercise={() => router.push('/log-exercise')}
+        />
       </ScrollView>
 
       {/* Weekly Plan Modal */}
@@ -307,12 +307,14 @@ function WeeklyPlanSection({
   bodyMeasurements,
   currentCyclePhase,
   currentWeeklyPlan,
+  planGenerationData,
   onShowPlan,
 }: {
   fitnessGoals: any;
   bodyMeasurements: any;
   currentCyclePhase: any;
   currentWeeklyPlan: any;
+  planGenerationData: any;
   onShowPlan: (plan: any) => void;
 }) {
   const generateWeeklyPlan = useGenerateWeeklyExercisePlan();
@@ -353,11 +355,10 @@ function WeeklyPlanSection({
     }
 
     // Start the generation process (non-blocking)
+    console.log('Plan generation data:', planGenerationData);
     generateWeeklyPlan.mutate(
       {
-        fitness_goals: fitnessGoals,
-        body_measurements: bodyMeasurements,
-        current_cycle_phase: currentCyclePhase,
+        plan_data: planGenerationData,
         start_date: startDate.toISOString(),
       },
       {

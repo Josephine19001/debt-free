@@ -15,13 +15,14 @@ import {
   useSearchState,
 } from '@/lib/hooks/use-optimized-search';
 import * as ImagePicker from 'expo-image-picker';
+import { getLocalDateTime } from '@/lib/utils/date-helpers';
 
 // Components
 import { MealTypeSelector } from '@/components/meal/meal-type-selector';
 import { QuickActions } from '@/components/meal/quick-actions';
 import { SelectedFoodsList } from '@/components/meal/selected-foods-list';
 import { NutritionSummary } from '@/components/meal/nutrition-summary';
-import { CommunityShareToggle } from '@/components/meal/community-share-toggle';
+
 import { SearchModal } from '@/components/meal/search-modal';
 import { CustomFoodModal } from '@/components/meal/custom-food-modal';
 import { ScannerModal } from '@/components/meal/scanner-modal';
@@ -34,7 +35,6 @@ export default function LogMealScreen() {
   // Form state
   const [selectedMealType, setSelectedMealType] = useState('breakfast');
   const [selectedFoods, setSelectedFoods] = useState<FoodItemWithQuantity[]>([]);
-  const [shareWithCommunity, setShareWithCommunity] = useState(false);
 
   // Modal states
   const [showScanner, setShowScanner] = useState(false);
@@ -160,11 +160,11 @@ export default function LogMealScreen() {
   };
 
   const handleScanFood = () => {
-    router.push(`/scan-food?mealType=${selectedMealType}`);
+    router.push(`/scan-food?mealType=${selectedMealType}&returnTo=/log-meal`);
   };
 
   const handleAIScan = () => {
-    router.push(`/scan-food?mealType=${selectedMealType}`);
+    router.push(`/scan-food?mealType=${selectedMealType}&returnTo=/log-meal`);
   };
 
   // Image scanning functions
@@ -293,7 +293,7 @@ export default function LogMealScreen() {
     }
   };
 
-  const handleAddCustomFood = () => {
+  const handleAddCustomFood = (shareWithCommunity = false) => {
     const nutrition = {
       calories: parseFloat(customFood.calories) || 0,
       protein: parseFloat(customFood.protein) || 0,
@@ -310,11 +310,20 @@ export default function LogMealScreen() {
       category: customFood.category,
       servingSize: customFood.servingSize.trim(),
       nutrition,
+      isCustom: true,
+      shareWithCommunity,
     };
 
     setSelectedFoods([...selectedFoods, { food: newFood, quantity: 1 }]);
     resetCustomFood();
     setShowCustomFood(false);
+
+    // Show confirmation toast
+    if (shareWithCommunity) {
+      toast.success('Custom food added and will be shared with community!');
+    } else {
+      toast.success('Custom food added to your meal!');
+    }
   };
 
   const resetCustomFood = () => {
@@ -343,15 +352,14 @@ export default function LogMealScreen() {
     }
 
     try {
+      const { date, time } = getLocalDateTime();
+
       await createMealEntry.mutateAsync({
         meal_type: selectedMealType as 'breakfast' | 'lunch' | 'dinner' | 'snack',
         food_items: selectedFoods,
-        share_with_community: shareWithCommunity,
+        logged_date: date,
+        logged_time: time,
       });
-
-      if (shareWithCommunity) {
-        toast.success('Meal saved and submitted for community review! 🌍');
-      }
 
       router.push('/(tabs)/nutrition');
     } catch (error) {
@@ -392,14 +400,6 @@ export default function LogMealScreen() {
 
         {/* Nutrition Summary */}
         {selectedFoods.length > 0 && <NutritionSummary totalNutrition={totalNutrition} />}
-
-        {/* Community Contribution Option */}
-        {selectedFoods.length > 0 && (
-          <CommunityShareToggle
-            shareWithCommunity={shareWithCommunity}
-            onToggle={() => setShareWithCommunity(!shareWithCommunity)}
-          />
-        )}
 
         {/* Save Button */}
         <View className="px-4 pb-8">

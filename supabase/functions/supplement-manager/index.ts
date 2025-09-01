@@ -189,7 +189,16 @@ Deno.serve(async (req) => {
 
         if (path === 'today') {
           // Get today's supplement schedule and logs
-          const today = new Date().toISOString().split('T')[0];
+          // ALWAYS use the date provided by client to respect user's timezone
+          const todayString = url.searchParams.get('date');
+
+          if (!todayString) {
+            return errorResponse('date parameter is required', 400);
+          }
+
+          console.log(
+            `[supplement-manager] Fetching supplements for date: ${todayString} (client timezone)`
+          );
 
           // Get user's supplements
           const { data: supplements } = await supabase
@@ -203,16 +212,28 @@ Deno.serve(async (req) => {
             .from('supplement_logs')
             .select('*')
             .eq('user_id', user.id)
-            .eq('date', today);
+            .eq('date', todayString);
+
+          console.log(`[supplement-manager] Found ${logs?.length || 0} logs for ${todayString}`);
+          console.log(`[supplement-manager] Logs:`, logs);
+          console.log(
+            `[supplement-manager] User supplements:`,
+            supplements?.map((s) => s.name)
+          );
 
           // Filter supplements scheduled for today
           const todaysSupplements = (supplements || []).filter((supplement) =>
-            isSupplementScheduledForDate(supplement, today)
+            isSupplementScheduledForDate(supplement, todayString)
           );
 
           // Combine with logs
           const supplementsWithLogs = todaysSupplements.map((supplement) => {
             const log = (logs || []).find((l) => l.supplement_name === supplement.name);
+
+            console.log(`[supplement-manager] Processing supplement: ${supplement.name}`);
+            console.log(`[supplement-manager] Found log:`, log);
+            console.log(`[supplement-manager] Log taken status: ${log?.taken || false}`);
+
             return {
               ...supplement,
               taken: log?.taken || false,

@@ -15,6 +15,7 @@ import { Check } from 'lucide-react-native';
 import { usePeriodLogs, useTodaysPeriodLog } from '@/lib/hooks/use-cycle-data';
 import { useLogSymptoms } from '@/lib/hooks/use-symptoms-mood';
 import { Button } from '@/components/ui/button';
+import { getLocalDateString } from '@/lib/utils/date-helpers';
 import {
   CrampsIcon,
   HeadacheIcon,
@@ -117,11 +118,7 @@ export default function LogSymptomsScreen() {
     setIsLoading(true);
 
     // Use local date format to avoid timezone issues
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    const dateString = `${year}-${month}-${day}`;
+    const dateString = getLocalDateString();
 
     // Log symptoms using direct Supabase function
     logSymptoms.mutate(
