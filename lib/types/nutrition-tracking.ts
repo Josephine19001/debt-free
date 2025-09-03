@@ -33,8 +33,8 @@ export interface MealEntry {
   total_fiber: number;
   total_sugar: number;
   notes?: string;
-  logged_date: string; // YYYY-MM-DD format
-  logged_time: string; // HH:mm:ss format
+  logged_date: string; // DATE from database, returned as YYYY-MM-DD string
+  logged_time: string; // TIMETZ from database, returned as HH:mm:ss+TZ string
   image_url?: string; // Added for AI food scanning
   analysis_status?: 'analyzing' | 'completed' | 'failed'; // Added for AI food scanning
   analysis_progress?: number; // Progress percentage (0-100)

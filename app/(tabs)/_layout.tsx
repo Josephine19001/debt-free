@@ -22,20 +22,14 @@ const HIDDEN_ROUTES = [
   '/settings/fitness-goals',
   '/settings/nutrition-goals',
   '/settings/weight',
-  '/settings/skincare-products',
-  '/settings/haircare-products',
   '/settings/supplements',
-  '/settings/add-skincare-product',
-  '/settings/add-haircare-product',
   '/log-exercise',
   '/log-mood',
   '/log-water',
-  '/log-sleep',
   '/log-meal',
   '/log-supplements',
   '/period-tracker',
   '/scan-food',
-  '/scan-beauty',
 ];
 
 export default function TabLayout() {
@@ -191,23 +185,7 @@ export default function TabLayout() {
               options={{ href: null, headerShown: false }}
             />
             <Tabs.Screen name="settings/weight" options={{ href: null, headerShown: false }} />
-            <Tabs.Screen
-              name="settings/skincare-products"
-              options={{ href: null, headerShown: false }}
-            />
-            <Tabs.Screen
-              name="settings/haircare-products"
-              options={{ href: null, headerShown: false }}
-            />
             <Tabs.Screen name="settings/supplements" options={{ href: null, headerShown: false }} />
-            <Tabs.Screen
-              name="settings/add-skincare-product"
-              options={{ href: null, headerShown: false }}
-            />
-            <Tabs.Screen
-              name="settings/add-haircare-product"
-              options={{ href: null, headerShown: false }}
-            />
           </Tabs>
 
           {/* Logger Modal */}

@@ -85,27 +85,26 @@ export function useWeightHistory(limit?: number) {
 }
 
 /**
- * Hook to get user's weight history for a specific date range
+ * Hook to get user's weight history for a specific date range using RPC
  */
-export function useWeightHistoryRange(startDate: string, endDate: string) {
+export function useWeightHistoryRange(
+  startDate: string,
+  endDate: string,
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: [...queryKeys.logs.weightEntries(), 'range', startDate, endDate],
     queryFn: async () => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error('User not authenticated');
-
-      const { data, error } = await supabase
-        .from('weight_history')
-        .select('*')
-        .eq('user_id', user.user.id)
-        .gte('measured_at', startDate + 'T00:00:00')
-        .lte('measured_at', endDate + 'T23:59:59')
-        .order('measured_at', { ascending: true });
+      const { data, error } = await supabase.rpc('get_weight_history_range', {
+        p_start_date: startDate,
+        p_end_date: endDate,
+      });
 
       if (error) throw error;
       return data as WeightEntry[];
     },
     staleTime: 5 * 60 * 1000,
+    enabled: options?.enabled !== false,
   });
 }
 
@@ -139,7 +138,22 @@ export function useAddWeightEntry() {
       qc.invalidateQueries({ queryKey: queryKeys.logs.weightEntries() });
       qc.invalidateQueries({ queryKey: queryKeys.settings.weightGoals() });
     },
-    onError: (err: any) => handleError(err, 'Failed to add weight entry'),
+    onError: (err: any) => {
+      let message = 'Failed to add weight entry';
+
+      if (err?.code === '23514' || err?.message?.includes('constraint')) {
+        message = 'You already have a weight entry for today.';
+      } else if (err?.code === '23505' || err?.message?.includes('duplicate')) {
+        message = 'You already have a weight entry for today.';
+      } else if (
+        err?.message?.includes('authentication') ||
+        err?.message?.includes('unauthorized')
+      ) {
+        message = 'Please sign in to add weight entries.';
+      }
+
+      handleError(err, message);
+    },
   });
 }
 

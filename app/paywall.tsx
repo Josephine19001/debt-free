@@ -3,7 +3,7 @@ import { View, TouchableOpacity, ActivityIndicator, Linking } from 'react-native
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
-import { Crown, Sparkles, Zap, Heart } from 'lucide-react-native';
+import { Crown, Sparkles, Zap, Heart, Dumbbell, Apple } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRevenueCat } from '@/context/revenuecat-provider';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -13,30 +13,30 @@ import { DefaultLoader } from '@/components/ui/default-loader';
 
 const features = [
   {
-    icon: Crown,
+    icon: Apple,
     title: 'Smart Nutrition',
-    description: 'AI meal scanning & tracking',
+    description: 'AI powered meal scanning & nutrition tracking',
     color: '#F59E0B',
     bgColor: 'rgba(245, 158, 11, 0.1)',
   },
   {
-    icon: Zap,
-    title: 'Cycle-Sync',
-    description: 'Workouts adapted to your cycle',
+    icon: Dumbbell,
+    title: 'Workouts For You',
+    description: 'Tailored to your cycle, goals & lifestyle',
     color: '#8B5CF6',
     bgColor: 'rgba(139, 92, 246, 0.1)',
   },
   {
     icon: Heart,
-    title: 'Cycle Tracking',
-    description: 'Track periods & predictions',
+    title: 'Cycle Insights',
+    description: 'Accurate period tracking & predictions',
     color: '#EF4444',
     bgColor: 'rgba(239, 68, 68, 0.1)',
   },
   {
     icon: Sparkles,
-    title: 'AI Assistant',
-    description: 'Personalized health insights',
+    title: 'Track How You Feel',
+    description: 'Understand your body, mind & patterns',
     color: '#10B981',
     bgColor: 'rgba(16, 185, 129, 0.1)',
   },
@@ -200,95 +200,103 @@ export default function PaywallScreen() {
             </Text>
           </Animated.View>
 
-          {/* Features List - Single Column */}
+          {/* Features List - Grid Layout */}
           <Animated.View className="px-6 mb-6" entering={FadeIn.delay(400)}>
-            {features.map((feature, index) => (
-              <Animated.View
-                key={feature.title}
-                className="flex-row items-center mb-4 p-4 bg-slate-50 rounded-xl border border-slate-200"
-                entering={SlideInUp.delay(600 + index * 100)}
-              >
-                <View
-                  className="w-10 h-10 rounded-full items-center justify-center mr-4"
-                  style={{ backgroundColor: feature.bgColor }}
+            <View className="flex-row flex-wrap gap-3">
+              {features.map((feature, index) => (
+                <Animated.View
+                  key={feature.title}
+                  className="flex-1 min-w-[45%] p-5 bg-gray-50 rounded-2xl border border-gray-100"
+                  entering={SlideInUp.delay(600 + index * 100)}
                 >
-                  <feature.icon size={20} color={feature.color} />
-                </View>
-                <View className="flex-1">
-                  <Text className="text-slate-900 font-semibold text-base mb-1">
-                    {feature.title}
-                  </Text>
+                  <View
+                    className="w-12 h-12 rounded-2xl items-center justify-center mb-4"
+                    style={{ backgroundColor: feature.bgColor }}
+                  >
+                    <feature.icon size={24} color={feature.color} />
+                  </View>
+                  <Text className="text-slate-900 font-bold text-lg mb-2">{feature.title}</Text>
                   <Text className="text-slate-600 text-sm leading-5">{feature.description}</Text>
-                </View>
-              </Animated.View>
-            ))}
+                </Animated.View>
+              ))}
+            </View>
           </Animated.View>
 
           {/* Pricing Plans */}
           <Animated.View className="px-6 flex-1 justify-end pb-8" entering={FadeIn.delay(1000)}>
-            {/* Yearly Plan */}
-            <TouchableOpacity
-              onPress={() => setSelectedPlan('yearly')}
-              className={`p-3 rounded-xl mb-3 border ${
-                selectedPlan === 'yearly'
-                  ? 'border-pink-500 bg-pink-50'
-                  : 'border-slate-200 bg-slate-50'
-              }`}
-            >
-              <View className="flex-row justify-between items-center">
-                <View className="flex-1">
-                  <View className="flex-row items-center mb-1">
-                    <Text className="text-slate-900 font-bold text-base">Yearly</Text>
-                    <View className="ml-2 px-2 py-0.5 bg-green-500 rounded-full">
-                      <Text className="text-white text-xs font-bold">Save {savings}%</Text>
-                    </View>
+            <View className="flex flex-row gap-4 mb-6">
+              {/* Monthly Plan */}
+              <TouchableOpacity
+                onPress={() => setSelectedPlan('monthly')}
+                className={`relative flex-1 p-6 rounded-3xl border-2 bg-white ${
+                  selectedPlan === 'monthly' ? 'border-pink-500' : 'border-gray-200'
+                }`}
+              >
+                {selectedPlan === 'monthly' && (
+                  <View className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-pink-500 px-4 py-1 rounded-full">
+                    <Text className="text-white text-sm font-bold">7 days free trial</Text>
                   </View>
-                  <Text className="text-slate-600 text-xs">
-                    7 days free, then ${yearlyMonthlyCost.toFixed(2)}/month
+                )}
+                {selectedPlan === 'monthly' && (
+                  <View className="absolute -top-2 -right-2 w-8 h-8 bg-pink-500 rounded-full items-center justify-center">
+                    <Text className="text-white text-lg font-bold">✓</Text>
+                  </View>
+                )}
+                <View className="items-center">
+                  <Text className="text-lg font-semibold text-gray-700 mb-2">Monthly</Text>
+                  <Text className="text-3xl font-black text-gray-900">
+                    {monthlyPackage?.product.priceString
+                      ? monthlyPackage.product.price.toLocaleString('en-US', {
+                          style: 'currency',
+                          currency: monthlyPackage.product.currencyCode || 'USD',
+                        })
+                      : monthlyPrice}{' '}
+                    <Text className="text-lg font-medium text-gray-500">/mo</Text>
                   </Text>
                 </View>
-                <Text className="text-slate-900 font-bold text-lg">{yearlyPrice}</Text>
-              </View>
-            </TouchableOpacity>
+              </TouchableOpacity>
 
-            {/* Monthly Plan */}
-            <TouchableOpacity
-              onPress={() => setSelectedPlan('monthly')}
-              className={`p-3 rounded-xl mb-4 border ${
-                selectedPlan === 'monthly'
-                  ? 'border-pink-500 bg-pink-50'
-                  : 'border-slate-200 bg-slate-50'
-              }`}
-            >
-              <View className="flex-row justify-between items-center">
-                <View className="flex-1">
-                  <Text className="text-slate-900 font-bold text-base">Monthly</Text>
-                  <Text className="text-slate-600 text-xs">3 days free, then billed monthly</Text>
+              {/* Yearly Plan */}
+              <TouchableOpacity
+                onPress={() => setSelectedPlan('yearly')}
+                className={`relative flex-1 p-6 rounded-3xl border-2 bg-white ${
+                  selectedPlan === 'yearly' ? 'border-pink-500' : 'border-gray-200'
+                }`}
+              >
+                {selectedPlan === 'yearly' && (
+                  <View className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-pink-500 px-4 py-1 rounded-full">
+                    <Text className="text-white text-sm font-bold">Save {savings}%</Text>
+                  </View>
+                )}
+                {selectedPlan === 'yearly' && (
+                  <View className="absolute -top-2 -right-2 w-8 h-8 bg-pink-500 rounded-full items-center justify-center">
+                    <Text className="text-white text-lg font-bold">✓</Text>
+                  </View>
+                )}
+                <View className="items-center">
+                  <Text className="text-lg font-semibold text-gray-700 mb-2">Yearly</Text>
+                  <Text className="text-3xl font-black text-gray-900">
+                    {yearlyPackage?.product.priceString
+                      ? (yearlyPackage.product.price / 12).toLocaleString('en-US', {
+                          style: 'currency',
+                          currency: yearlyPackage.product.currencyCode || 'USD',
+                        })
+                      : `$${yearlyMonthlyCost.toFixed(2)}`}{' '}
+                    <Text className="text-lg font-medium text-gray-500">/mo</Text>
+                  </Text>
                 </View>
-                <Text className="text-slate-900 font-bold text-lg">{monthlyPrice}</Text>
-              </View>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            </View>
 
             {/* Subscribe Button */}
             <Button
-              title={
-                isLoading
-                  ? 'Processing...'
-                  : `Start ${selectedPlan === 'yearly' ? 'Yearly' : 'Monthly'} Plan`
-              }
+              title={isLoading ? 'Processing your subscription...' : `Continue`}
               onPress={() => handlePurchase(selectedPlan)}
               variant="primary"
               size="large"
               className="bg-pink-500 text-white"
               disabled={isLoading}
             />
-
-            {isLoading && (
-              <View className="flex-row items-center justify-center mt-3">
-                <ActivityIndicator size="small" color="#FF69B4" />
-                <Text className="text-slate-600 ml-2 text-sm">Processing your subscription...</Text>
-              </View>
-            )}
 
             {/* Restore Purchases & Terms */}
             <View className="mt-3">

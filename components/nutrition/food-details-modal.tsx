@@ -25,6 +25,7 @@ import {
   RotateCcw,
 } from 'lucide-react-native';
 import { OliveOilIcon } from '@/components/icons/olive-oil-icon';
+import { MacroCard } from './macro-card';
 
 interface MealData {
   id: string;
@@ -37,7 +38,6 @@ interface MealData {
   time: string;
   image_url?: string;
   food_items?: any[];
-  // Allow for any additional properties
   [key: string]: any;
 }
 
@@ -67,12 +67,8 @@ export function FoodDetailsModal({
   const [editableCarbs, setEditableCarbs] = useState<number | null>(null);
   const [editableFat, setEditableFat] = useState<number | null>(null);
 
-  // Reset all state when meal changes to prevent stale data
   React.useEffect(() => {
     if (meal) {
-
-      // Calculate the correct quantity based on current vs original nutrition values
-      // This ensures the serving size matches the saved nutrition totals
       let calculatedQuantity = 1;
 
       if (meal.food_items && Array.isArray(meal.food_items) && meal.food_items.length > 0) {
@@ -87,7 +83,6 @@ export function FoodDetailsModal({
         }
       }
 
-
       setQuantity(calculatedQuantity);
       setOriginalQuantity(calculatedQuantity); // Store original for change detection
       setEditableCalories(null);
@@ -97,87 +92,9 @@ export function FoodDetailsModal({
     }
   }, [meal?.id]); // Only reset when meal ID changes
 
-  // Modern Macro Card Component
-  const MacroCard = ({
-    title,
-    value,
-    color,
-    bgColor,
-    borderColor,
-    iconBgColor,
-    icon: Icon,
-    isEditing,
-    onEdit,
-    onValueChange,
-  }: {
-    title: string;
-    value: number;
-    color: string;
-    bgColor: string;
-    borderColor: string;
-    iconBgColor: string;
-    icon: React.ElementType;
-    isEditing: boolean;
-    onEdit: () => void;
-    onValueChange: (value: number) => void;
-  }) => (
-    <View className="mb-3">
-      <View
-        className="rounded-2xl p-4 border shadow-sm"
-        style={{ backgroundColor: bgColor, borderColor: borderColor }}
-      >
-        <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center flex-1">
-            <View
-              className="w-10 h-10 rounded-full items-center justify-center mr-3"
-              style={{ backgroundColor: iconBgColor }}
-            >
-              {Icon === OliveOilIcon ? (
-                <OliveOilIcon size={18} color={color} />
-              ) : (
-                <Icon size={18} color={color} />
-              )}
-            </View>
-            <View className="flex-1">
-              <Text className="text-lg font-semibold text-gray-800">{title}</Text>
-              {isEditing ? (
-                <TextInput
-                  value={value.toString()}
-                  onChangeText={(text) => {
-                    const num = parseFloat(text) || 0;
-                    onValueChange(num);
-                  }}
-                  keyboardType="decimal-pad"
-                  className="text-2xl font-bold bg-gray-50 rounded-lg px-3 py-1 mt-1"
-                  style={{ color }}
-                  selectTextOnFocus
-                  autoFocus
-                  onBlur={onEdit}
-                />
-              ) : (
-                <TouchableOpacity onPress={onEdit}>
-                  <Text className="text-2xl font-bold mt-1" style={{ color }}>
-                    {value}g
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-          <TouchableOpacity
-            onPress={onEdit}
-            className="w-8 h-8 bg-gray-50 rounded-full items-center justify-center ml-3"
-          >
-            <Edit3 size={14} color={color} />
-          </TouchableOpacity>
-        </View>
-      </View>
-    </View>
-  );
-
   if (!visible || !meal) {
     return null;
   }
-
 
   // Handle both structured food items and direct meal nutrition data
   let food: any = {};
@@ -212,7 +129,6 @@ export function FoodDetailsModal({
     };
   }
 
-
   // Calculate nutrition based on quantity with safe defaults, allowing individual edits
   const nutrition = {
     calories: editableCalories ?? Math.round((baseNutrition.calories || 0) * quantity),
@@ -222,7 +138,6 @@ export function FoodDetailsModal({
     fiber: Math.round((baseNutrition.fiber || 0) * quantity * 10) / 10,
     sugar: Math.round((baseNutrition.sugar || 0) * quantity * 10) / 10,
   };
-
 
   const handleDelete = () => {
     Alert.alert(
@@ -252,7 +167,6 @@ export function FoodDetailsModal({
       editableFat !== null;
 
     if (hasChanges && onSave && meal) {
-
       // Call onSave with meal ID and nutrition updates in the expected format
       onSave(meal.id, {
         calories: nutrition.calories,
@@ -385,7 +299,7 @@ export function FoodDetailsModal({
           {/* Macros */}
           <View className="mb-8">
             <Text className="text-xl font-bold text-gray-900 mb-4">Macronutrients</Text>
-            <View className="space-y-3">
+            <View className="flex flex-col gap-4">
               <MacroCard
                 title="Protein"
                 value={nutrition.protein}

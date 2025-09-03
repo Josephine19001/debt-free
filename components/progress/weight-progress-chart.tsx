@@ -2,60 +2,35 @@ import React, { useState } from 'react';
 import { View, Pressable } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Scale, TrendingDown, TrendingUp, Minus, Plus } from 'lucide-react-native';
-import { WeightEntry, useBodyMeasurements, useAddWeightEntry, useUpdateBodyMeasurements } from '@/lib/hooks/use-weight-tracking';
+import {
+  WeightEntry,
+  useBodyMeasurements,
+} from '@/lib/hooks/use-weight-tracking';
 import { AddWeightModal } from '@/components/weight/modals/AddWeightModal';
+import { WeightChartSkeletonLoader, chartHeight } from './skeleton';
 
 interface Props {
   weightEntries: WeightEntry[];
   goalWeight?: number;
+  isLoading?: boolean;
 }
 
-export const WeightProgressChart = ({ weightEntries, goalWeight }: Props) => {
+export const WeightProgressChart = ({ weightEntries, goalWeight, isLoading }: Props) => {
   const hasData = weightEntries.length > 0;
-  const chartHeight = 300;
-  
+
   // Modal state
   const [showAddEntry, setShowAddEntry] = useState(false);
-  const [newWeight, setNewWeight] = useState('');
-  const [newNote, setNewNote] = useState('');
-  
+
   // Hooks
   const { data: bodyMeasurements } = useBodyMeasurements();
-  const addWeightEntry = useAddWeightEntry();
-  const updateBodyMeasurements = useUpdateBodyMeasurements();
-  
-  // Handle weight entry submission
-  const handleAddEntry = async () => {
-    if (newWeight) {
-      try {
-        // Add weight entry
-        await addWeightEntry.mutateAsync({
-          weight: parseFloat(newWeight),
-          units: bodyMeasurements?.units === 'metric' ? 'kg' : bodyMeasurements?.units === 'imperial' ? 'lbs' : bodyMeasurements?.units || 'kg',
-          note: newNote || undefined,
-        });
 
-        // Update current weight in body measurements
-        await updateBodyMeasurements.mutateAsync({
-          current_weight: parseFloat(newWeight),
-          units: bodyMeasurements?.units || 'kg',
-        });
-
-        setShowAddEntry(false);
-        setNewWeight('');
-        setNewNote('');
-      } catch (error) {
-        console.error('Failed to add weight entry:', error);
-      }
-    }
-  };
 
   if (!hasData) {
     return (
       <View className="bg-white rounded-3xl p-6 mx-4 mb-4">
         <View className="flex-row justify-between items-center mb-2">
           <Text className="text-2xl font-bold">Weight Progress</Text>
-          <Pressable 
+          <Pressable
             onPress={() => setShowAddEntry(true)}
             className="bg-pink-500 px-3 py-2 rounded-xl flex-row items-center gap-2"
           >
@@ -77,17 +52,12 @@ export const WeightProgressChart = ({ weightEntries, goalWeight }: Props) => {
             Start logging your weight to track your progress
           </Text>
         </View>
-        
+
         {/* Add Weight Modal */}
         <AddWeightModal
           visible={showAddEntry}
           bodyMeasurements={bodyMeasurements || null}
-          newWeight={newWeight}
-          newNote={newNote}
           onClose={() => setShowAddEntry(false)}
-          onWeightChange={setNewWeight}
-          onNoteChange={setNewNote}
-          onAddEntry={handleAddEntry}
         />
       </View>
     );
@@ -100,7 +70,7 @@ export const WeightProgressChart = ({ weightEntries, goalWeight }: Props) => {
   const units = weightEntries[0]?.units || 'kg';
 
   // Calculate chart boundaries
-  const weights = weightEntries.map(entry => entry.weight);
+  const weights = weightEntries.map((entry) => entry.weight);
   const minWeight = Math.min(...weights, goalWeight || Infinity);
   const maxWeight = Math.max(...weights, goalWeight || -Infinity);
   const padding = (maxWeight - minWeight) * 0.1 || 1; // 10% padding or minimum 1 unit
@@ -128,29 +98,37 @@ export const WeightProgressChart = ({ weightEntries, goalWeight }: Props) => {
     if (Math.abs(weightChange) < 0.1) {
       return <Minus size={16} color="#6B7280" />;
     }
-    return weightChange > 0 ? 
-      <TrendingUp size={16} color="#EF4444" /> : 
-      <TrendingDown size={16} color="#10B981" />;
+    return weightChange > 0 ? (
+      <TrendingUp size={16} color="#EF4444" />
+    ) : (
+      <TrendingDown size={16} color="#10B981" />
+    );
   };
 
   const getTrendText = () => {
     if (Math.abs(weightChange) < 0.1) {
-      return "Stable";
+      return 'Stable';
     }
     const changeText = `${Math.abs(weightChange).toFixed(1)}${units}`;
     return weightChange > 0 ? `+${changeText}` : `-${changeText}`;
   };
 
   const getTrendColor = () => {
-    if (Math.abs(weightChange) < 0.1) return "text-gray-600";
-    return weightChange > 0 ? "text-red-500" : "text-green-500";
+    if (Math.abs(weightChange) < 0.1) return 'text-gray-600';
+    return weightChange > 0 ? 'text-red-500' : 'text-green-500';
   };
+
+  // Skeleton loader component
+
+  if (isLoading) {
+    return <WeightChartSkeletonLoader />;
+  }
 
   return (
     <View className="bg-white rounded-3xl p-6 mx-4 mb-4">
       <View className="flex-row justify-between items-center mb-2">
         <Text className="text-2xl font-bold">Weight Progress</Text>
-        <Pressable 
+        <Pressable
           onPress={() => setShowAddEntry(true)}
           className="bg-pink-500 px-3 py-2 rounded-xl flex-row items-center gap-2"
         >
@@ -162,7 +140,7 @@ export const WeightProgressChart = ({ weightEntries, goalWeight }: Props) => {
         <Text className="text-4xl font-bold">{currentWeight.toFixed(1)}</Text>
         <Text className="text-gray-500">{units}</Text>
       </View>
-      
+
       {/* Trend indicator */}
       <View className="mb-6 flex flex-row items-center gap-2">
         {getTrendIcon()}
@@ -175,7 +153,7 @@ export const WeightProgressChart = ({ weightEntries, goalWeight }: Props) => {
       <View className="relative" style={{ height: chartHeight + 40 }}>
         {/* Y-axis grid lines and labels */}
         {Array.from({ length: yAxisSteps + 1 }).map((_, i) => {
-          const value = chartMax - (i * yAxisStep);
+          const value = chartMax - i * yAxisStep;
           const yPosition = (i / yAxisSteps) * chartHeight;
           return (
             <View
@@ -183,9 +161,7 @@ export const WeightProgressChart = ({ weightEntries, goalWeight }: Props) => {
               className="absolute left-0 flex-row items-center w-full"
               style={{ top: yPosition }}
             >
-              <Text className="text-xs text-gray-400 w-12 text-right mr-2">
-                {value.toFixed(1)}
-              </Text>
+              <Text className="text-xs text-gray-400 w-12 text-right mr-2">{value.toFixed(1)}</Text>
               <View className="flex-1 h-[1px] bg-gray-100" />
             </View>
           );
@@ -253,17 +229,20 @@ export const WeightProgressChart = ({ weightEntries, goalWeight }: Props) => {
           {weightEntries.length > 0 && (
             <>
               <Text className="text-xs text-gray-600">
-                {new Date(weightEntries[0].measured_at).toLocaleDateString('en-US', { 
-                  month: 'short', 
-                  day: 'numeric' 
+                {new Date(weightEntries[0].measured_at).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
                 })}
               </Text>
               {weightEntries.length > 1 && (
                 <Text className="text-xs text-gray-600">
-                  {new Date(weightEntries[weightEntries.length - 1].measured_at).toLocaleDateString('en-US', { 
-                    month: 'short', 
-                    day: 'numeric' 
-                  })}
+                  {new Date(weightEntries[weightEntries.length - 1].measured_at).toLocaleDateString(
+                    'en-US',
+                    {
+                      month: 'short',
+                      day: 'numeric',
+                    }
+                  )}
                 </Text>
               )}
             </>
@@ -280,21 +259,19 @@ export const WeightProgressChart = ({ weightEntries, goalWeight }: Props) => {
         {goalWeight && (
           <View className="flex-row items-center gap-2">
             <View className="w-3 h-0.5 bg-pink-400 border-dashed" />
-            <Text className="text-sm">Goal ({goalWeight}{units})</Text>
+            <Text className="text-sm">
+              Goal ({goalWeight}
+              {units === 'metric' ? 'kg' : 'lbs'})
+            </Text>
           </View>
         )}
       </View>
-      
+
       {/* Add Weight Modal */}
       <AddWeightModal
         visible={showAddEntry}
         bodyMeasurements={bodyMeasurements || null}
-        newWeight={newWeight}
-        newNote={newNote}
         onClose={() => setShowAddEntry(false)}
-        onWeightChange={setNewWeight}
-        onNoteChange={setNewNote}
-        onAddEntry={handleAddEntry}
       />
     </View>
   );

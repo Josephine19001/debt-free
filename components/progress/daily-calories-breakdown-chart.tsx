@@ -3,6 +3,7 @@ import { Text } from '@/components/ui/text';
 
 import { Beef, Wheat, ChartArea } from 'lucide-react-native';
 import { OliveOilIcon } from '@/components/icons/olive-oil-icon';
+import { CaloriesChartSkeletonLoader, chartHeight } from './skeleton';
 
 const colorMap: Record<string, string> = {
   protein: '#ffa2a2', // Red
@@ -27,12 +28,12 @@ interface Props {
     carbs: number;
     fat: number;
   };
+  isLoading?: boolean;
 }
 
-export const DailyBreakdownChart = ({ nutrientData, weeklyTotals }: Props) => {
+export const DailyBreakdownChart = ({ nutrientData, weeklyTotals, isLoading }: Props) => {
   const maxCalories =
     nutrientData.length > 0 ? Math.max(...nutrientData.map((d) => d.calories)) : 0;
-  const chartHeight = 300;
 
   // Y-axis labels (calorie values)
   const yAxisSteps = 5;
@@ -40,6 +41,10 @@ export const DailyBreakdownChart = ({ nutrientData, weeklyTotals }: Props) => {
   const yAxisStep = yAxisMax / yAxisSteps;
 
   const hasNoData = nutrientData.length === 0;
+
+  if (isLoading) {
+    return <CaloriesChartSkeletonLoader />;
+  }
 
   return (
     <View className="bg-white rounded-3xl p-6 mx-4 mb-4">

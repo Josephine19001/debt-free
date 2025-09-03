@@ -27,7 +27,7 @@ export function SubscriptionGuard({
         feature,
         title: subscriptionStatus.isInGracePeriod
           ? `${subscriptionStatus.daysRemainingInGrace} Days Left in Free Trial`
-          : 'Premium Feature',
+          : 'Subscribe to Unlock Full Experience',
         subtitle: subscriptionStatus.isInGracePeriod
           ? 'Subscribe now to continue accessing all features after your trial ends'
           : 'This feature requires a premium subscription',

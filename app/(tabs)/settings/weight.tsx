@@ -5,12 +5,10 @@ import { useRouter } from 'expo-router';
 import {
   useBodyMeasurements,
   useWeightHistory,
-  useAddWeightEntry,
   useUpdateBodyMeasurements,
 } from '@/lib/hooks/use-weight-tracking';
 
 // Components
-import { WeightChart } from '@/components/weight/WeightChart';
 import { WeightStatsCards } from '@/components/weight/WeightStatsCards';
 import { UnitSelector } from '@/components/weight/UnitSelector';
 import { WeightHistory } from '@/components/weight/WeightHistory';
@@ -19,21 +17,16 @@ import { UnitPickerModal } from '@/components/weight/modals/UnitPickerModal';
 import { WeightHistoryModal } from '@/components/weight/modals/WeightHistoryModal';
 
 export default function WeightTrackingScreen() {
-  const router = useRouter();
 
   // Hooks
-  const { data: bodyMeasurements, isLoading: isLoadingMeasurements } = useBodyMeasurements();
-  const { data: weightHistory, isLoading: isLoadingHistory } = useWeightHistory();
-  const addWeightEntry = useAddWeightEntry();
+  const { data: bodyMeasurements } = useBodyMeasurements();
+  const { data: weightHistory } = useWeightHistory();
   const updateBodyMeasurements = useUpdateBodyMeasurements();
 
   const [showAddEntry, setShowAddEntry] = useState(false);
   const [showAllEntries, setShowAllEntries] = useState(false);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [tempValue, setTempValue] = useState('');
-  const [newWeight, setNewWeight] = useState('');
-  const [newNote, setNewNote] = useState('');
-  const [newHeight, setNewHeight] = useState('');
   const [showUnitPicker, setShowUnitPicker] = useState(false);
 
   const calculateProgress = () => {
@@ -106,15 +99,8 @@ export default function WeightTrackingScreen() {
       if (newValue > 0) {
         try {
           if (editingField === 'current_weight') {
-            // Upmeasured_at body measurements and add weight entry
             await updateBodyMeasurements.mutateAsync({
               current_weight: newValue,
-              units: bodyMeasurements?.units || 'kg',
-            });
-
-            // Add to weight history
-            await addWeightEntry.mutateAsync({
-              weight: newValue,
               units: bodyMeasurements?.units || 'kg',
             });
           } else if (editingField === 'goal_weight') {
@@ -139,31 +125,6 @@ export default function WeightTrackingScreen() {
     setTempValue('');
   };
 
-  const handleAddEntry = async () => {
-    if (newWeight) {
-      try {
-        // Add weight entry
-        await addWeightEntry.mutateAsync({
-          weight: parseFloat(newWeight),
-          units: bodyMeasurements?.units || 'kg',
-          note: newNote || undefined,
-        });
-
-        // Upmeasured_at current weight in body measurements
-        await updateBodyMeasurements.mutateAsync({
-          current_weight: parseFloat(newWeight),
-          units: bodyMeasurements?.units || 'kg',
-        });
-
-        setShowAddEntry(false);
-        setNewWeight('');
-        setNewNote('');
-        // toast.success('Weight entry added successfully!');
-      } catch (error) {
-        // toast.error('Failed to add weight entry');
-      }
-    }
-  };
 
   return (
     <SubPageLayout title="Weight Tracking">
@@ -207,12 +168,7 @@ export default function WeightTrackingScreen() {
       <AddWeightModal
         visible={showAddEntry}
         bodyMeasurements={bodyMeasurements || null}
-        newWeight={newWeight}
-        newNote={newNote}
         onClose={() => setShowAddEntry(false)}
-        onWeightChange={setNewWeight}
-        onNoteChange={setNewNote}
-        onAddEntry={handleAddEntry}
       />
 
       <UnitPickerModal

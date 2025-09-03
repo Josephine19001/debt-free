@@ -56,28 +56,22 @@ export function useMealEntries(date: string) {
 }
 
 /**
- * Hook to get meal entries for a date range
+ * Hook to get meal entries for a date range using RPC
  */
-export function useMealEntriesRange(startDate: string, endDate: string) {
+export function useMealEntriesRange(startDate: string, endDate: string, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: [...queryKeys.logs.mealEntries, 'range', startDate, endDate],
     queryFn: async () => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error('User not authenticated');
-
-      const { data, error } = await supabase
-        .from('meal_entries')
-        .select('*')
-        .eq('user_id', user.user.id)
-        .gte('logged_date', startDate)
-        .lte('logged_date', endDate)
-        .order('logged_date', { ascending: false })
-        .order('logged_time', { ascending: false });
+      const { data, error } = await supabase.rpc('get_meal_entries_range', {
+        p_start_date: startDate,
+        p_end_date: endDate,
+      });
 
       if (error) throw error;
       return data as MealEntry[];
     },
     staleTime: 5 * 60 * 1000,
+    enabled: options?.enabled !== false,
   });
 }
 
@@ -319,7 +313,6 @@ export function useMealEntriesRealtime(onMealEntryChange?: () => void) {
             filter: `user_id=eq.${user.id}`,
           },
           (payload) => {
-
             queryClient.invalidateQueries({
               queryKey: [...queryKeys.logs.mealEntries],
             });

@@ -36,7 +36,6 @@ export default function Layout() {
 
         {/* Scanning Screens */}
         <Stack.Screen name="scan-food" options={{ headerShown: false }} />
-        <Stack.Screen name="scan-beauty" options={{ headerShown: false }} />
 
         {/* Cycle Tracking */}
         <Stack.Screen name="period-tracker" options={{ headerShown: false }} />
