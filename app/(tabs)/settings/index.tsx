@@ -15,6 +15,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ConfirmationModal, Skeleton } from '@/components/ui';
+import { DeleteAccountFeedbackModal } from '@/components/modals/delete-account-feedback-modal';
 import PageLayout from '@/components/layouts/page-layout';
 import { useAuth } from '@/context/auth-provider';
 import { toast } from 'sonner-native';
@@ -119,7 +120,7 @@ export default function SettingsScreen() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const { data: account, isLoading } = useAccount();
-  const { mutate: deleteAccount } = useDeleteAccount();
+  const { mutate: deleteAccount, isPending: isDeleting } = useDeleteAccount();
 
   const handleLogout = async () => {
     try {
@@ -130,9 +131,9 @@ export default function SettingsScreen() {
     }
   };
 
-  const handleDeleteAccount = () => {
+  const handleDeleteAccount = (reason: string, comments?: string) => {
     try {
-      deleteAccount();
+      deleteAccount({ reason, additional_comments: comments });
       setShowDeleteModal(false);
     } catch (error) {
       toast.error('Failed to delete your account. Please try again or contact support.');
@@ -333,7 +334,7 @@ export default function SettingsScreen() {
               <View className="bg-white mx-4 rounded-2xl shadow">
                 <SettingsItem
                   icon={FileText}
-                  label="Terms and Conditions"
+                  label="Terms"
                   onPress={() => Linking.openURL('https://www.lunasync.app/terms')}
                 />
                 <SettingsItem
@@ -354,13 +355,11 @@ export default function SettingsScreen() {
         </ScrollView>
       </PageLayout>
 
-      <ConfirmationModal
+      <DeleteAccountFeedbackModal
         visible={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
         onConfirm={handleDeleteAccount}
-        title="Delete account?"
-        message="Are you sure you want to permanently delete your account?"
-        destructive
+        isDeleting={isDeleting}
       />
     </>
   );

@@ -66,7 +66,7 @@ export function useUpdateAccount() {
 export function useDeleteAccount() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async () => {
+    mutationFn: async (feedback: { reason: string; additional_comments?: string }) => {
       // Get current session for authorization
       const {
         data: { session },
@@ -76,10 +76,14 @@ export function useDeleteAccount() {
         throw new Error('Not authenticated');
       }
 
-      // Call the delete account edge function first (while still authenticated)
+      // Call the delete account edge function with feedback
       const { data, error } = await supabase.functions.invoke('delete-account', {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
+        },
+        body: {
+          reason: feedback.reason,
+          additional_comments: feedback.additional_comments,
         },
       });
 
