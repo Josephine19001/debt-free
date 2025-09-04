@@ -11,6 +11,7 @@ import { useWaterProgress, useQuickAddWater } from '@/lib/hooks/use-simple-water
 import { useNutritionStreak } from '@/lib/hooks/use-nutrition-streak';
 import { useLoggedDates } from '@/lib/hooks/use-logged-dates';
 import { useMealEntriesRealtime } from '@/lib/hooks/use-meal-tracking';
+// SubscriptionGuard removed - subscription check happens in main app index
 
 import { CalendarModal } from '@/components/ui/CalendarModal';
 import { getLocalDateString } from '@/lib/utils/date-helpers';
@@ -201,3 +202,4 @@ export default function NutritionScreen() {
     </PageLayout>
   );
 }
+

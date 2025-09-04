@@ -9,6 +9,7 @@ import { ProgressLoadingState } from '@/components/progress/progress-loading-sta
 import { WeekSelectionTabs } from '@/components/progress/week-selection-tabs';
 import { ProgressPicturesSection } from '@/components/progress/progress-pictures-section';
 import { useProgressState } from '@/lib/hooks/use-progress-state';
+// SubscriptionGuard removed - subscription check happens in main app index
 
 function ProgressScreen() {
   const {

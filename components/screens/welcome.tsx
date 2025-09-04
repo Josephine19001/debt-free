@@ -1,30 +1,17 @@
 import { View, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { Text } from '../ui/text';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/context/auth-provider';
 import Animated, { FadeIn } from 'react-native-reanimated';
-import { DefaultLoader } from '@/components/ui/default-loader';
 import { Image } from 'expo-image';
 
 export function WelcomeScreen() {
-  const { user, loading } = useAuth();
-
-  useEffect(() => {
-    if (!loading && user) {
-      // Let the subscription guard handle routing based on subscription status
-      router.replace('/paywall?source=app_launch&successRoute=/(tabs)/nutrition');
-    }
-  }, [user, loading]);
+  // No automatic redirection logic - handled by main app index now
 
   const onSignIn = useCallback(() => {
     router.push('/auth?mode=signin');
   }, []);
-
-  if (loading) {
-    return <DefaultLoader />;
-  }
 
   return (
     <View className="flex-1">

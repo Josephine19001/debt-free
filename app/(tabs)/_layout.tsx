@@ -11,8 +11,7 @@ import { Plus, Apple, Activity, CalendarHeart, X, Dumbbell } from 'lucide-react-
 import { usePathname } from 'expo-router';
 import { cn } from '@/lib/utils';
 import { useEffect, useRef, useState } from 'react';
-import { AuthGuard } from '@/components/auth-guard';
-import { SubscriptionGuard } from '@/components/subscription-guard';
+// import { AuthGuard } from '@/components/auth-guard';
 import { LoggerModal } from '@/components/logger-modal';
 
 const HIDDEN_ROUTES = [
@@ -48,151 +47,141 @@ export default function TabLayout() {
   }, [shouldHideTabBar]);
 
   return (
-    <AuthGuard>
-      <SubscriptionGuard requireSubscription={true}>
-        <View className="flex-1 bg-white">
-          <Tabs
-            backBehavior="initialRoute"
-            screenOptions={{
-              headerShown: false,
-              tabBarShowLabel: true,
-              tabBarStyle: {
-                transform: [
-                  {
-                    translateY: tabBarAnimation.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [100, 0],
-                    }),
-                  },
-                ],
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                height: 84,
-                paddingBottom: 14,
-                paddingTop: 8,
-                backgroundColor: 'white',
-                borderTopWidth: 0,
-                elevation: Platform.OS === 'android' ? 10 : 0,
-                shadowColor: '#000',
-                shadowOpacity: 0.06,
-                shadowOffset: { width: 0, height: -2 },
-                shadowRadius: 12,
+    <View className="flex-1 bg-white">
+      <Tabs
+        backBehavior="initialRoute"
+        screenOptions={{
+          headerShown: false,
+          tabBarShowLabel: true,
+          tabBarStyle: {
+            transform: [
+              {
+                translateY: tabBarAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [100, 0],
+                }),
               },
-            }}
-          >
-            {/* Nutrition Tab - Macro tracking, food scanning, meal history */}
-            <Tabs.Screen
-              name="nutrition/index"
-              options={{
-                tabBarButton: (props) => (
-                  <TabButton
-                    {...props}
-                    label="Nutrition"
-                    Icon={Apple}
-                    isActive={pathname === '/nutrition'}
-                  />
-                ),
-              }}
-            />
+            ],
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 84,
+            paddingBottom: 14,
+            paddingTop: 8,
+            backgroundColor: 'white',
+            borderTopWidth: 0,
+            elevation: Platform.OS === 'android' ? 10 : 0,
+            shadowColor: '#000',
+            shadowOpacity: 0.06,
+            shadowOffset: { width: 0, height: -2 },
+            shadowRadius: 12,
+          },
+        }}
+      >
+        {/* Nutrition Tab - Macro tracking, food scanning, meal history */}
+        <Tabs.Screen
+          name="nutrition/index"
+          options={{
+            tabBarButton: (props) => (
+              <TabButton
+                {...props}
+                label="Nutrition"
+                Icon={Apple}
+                isActive={pathname === '/nutrition'}
+              />
+            ),
+          }}
+        />
 
-            {/* Cycle Tab - Period tracking, symptom logging, predictions */}
-            <Tabs.Screen
-              name="cycle/index"
-              options={{
-                tabBarButton: (props) => (
-                  <TabButton
-                    {...props}
-                    label="Cycle"
-                    Icon={CalendarHeart}
-                    isActive={pathname === '/cycle'}
-                  />
-                ),
-              }}
-            />
+        {/* Cycle Tab - Period tracking, symptom logging, predictions */}
+        <Tabs.Screen
+          name="cycle/index"
+          options={{
+            tabBarButton: (props) => (
+              <TabButton
+                {...props}
+                label="Cycle"
+                Icon={CalendarHeart}
+                isActive={pathname === '/cycle'}
+              />
+            ),
+          }}
+        />
 
-            {/* Logger Tab - Center position with special styling */}
-            <Tabs.Screen
-              name="logger/index"
-              options={{
-                tabBarButton: (props) => (
-                  <Pressable
-                    onPress={() =>
-                      showLoggerModal ? setShowLoggerModal(false) : setShowLoggerModal(true)
-                    }
-                    className="flex-1 items-center justify-center"
-                    style={{ marginTop: -20 }}
-                  >
-                    <View className="w-14 h-14 rounded-full bg-black items-center justify-center shadow-lg">
-                      {showLoggerModal ? (
-                        <X size={28} color="white" />
-                      ) : (
-                        <Plus size={28} color="white" />
-                      )}
-                    </View>
-                  </Pressable>
-                ),
-              }}
-            />
+        {/* Logger Tab - Center position with special styling */}
+        <Tabs.Screen
+          name="logger/index"
+          options={{
+            tabBarButton: (props) => (
+              <Pressable
+                onPress={() =>
+                  showLoggerModal ? setShowLoggerModal(false) : setShowLoggerModal(true)
+                }
+                className="flex-1 items-center justify-center"
+                style={{ marginTop: -20 }}
+              >
+                <View className="w-14 h-14 rounded-full bg-black items-center justify-center shadow-lg">
+                  {showLoggerModal ? (
+                    <X size={28} color="white" />
+                  ) : (
+                    <Plus size={28} color="white" />
+                  )}
+                </View>
+              </Pressable>
+            ),
+          }}
+        />
 
-            {/* Exercise Tab - Workouts, performance tracking, cycle-optimized plans */}
-            <Tabs.Screen
-              name="exercise/index"
-              options={{
-                tabBarButton: (props) => (
-                  <TabButton
-                    {...props}
-                    label="Workouts"
-                    Icon={Dumbbell}
-                    isActive={pathname === '/exercise'}
-                  />
-                ),
-              }}
-            />
+        {/* Exercise Tab - Workouts, performance tracking, cycle-optimized plans */}
+        <Tabs.Screen
+          name="exercise/index"
+          options={{
+            tabBarButton: (props) => (
+              <TabButton
+                {...props}
+                label="Workouts"
+                Icon={Dumbbell}
+                isActive={pathname === '/exercise'}
+              />
+            ),
+          }}
+        />
 
-            <Tabs.Screen
-              name="progress/index"
-              options={{
-                tabBarButton: (props) => (
-                  <TabButton
-                    {...props}
-                    label="Progress"
-                    Icon={Activity}
-                    isActive={pathname === '/progress'}
-                  />
-                ),
-              }}
-            />
-            {/* Settings Tab */}
+        <Tabs.Screen
+          name="progress/index"
+          options={{
+            tabBarButton: (props) => (
+              <TabButton
+                {...props}
+                label="Progress"
+                Icon={Activity}
+                isActive={pathname === '/progress'}
+              />
+            ),
+          }}
+        />
+        {/* Settings Tab */}
 
-            {/* Hidden screens */}
-            <Tabs.Screen name="settings/index" options={{ href: null, headerShown: false }} />
-            <Tabs.Screen
-              name="settings/personal-details"
-              options={{ href: null, headerShown: false }}
-            />
-            <Tabs.Screen
-              name="settings/reminder-settings"
-              options={{ href: null, headerShown: false }}
-            />
-            <Tabs.Screen
-              name="settings/fitness-goals"
-              options={{ href: null, headerShown: false }}
-            />
-            <Tabs.Screen
-              name="settings/nutrition-goals"
-              options={{ href: null, headerShown: false }}
-            />
-            <Tabs.Screen name="settings/weight" options={{ href: null, headerShown: false }} />
-            <Tabs.Screen name="settings/supplements" options={{ href: null, headerShown: false }} />
-          </Tabs>
+        {/* Hidden screens */}
+        <Tabs.Screen name="settings/index" options={{ href: null, headerShown: false }} />
+        <Tabs.Screen
+          name="settings/personal-details"
+          options={{ href: null, headerShown: false }}
+        />
+        <Tabs.Screen
+          name="settings/reminder-settings"
+          options={{ href: null, headerShown: false }}
+        />
+        <Tabs.Screen name="settings/fitness-goals" options={{ href: null, headerShown: false }} />
+        <Tabs.Screen name="settings/nutrition-goals" options={{ href: null, headerShown: false }} />
+        <Tabs.Screen name="settings/weight" options={{ href: null, headerShown: false }} />
+        <Tabs.Screen name="settings/supplements" options={{ href: null, headerShown: false }} />
+      </Tabs>
 
-          {/* Logger Modal */}
-          <LoggerModal visible={showLoggerModal} onClose={() => setShowLoggerModal(false)} />
-        </View>
-      </SubscriptionGuard>
-    </AuthGuard>
+      {/* Logger Modal */}
+      <LoggerModal visible={showLoggerModal} onClose={() => setShowLoggerModal(false)} />
+    </View>
   );
 }
 

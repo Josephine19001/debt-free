@@ -6,6 +6,7 @@ import { toast } from 'sonner-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Crypto from 'expo-crypto';
 import { OnboardingStorage } from '@/lib/utils/onboarding-storage';
+// Navigation logic moved to useAppInitialization hook
 
 // Note: RevenueCat functionality is now in the RevenueCatProvider context
 
@@ -61,30 +62,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Helper function to determine where to redirect after auth
-  const getPostAuthRoute = async (userId: string): Promise<string> => {
+  // Navigation after auth is now handled by useAppInitialization hook
+  // This just ensures the account record exists
+  const handlePostAuth = async (userId: string): Promise<void> => {
     try {
-      // Ensure account record exists
       await ensureAccountExists(userId);
-
-      // Check if user has completed onboarding
-      const { data: account } = await supabase
-        .from('accounts')
-        .select('onboarding_completed')
-        .eq('user_id', userId)
-        .single();
-
-      // If user hasn't completed onboarding, redirect to onboarding
-      if (!account?.onboarding_completed) {
-        return '/onboarding';
-      }
-
-      // Existing users - let subscription guard handle paywall logic
-      return '/paywall?source=auth_existing&successRoute=/(tabs)/nutrition';
     } catch (error) {
-      console.error('Error in getPostAuthRoute:', error);
-      // Fallback: let subscription guard handle the rest
-      return '/paywall?source=auth_fallback&successRoute=/(tabs)/nutrition';
+      console.error('Error in handlePostAuth:', error);
     }
   };
 
@@ -128,8 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password,
     });
     if (data.user) {
-      const route = await getPostAuthRoute(data.user.id);
-      router.replace(route as any);
+      await handlePostAuth(data.user.id);
     }
     setLoading(false);
     if (error) throw error;
@@ -203,11 +186,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
 
-        // New user signup - redirect to paywall or main app based on plan
-        const route = plan && plan !== 'free' 
-          ? '/paywall?source=onboarding&successRoute=/(tabs)/nutrition'
-          : await getPostAuthRoute(data.user.id);
-        router.replace(route as any);
+        // Navigation handled by useAppInitialization hook
+        // Just ensure account exists for new users
+        await ensureAccountExists(data.user.id);
       }
     } catch (error: any) {
       console.error('❌ Signup failed:', error);
@@ -271,8 +252,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       // Free signup - check onboarding status
-      const route = await getPostAuthRoute(data.user.id);
-      router.replace(route as any);
+      await handlePostAuth(data.user.id);
     }
     setLoading(false);
     if (error) throw error;
@@ -362,9 +342,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
 
-        // Apple sign-in routing - check onboarding status
-        const route = await getPostAuthRoute(data.user.id);
-        router.replace(route as any);
+        // Apple sign-in routing - use centralized navigation
+        await handlePostAuth(data.user.id);
       }
 
       if (error) throw error;
@@ -423,13 +402,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Clear onboarding data after successful signup
       await OnboardingStorage.clear();
 
-      // Navigate to appropriate route
-      const route =
-        plan && plan !== 'free'
-          ? '/paywall?source=onboarding&successRoute=/(tabs)/nutrition'
-          : '/(tabs)/nutrition';
-
-      router.replace(route as any);
+      // Navigation handled by useAppInitialization hook
     } catch (error: any) {
       console.error('Signup with onboarding failed:', error);
       throw error;
@@ -482,13 +455,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Clear onboarding data after successful signup
       await OnboardingStorage.clear();
 
-      // Navigate to appropriate route
-      const route =
-        plan && plan !== 'free'
-          ? '/paywall?source=onboarding&successRoute=/(tabs)/nutrition'
-          : '/(tabs)/nutrition';
-
-      router.replace(route as any);
+      // Navigation handled by useAppInitialization hook
     } catch (error: any) {
       if (error.code === 'ERR_REQUEST_CANCELED') {
         // User canceled the sign-in flow

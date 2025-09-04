@@ -2,11 +2,11 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { Platform } from 'react-native';
 import Purchases, {
   PurchasesOfferings,
-  PurchasesOffering,
   PurchasesPackage,
   CustomerInfo,
 } from 'react-native-purchases';
 import { useAuth } from './auth-provider';
+import { supabase } from '@/lib/supabase/client';
 
 const APIKeys = {
   apple: process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY,
@@ -14,17 +14,14 @@ const APIKeys = {
 
 interface SubscriptionState {
   isSubscribed: boolean;
-  subscriptionType: 'free' | 'weekly' | 'yearly';
-  isInTrial: boolean;
-  trialEndsAt: Date | null;
-  trialDuration: number | null;
-  isEligibleForTrial: boolean;
   loading: boolean;
   customerInfo: CustomerInfo | null;
   error: string | null;
-  // Core RevenueCat data
   offerings: PurchasesOfferings | null;
-  packages: PurchasesPackage[];
+  // Grace period logic
+  isInGracePeriod: boolean;
+  daysRemainingInGrace: number;
+  shouldShowPaywall: boolean;
 }
 
 interface SubscriptionContextValue extends SubscriptionState {
@@ -40,16 +37,13 @@ export function RevenueCatProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [state, setState] = useState<SubscriptionState>({
     isSubscribed: false,
-    subscriptionType: 'free',
-    isInTrial: false,
-    trialEndsAt: null,
-    trialDuration: null,
-    isEligibleForTrial: true,
     loading: false,
     customerInfo: null,
     error: null,
     offerings: null,
-    packages: [],
+    isInGracePeriod: false,
+    daysRemainingInGrace: 0,
+    shouldShowPaywall: true,
   });
 
   // Initialize RevenueCat on mount
@@ -62,163 +56,75 @@ export function RevenueCatProvider({ children }: { children: ReactNode }) {
     if (user) {
       loadSubscriptionStatus();
     } else {
-      setState({
+      setState((prev) => ({
+        ...prev,
         isSubscribed: false,
-        subscriptionType: 'free',
-        isInTrial: false,
-        trialEndsAt: null,
-        trialDuration: null,
-        isEligibleForTrial: true,
-        loading: false,
         customerInfo: null,
-        error: null,
-        offerings: null,
-        packages: [],
-      });
+        isInGracePeriod: false,
+        daysRemainingInGrace: 0,
+        shouldShowPaywall: true,
+        loading: false,
+      }));
     }
   }, [user]);
 
   const initializeRevenueCat = async () => {
     try {
-      // Debug: Log environment info
-
-      // Configure RevenueCat for the platform
       if (Platform.OS === 'ios' && APIKeys.apple) {
-        await Purchases.configure({
-          apiKey: APIKeys.apple,
-          appUserID: null, // Anonymous user initially
-          userDefaultsSuiteName: undefined,
-        });
+        await Purchases.configure({ apiKey: APIKeys.apple });
+        // if (__DEV__) {
+        //   Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
+        // }
       } else {
-        const errorMsg = !APIKeys.apple
-          ? 'RevenueCat API key not found. Please set EXPO_PUBLIC_REVENUECAT_IOS_API_KEY environment variable.'
-          : 'RevenueCat only configured for iOS platform';
-        console.warn(errorMsg);
-        setState((prev) => ({
-          ...prev,
-          error: errorMsg,
-        }));
+        const errorMsg = 'RevenueCat configuration failed';
+        setState((prev) => ({ ...prev, error: errorMsg }));
         return;
-      }
-
-      // Enable debug logs for development
-      Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
-
-      // Set attributes for better debugging
-      if (__DEV__) {
-        Purchases.setAttributes({
-          $email: 'dev@lunasync.app',
-          $displayName: 'Development User',
-        });
       }
 
       // Load offerings with retry logic
       await loadOfferingsWithRetry();
     } catch (error) {
-      console.error('Error initializing RevenueCat:', error);
       setState((prev) => ({
         ...prev,
-        error: `Failed to initialize RevenueCat: ${error?.message}`,
+        error: 'Failed to initialize RevenueCat',
       }));
     }
   };
 
-  const loadOfferingsWithRetry = async (retries = 3) => {
+  const loadOfferingsWithRetry = async (retries = 2) => {
     for (let i = 0; i < retries; i++) {
       try {
         const offerings = await Purchases.getOfferings();
-
-        // Check if we have any offerings
-        if (!offerings || !offerings.current) {
-          console.warn('No current offering found in RevenueCat');
-          if (i === retries - 1) {
-            setState((prev) => ({
-              ...prev,
-              error: 'No subscription plans configured. Please check RevenueCat dashboard.',
-            }));
-          }
+        if (!offerings?.current) {
           throw new Error('No current offering available');
         }
 
-        // Get all packages from all offerings
-        const allPackages: PurchasesPackage[] = [];
-        Object.values(offerings.all).forEach((offering: PurchasesOffering) => {
-          if (offering.availablePackages) {
-            allPackages.push(...offering.availablePackages);
-          }
-        });
-
-        setState((prev) => ({
-          ...prev,
-          offerings,
-          packages: allPackages,
-          error: null,
-        }));
-
-        return; // Success, exit retry loop
+        setState((prev) => ({ ...prev, offerings, error: null }));
+        return;
       } catch (error) {
-        console.error(`Error loading offerings (attempt ${i + 1}):`, error);
         if (i === retries - 1) {
-          // Last attempt failed
-          console.error('Failed to load offerings after all retries');
           setState((prev) => ({
             ...prev,
-            error:
-              'Unable to load subscription plans. Please check your internet connection and try again.',
+            error: 'Unable to load subscription plans.',
           }));
         } else {
-          // Wait before retry
-          await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)));
+          await new Promise((resolve) => setTimeout(resolve, 1000));
         }
       }
     }
-  };
-
-  const loadOfferings = async () => {
-    await loadOfferingsWithRetry();
   };
 
   const purchasePackage = async (pack: PurchasesPackage) => {
     try {
       const purchaseInfo = await Purchases.purchasePackage(pack);
-
-      // Update customer info after purchase
-      setState((prev) => ({
-        ...prev,
-        customerInfo: purchaseInfo.customerInfo,
-      }));
-
-      // Refresh subscription status
+      setState((prev) => ({ ...prev, customerInfo: purchaseInfo.customerInfo }));
       await loadSubscriptionStatus();
-
       return { success: true };
     } catch (error: any) {
       if (error?.userCancelled) {
-        return {
-          success: false,
-          error: 'Purchase was cancelled',
-        };
+        return { success: false, error: 'Purchase was cancelled' };
       }
-
-      // Handle specific error cases
-      if (error?.code === 'InvalidReceiptError') {
-        return {
-          success: false,
-          error: 'There was a problem with the App Store. Please try again.',
-        };
-      }
-
-      // Log the full error for debugging
-      console.error('Purchase failed with error:', {
-        code: error?.code,
-        message: error?.message,
-        underlyingError: error?.underlyingErrorMessage,
-      });
-
-      return {
-        success: false,
-        error: 'Unable to complete purchase. Please try again later.',
-      };
+      return { success: false, error: 'Purchase failed. Please try again.' };
     }
   };
 
@@ -227,52 +133,48 @@ export function RevenueCatProvider({ children }: { children: ReactNode }) {
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
       const customerInfo = await Purchases.getCustomerInfo();
-      const isSubscribed = Object.keys(customerInfo.entitlements.active).length > 0;
-      const isEligibleForTrial = Object.keys(customerInfo.entitlements.all).length === 0;
+      const hasActiveSubscription = Object.keys(customerInfo.entitlements.active).length > 0;
 
-      // Basic subscription info - you can expand this based on your needs
-      let subscriptionType: 'free' | 'weekly' | 'yearly' = 'free';
-      let isInTrial = false;
-      let trialEndsAt: Date | null = null;
-      let trialDuration: number | null = null;
+      // Grace period logic
+      const GRACE_PERIOD_DAYS = 7;
+      let isInGracePeriod = false;
+      let daysRemainingInGrace = 0;
 
-      if (isSubscribed) {
-        const entitlementId = Object.keys(customerInfo.entitlements.active)[0];
-        const entitlement = customerInfo.entitlements.active[entitlementId];
+      if (!hasActiveSubscription && user) {
+        const { data: accountData } = await supabase
+          .from('accounts')
+          .select('created_at')
+          .eq('id', user.id)
+          .single();
 
-        isInTrial = entitlement.periodType === 'trial';
-        trialEndsAt =
-          isInTrial && entitlement.expirationDate ? new Date(entitlement.expirationDate) : null;
+        if (accountData) {
+          const accountCreationDate = new Date(accountData.created_at);
+          const daysSinceCreation = Math.floor(
+            (Date.now() - accountCreationDate.getTime()) / (1000 * 60 * 60 * 24)
+          );
 
-        // Determine plan based on product ID
-        const productId = entitlement.productIdentifier;
-        if (productId.includes('yearly')) {
-          subscriptionType = 'yearly';
-          trialDuration = isInTrial ? 7 : null;
-        } else if (productId.includes('weekly')) {
-          subscriptionType = 'weekly';
-          trialDuration = isInTrial ? 3 : null;
+          isInGracePeriod = daysSinceCreation < GRACE_PERIOD_DAYS;
+          daysRemainingInGrace = Math.max(0, GRACE_PERIOD_DAYS - daysSinceCreation);
         }
       }
 
+      const shouldShowPaywall = !hasActiveSubscription && !isInGracePeriod;
+
       setState((prev) => ({
         ...prev,
-        isSubscribed,
-        subscriptionType,
-        isInTrial,
-        trialEndsAt,
-        trialDuration,
-        isEligibleForTrial,
+        isSubscribed: hasActiveSubscription,
         customerInfo,
+        isInGracePeriod,
+        daysRemainingInGrace,
+        shouldShowPaywall,
         loading: false,
         error: null,
       }));
     } catch (error: any) {
-      console.error('Failed to load subscription status:', error);
       setState((prev) => ({
         ...prev,
         loading: false,
-        error: error.message || 'Failed to load subscription status',
+        error: 'Failed to load subscription status',
       }));
     }
   };
@@ -283,27 +185,13 @@ export function RevenueCatProvider({ children }: { children: ReactNode }) {
 
   const restorePurchases = async () => {
     setState((prev) => ({ ...prev, loading: true, error: null }));
-
     try {
       const customerInfo = await Purchases.restorePurchases();
-
-      // Update state with restored info
-      setState((prev) => ({
-        ...prev,
-        customerInfo,
-      }));
-
-      // Refresh subscription status after restore
+      setState((prev) => ({ ...prev, customerInfo }));
       await loadSubscriptionStatus();
-
       return customerInfo;
     } catch (error: any) {
-      console.error('Failed to restore purchases:', error);
-      setState((prev) => ({
-        ...prev,
-        loading: false,
-        error: error.message || 'Failed to restore purchases',
-      }));
+      setState((prev) => ({ ...prev, loading: false, error: 'Failed to restore purchases' }));
       throw error;
     }
   };
@@ -325,5 +213,3 @@ export function useRevenueCat() {
   }
   return context;
 }
-
-export const useSubscription = useRevenueCat;

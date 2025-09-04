@@ -1,15 +1,13 @@
 import { useState, useEffect } from 'react';
-import { View, TouchableOpacity, ActivityIndicator, Linking } from 'react-native';
+import { View, TouchableOpacity, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
-import { Crown, Sparkles, Zap, Heart, Dumbbell, Apple } from 'lucide-react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Sparkles, Heart, Dumbbell, Apple } from 'lucide-react-native';
 import { useRevenueCat } from '@/context/revenuecat-provider';
 import { router, useLocalSearchParams } from 'expo-router';
 import { toast } from 'sonner-native';
 import { DefaultLoader } from '@/components/ui/default-loader';
-import { useSubscriptionStatus } from '@/lib/hooks/use-subscription-status';
 
 const features = [
   {
@@ -45,8 +43,16 @@ const features = [
 export default function PaywallScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('yearly');
-  const { offerings, purchasePackage, restorePurchases, error, loading } = useRevenueCat();
-  const { data: subscriptionStatus, isLoading: subscriptionLoading } = useSubscriptionStatus();
+  const { 
+    offerings, 
+    purchasePackage, 
+    restorePurchases, 
+    error, 
+    loading,
+    isSubscribed,
+    isInGracePeriod,
+    shouldShowPaywall
+  } = useRevenueCat();
   const params = useLocalSearchParams();
 
   // Get params for customization
@@ -59,15 +65,15 @@ export default function PaywallScreen() {
 
   // Auto-redirect if user is already subscribed or in grace period
   useEffect(() => {
-    if (!subscriptionLoading && subscriptionStatus) {
-      if (subscriptionStatus.isSubscribed || (subscriptionStatus.isInGracePeriod && dismissible)) {
+    if (!loading && !shouldShowPaywall) {
+      if (isSubscribed || (isInGracePeriod && dismissible)) {
         // Add a small delay to ensure subscription status is properly synced
         setTimeout(() => {
           router.replace(successRoute as any);
         }, 100);
       }
     }
-  }, [subscriptionStatus, subscriptionLoading, successRoute, dismissible]);
+  }, [loading, shouldShowPaywall, isSubscribed, isInGracePeriod, successRoute, dismissible]);
 
   const handlePurchase = async (planType: 'monthly' | 'yearly') => {
     if (!offerings?.current) {
@@ -115,6 +121,14 @@ export default function PaywallScreen() {
     }
   };
 
+  const handleRetry = () => {
+    // Go back and come back to trigger re-initialization
+    router.back();
+    setTimeout(() => {
+      router.push(`/paywall?${new URLSearchParams(params as any).toString()}`);
+    }, 100);
+  };
+
   const getDisplayTitle = () => {
     if (customTitle) return customTitle;
 
@@ -147,6 +161,35 @@ export default function PaywallScreen() {
     }
   };
 
+  const handleRestorePurchases = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Use RevenueCat provider's restore function - it handles everything properly
+      const customerInfo = await restorePurchases();
+
+      if (
+        customerInfo.entitlements.active &&
+        Object.keys(customerInfo.entitlements.active).length > 0
+      ) {
+        toast.success('Purchases restored! Redirecting...');
+        
+        // The RevenueCat provider already refreshed the subscription status
+        // The useEffect hook will handle the redirect when subscriptionStatus updates
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 1000);
+      } else {
+        toast.info('No previous purchases found.');
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error('Restore error:', error);
+      toast.error('Failed to restore purchases. Please try again.');
+      setIsLoading(false);
+    }
+  };
+
   const yearlyPackage = offerings?.current?.availablePackages.find((pkg) =>
     pkg.identifier.includes('annual')
   );
@@ -154,7 +197,6 @@ export default function PaywallScreen() {
     pkg.identifier.includes('monthly')
   );
 
-  const yearlyPrice = yearlyPackage?.product.priceString || '$39.99';
   const monthlyPrice = monthlyPackage?.product.priceString || '$6.99';
 
   // Calculate yearly savings
@@ -162,13 +204,14 @@ export default function PaywallScreen() {
   const monthlyCost = monthlyPackage?.product.price || 12.99;
   const savings = Math.round(((monthlyCost - yearlyMonthlyCost) / monthlyCost) * 100);
 
-  // Show loading state while RevenueCat initializes or checking subscription
-  if (loading || subscriptionLoading) {
+  // Show loading state - since data is preloaded during app initialization,
+  // this should be much faster than before
+  if (loading || !offerings) {
     return <DefaultLoader />;
   }
 
-  // Show error state if RevenueCat failed to load
-  if (error || (!offerings?.current && !loading)) {
+  // Show error state if RevenueCat failed to load (only after we've had a chance to load)
+  if (error || !offerings?.current) {
     return (
       <View className="flex-1 bg-white">
         <SafeAreaView style={{ flex: 1 }}>
@@ -178,15 +221,14 @@ export default function PaywallScreen() {
                 Unable to Load Subscription Plans
               </Text>
               <Text className="text-red-600 text-sm text-center leading-5">
-                {error || 'Please check your internet connection and try again.'}
+                {error
+                  ? `Error: ${error}`
+                  : 'Unable to connect to subscription service. Please check your internet connection and try again.'}
               </Text>
             </View>
             <Button
               title="Try Again"
-              onPress={() => {
-                router.back();
-                // The provider will retry when the screen is reopened
-              }}
+              onPress={handleRetry}
               variant="primary"
               size="large"
               className="bg-pink-500 text-white"
@@ -219,7 +261,7 @@ export default function PaywallScreen() {
           {/* Features List - Grid Layout */}
           <View className="px-6 mb-10">
             <View className="flex-row flex-wrap justify-between">
-              {features.map((feature, index) => (
+              {features.map((feature) => (
                 <View
                   key={feature.title}
                   className="w-[48%] p-4 bg-gray-50 rounded-2xl border border-gray-100 mb-3"
@@ -316,33 +358,7 @@ export default function PaywallScreen() {
             {/* Restore Purchases & Terms */}
             <View className="mt-3">
               <TouchableOpacity
-                onPress={async () => {
-                  try {
-                    setIsLoading(true);
-                    const customerInfo = await restorePurchases();
-
-                    if (
-                      customerInfo.entitlements.active &&
-                      Object.keys(customerInfo.entitlements.active).length > 0
-                    ) {
-                      // Add a small delay to ensure subscription status is updated
-                      setTimeout(() => {
-                        if (successRoute) {
-                          router.replace(successRoute as any);
-                        } else {
-                          router.back();
-                        }
-                      }, 500);
-                    } else {
-                      toast.info('No previous purchases found.');
-                    }
-                  } catch (error) {
-                    console.error('Restore error:', error);
-                    toast.error('Failed to restore purchases. Please try again.');
-                  } finally {
-                    setIsLoading(false);
-                  }
-                }}
+                onPress={handleRestorePurchases}
                 className="mb-2"
                 disabled={isLoading}
               >

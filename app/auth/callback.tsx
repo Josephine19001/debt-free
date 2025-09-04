@@ -3,6 +3,7 @@ import { View, ActivityIndicator, Text } from 'react-native';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner-native';
+// Navigation logic moved to useAppInitialization hook
 
 export default function AuthCallback() {
   const [isProcessing, setIsProcessing] = useState(true);
@@ -23,8 +24,8 @@ export default function AuthCallback() {
       }
 
       if (data.session?.user) {
-        // Redirect to paywall - subscription guard will handle routing based on subscription status
-        router.replace('/paywall?source=auth_callback&successRoute=/(tabs)/nutrition' as any);
+        // Navigation handled by useAppInitialization hook - just go to main page
+        router.replace('/');
       } else {
         router.replace('/auth?mode=signin');
       }
