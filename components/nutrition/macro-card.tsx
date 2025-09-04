@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, TouchableOpacity, TextInput } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Edit3 } from 'lucide-react-native';

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { Text } from '@/components/ui/text';
-import { Flame, Beef, Wheat } from 'lucide-react-native';
+import {  Beef, Wheat } from 'lucide-react-native';
 import { OliveOilIcon } from '@/components/icons/olive-oil-icon';
 import { MacroBreakdownSkeleton } from './nutrition-skeleton';
 import { getAccurateCircularProgressStyles } from '@/lib/utils/progress-circle';

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, TouchableOpacity, Modal, ScrollView } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react-native';
-import { isSameDay, isToday, getLocalDateString } from '@/lib/utils/date-helpers';
+import { isSameDay, isToday } from '@/lib/utils/date-helpers';
 
 interface CalendarModalProps {
   visible: boolean;
@@ -125,10 +125,10 @@ export function CalendarModal({
                         isSelected
                           ? selectedColor
                           : isTodayDate
-                            ? todayColor
-                            : hasLogs && isCurrentMonth
-                              ? loggedColor
-                              : ''
+                          ? todayColor
+                          : hasLogs && isCurrentMonth
+                          ? loggedColor
+                          : ''
                       }`}
                     >
                       <Text
@@ -137,10 +137,10 @@ export function CalendarModal({
                             ? isSelected
                               ? 'text-white font-bold'
                               : isTodayDate
-                                ? 'text-green-700 font-bold'
-                                : hasLogs
-                                  ? 'text-orange-700 font-medium'
-                                  : 'text-gray-900'
+                              ? 'text-green-700 font-bold'
+                              : hasLogs
+                              ? 'text-orange-700 font-medium'
+                              : 'text-gray-900'
                             : 'text-gray-300'
                         }`}
                       >

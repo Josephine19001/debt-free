@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { View, Text, Modal, SafeAreaView, Pressable, ScrollView } from 'react-native';
 import { X, Check, Clock } from 'lucide-react-native';
 
@@ -47,7 +47,9 @@ export function TimePicker({ visible, currentTime, onClose, onTimeSelect }: Time
   }, [visible, selectedHour, selectedMinute]);
 
   const handleConfirm = () => {
-    const formattedTime = `${selectedHour.toString().padStart(2, '0')}:${selectedMinute.toString().padStart(2, '0')}`;
+    const formattedTime = `${selectedHour.toString().padStart(2, '0')}:${selectedMinute
+      .toString()
+      .padStart(2, '0')}`;
     onTimeSelect(formattedTime);
     onClose();
   };

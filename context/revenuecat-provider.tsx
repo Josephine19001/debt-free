@@ -80,9 +80,9 @@ export function RevenueCatProvider({ children }: { children: ReactNode }) {
     try {
       if (Platform.OS === 'ios' && APIKeys.apple) {
         await Purchases.configure({ apiKey: APIKeys.apple });
-        // if (__DEV__) {
-        //   Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
-        // }
+        if (__DEV__) {
+          Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
+        }
       } else {
         const errorMsg = 'RevenueCat configuration failed';
         setState((prev) => ({ ...prev, error: errorMsg }));

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, TouchableOpacity, Modal, FlatList } from 'react-native';
 import { Text } from '@/components/ui/text';
-import { ChevronDown, Check } from 'lucide-react-native';
+import { Check } from 'lucide-react-native';
 
 export interface DropdownOption {
   label: string;

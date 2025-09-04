@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, TouchableOpacity, Image, Alert } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { UserRound, Camera } from 'lucide-react-native';

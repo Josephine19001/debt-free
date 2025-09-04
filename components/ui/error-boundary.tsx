@@ -1,4 +1,4 @@
-import React, { Component, ReactNode } from 'react';
+import { Component, ReactNode } from 'react';
 import { View, Text } from 'react-native';
 
 interface ErrorBoundaryState {
@@ -36,9 +36,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           <Text className="text-lg font-bold text-red-600 text-center mb-4">
             Something went wrong
           </Text>
-          <Text className="text-gray-600 text-center">
-            Please restart the app and try again.
-          </Text>
+          <Text className="text-gray-600 text-center">Please restart the app and try again.</Text>
         </View>
       );
     }

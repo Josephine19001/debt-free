@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { Settings, Edit3 } from 'lucide-react-native';
 import { type BodyMeasurements } from '@/lib/hooks/use-weight-tracking';

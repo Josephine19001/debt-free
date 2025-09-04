@@ -1,12 +1,9 @@
 import { View } from 'react-native';
-import { Text } from '@/components/ui/text';
 import { SkeletonLoader } from '@/components/progress/skeleton';
 
-interface Props {
-  CalendarButton: React.ReactNode;
-}
 
-export function ProgressLoadingState({ CalendarButton }: Props) {
+
+export function ProgressLoadingState() {
   return (
     <View className="flex-1 bg-gray-50">
       <View className="px-4 mb-6">

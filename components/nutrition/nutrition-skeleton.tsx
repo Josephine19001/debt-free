@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, Dimensions } from 'react-native';
 
 const { width } = Dimensions.get('window');

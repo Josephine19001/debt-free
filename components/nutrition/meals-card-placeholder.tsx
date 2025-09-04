@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, Image } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Upload, Brain, Cpu, Zap, X } from 'lucide-react-native';

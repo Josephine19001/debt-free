@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, ScrollView, Pressable, Modal, SafeAreaView } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';

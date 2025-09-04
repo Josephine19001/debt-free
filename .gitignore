@@ -40,6 +40,11 @@ android/build/
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
 
 # macOS
 .DS_Store

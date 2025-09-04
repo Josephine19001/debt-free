@@ -22,7 +22,7 @@
         "NSPhotoLibraryUsageDescription": "LunaSync accesses your photo library to select product images for ingredient analysis, upload meal photos for nutrition tracking, and choose profile avatar pictures.",
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "12"
+      "buildNumber": "15"
     },
     "android": {
       "userInterfaceStyle": "light",
@@ -62,10 +62,8 @@
     },
     "plugins": [
       "expo-router",
-      "expo-secure-store",
       "expo-camera",
       "expo-image-picker",
-      "expo-video",
       "expo-apple-authentication",
       [
         "expo-splash-screen",
@@ -75,8 +73,7 @@
           "resizeMode": "contain",
           "backgroundColor": "#FEF9F9"
         }
-      ],
-      "expo-web-browser"
+      ]
     ],
     "experiments": {
       "typedRoutes": true

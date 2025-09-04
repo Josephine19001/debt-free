@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { X, Check, Edit3, Trash2 } from 'lucide-react-native';
-import { toast } from 'sonner-native';
 
 interface MealData {
   id: string;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, Text, Pressable, Switch } from 'react-native';
 import { Clock, Pill, Droplets, Activity, Utensils } from 'lucide-react-native';
 import { TimePicker } from './TimePicker';
