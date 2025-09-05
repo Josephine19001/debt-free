@@ -3,6 +3,8 @@ import { Text } from '@/components/ui/text';
 
 import { Sparkles, Timer, Flame, Dumbbell, TrendingUp } from 'lucide-react-native';
 import { useGenerateWeeklyExercisePlan } from '@/lib/hooks/use-weekly-exercise-planner';
+import { WorkoutFocusSelector } from './workout-focus-selector';
+import { useState } from 'react';
 
 export function WeeklyPlanSection({
   currentWeeklyPlan,
@@ -20,6 +22,7 @@ export function WeeklyPlanSection({
   currentCyclePhase?: any;
 }) {
   const generateWeeklyPlan = useGenerateWeeklyExercisePlan();
+  const [showFocusSelector, setShowFocusSelector] = useState(false);
 
   // Check if we should show the generate button (only on day before plan ends)
   const shouldShowGenerateButton = () => {
@@ -45,6 +48,10 @@ export function WeeklyPlanSection({
   };
 
   const handleGeneratePlan = () => {
+    setShowFocusSelector(true);
+  };
+
+  const handleFocusConfirm = (data: { focusAreas: string[]; locations: string[] }) => {
     // Start new plan from the day after current plan ends (or tomorrow if no current plan)
     let startDate = new Date();
     startDate.setDate(startDate.getDate() + 1); // Default to tomorrow
@@ -56,10 +63,19 @@ export function WeeklyPlanSection({
       startDate.setDate(planEndDate.getDate() + 1);
     }
 
+    // Include focus areas and locations in the plan data
+    const enhancedPlanData = {
+      ...planGenerationData,
+      focus_areas: data.focusAreas,
+      workout_locations: data.locations,
+    };
+
+    setShowFocusSelector(false);
+
     // Start the generation process (non-blocking)
     generateWeeklyPlan.mutate(
       {
-        plan_data: planGenerationData,
+        plan_data: enhancedPlanData,
         start_date: startDate.toISOString(),
       },
       {
@@ -228,6 +244,14 @@ export function WeeklyPlanSection({
           </View>
         </TouchableOpacity>
       )}
+
+      {/* Focus Area Selector Modal */}
+      <WorkoutFocusSelector
+        visible={showFocusSelector}
+        onClose={() => setShowFocusSelector(false)}
+        onConfirm={handleFocusConfirm}
+        isGenerating={generateWeeklyPlan.isPending}
+      />
     </View>
   );
 }

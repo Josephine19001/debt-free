@@ -1,19 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, ScrollView, TouchableOpacity, Modal, TextInput, Alert } from 'react-native';
 import { Text } from '@/components/ui/text';
-import {
-  Clock,
-  Flame,
-  Heart,
-  X,
-  Calendar,
-  Target,
-  TrendingUp,
-  Dumbbell,
-  Save,
-  RotateCcw,
-  MessageSquare,
-} from 'lucide-react-native';
+import { Clock, Heart, X, Save, RotateCcw, MessageSquare } from 'lucide-react-native';
 
 interface WeeklyPlanProps {
   plan: {
@@ -211,12 +199,12 @@ export function WeeklyPlanDisplay({ plan, onClose, onSave, onRegenerate }: Weekl
       <Modal visible={showRegenerateModal} animationType="slide" transparent>
         <View className="flex-1 bg-black/50 justify-end">
           <View className="bg-white rounded-t-3xl p-6">
-            <View className="flex-row items-center justify-between mb-6">
+            {/* <View className="flex-row items-center justify-between mb-6">
               <Text className="text-xl font-bold text-gray-900">Regenerate Plan</Text>
               <TouchableOpacity onPress={() => setShowRegenerateModal(false)}>
                 <X size={24} color="#6B7280" />
               </TouchableOpacity>
-            </View>
+            </View> */}
 
             <View className="mb-6">
               <Text className="text-gray-700 mb-3">

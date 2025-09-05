@@ -16,6 +16,10 @@ import {
   CheckCircle,
   Clock,
   Flame,
+  Eye,
+  Home,
+  Building,
+  MapPin,
 } from 'lucide-react-native';
 import {
   useDeleteExerciseEntry,
@@ -85,6 +89,39 @@ const getExerciseColor = (exerciseType: string) => {
       return '#059669'; // Green
     default:
       return '#8B5CF6'; // Purple
+  }
+};
+
+// Location icon mapping
+const getLocationIcon = (location: string) => {
+  const loc = location?.toLowerCase();
+  switch (loc) {
+    case 'home':
+      return Home;
+    case 'gym':
+      return Building;
+    case 'outdoor':
+      return TreePine;
+    case 'studio':
+      return Building;
+    default:
+      return MapPin;
+  }
+};
+
+const getLocationColor = (location: string) => {
+  const loc = location?.toLowerCase();
+  switch (loc) {
+    case 'home':
+      return '#059669'; // Green
+    case 'gym':
+      return '#8B5CF6'; // Purple
+    case 'outdoor':
+      return '#059669'; // Green
+    case 'studio':
+      return '#EC4899'; // Pink
+    default:
+      return '#6B7280'; // Gray
   }
 };
 
@@ -332,25 +369,62 @@ export function WorkoutsSection({
                             </View>
                           )}
                         </View>
-                        <Text className="text-sm text-gray-500 capitalize">{exerciseType}</Text>
+                        <View className="flex-row items-center gap-2 mt-1">
+                          <Text className="text-sm text-gray-500 capitalize">{exerciseType}</Text>
+                          {exercise.location && (
+                            <>
+                              <Text className="text-gray-400">•</Text>
+                              <View className="flex-row items-center">
+                                {(() => {
+                                  const LocationIcon = getLocationIcon(exercise.location);
+                                  const locationColor = getLocationColor(exercise.location);
+                                  return <LocationIcon size={12} color={locationColor} />;
+                                })()}
+                                <Text className="text-xs text-gray-500 ml-1 capitalize">
+                                  {exercise.location}
+                                </Text>
+                              </View>
+                            </>
+                          )}
+                        </View>
                       </View>
                     </View>
 
                     <View className="flex-row items-center gap-2">
                       {isPlanned ? (
-                        <TouchableOpacity
-                          onPress={() => handleMarkDone(exercise)}
-                          className="w-8 h-8 bg-green-100 rounded-full items-center justify-center"
-                        >
-                          <CheckCircle size={16} color="#10B981" />
-                        </TouchableOpacity>
+                        <>
+                          {/* View Instructions Button for Planned Exercises */}
+                          <TouchableOpacity
+                            onPress={() => handleViewExercise(exercise)}
+                            className="w-8 h-8 bg-purple-100 rounded-full items-center justify-center"
+                          >
+                            <Eye size={16} color="#8B5CF6" />
+                          </TouchableOpacity>
+                          {/* Mark Done Button */}
+                          <TouchableOpacity
+                            onPress={() => handleMarkDone(exercise)}
+                            className="w-8 h-8 bg-green-100 rounded-full items-center justify-center"
+                          >
+                            <CheckCircle size={16} color="#10B981" />
+                          </TouchableOpacity>
+                        </>
                       ) : (
-                        <TouchableOpacity
-                          onPress={() => handleEditExercise(exercise)}
-                          className="w-8 h-8 bg-blue-100 rounded-full items-center justify-center"
-                        >
-                          <Edit3 size={16} color="#3B82F6" />
-                        </TouchableOpacity>
+                        <>
+                          {/* View Details Button for Completed Exercises */}
+                          <TouchableOpacity
+                            onPress={() => handleViewExercise(exercise)}
+                            className="w-8 h-8 bg-gray-100 rounded-full items-center justify-center"
+                          >
+                            <Eye size={16} color="#6B7280" />
+                          </TouchableOpacity>
+                          {/* Edit Button */}
+                          <TouchableOpacity
+                            onPress={() => handleEditExercise(exercise)}
+                            className="w-8 h-8 bg-blue-100 rounded-full items-center justify-center"
+                          >
+                            <Edit3 size={16} color="#3B82F6" />
+                          </TouchableOpacity>
+                        </>
                       )}
                     </View>
                   </View>
@@ -489,9 +563,9 @@ export function WorkoutsSection({
       </Modal>
 
       {/* View Exercise Details Modal */}
-      <Modal visible={showViewModal} animationType="fade" transparent>
-        <View className="flex-1 bg-black/50 justify-center items-center p-4">
-          <View className="bg-white rounded-2xl p-6 w-full max-w-sm" style={{ maxHeight: '70%' }}>
+      <Modal visible={showViewModal} animationType="slide" transparent>
+        <View className="flex-1 bg-black/50 justify-end">
+          <View className="bg-white rounded-t-3xl p-6" style={{ height: '50%' }}>
             <View className="flex-row items-center justify-between mb-6">
               <Text className="text-xl font-bold text-gray-900">Exercise Details</Text>
               <TouchableOpacity onPress={() => setShowViewModal(false)}>
@@ -514,7 +588,7 @@ export function WorkoutsSection({
                     <Text className="text-purple-700 text-sm mt-1 capitalize">
                       {viewingExercise.exercise_type || viewingExercise.category}
                     </Text>
-                    <View className="flex-row items-center mt-2">
+                    <View className="flex-row items-center mt-2 gap-2">
                       <View
                         className={`px-2 py-1 rounded-full ${
                           !viewingExercise.id ? 'bg-yellow-100' : 'bg-green-100'
@@ -528,6 +602,18 @@ export function WorkoutsSection({
                           {!viewingExercise.id ? 'Planned' : 'Completed'}
                         </Text>
                       </View>
+                      {viewingExercise.location && (
+                        <View className="flex-row items-center bg-gray-100 px-2 py-1 rounded-full">
+                          {(() => {
+                            const LocationIcon = getLocationIcon(viewingExercise.location);
+                            const locationColor = getLocationColor(viewingExercise.location);
+                            return <LocationIcon size={12} color={locationColor} />;
+                          })()}
+                          <Text className="text-xs font-medium text-gray-700 ml-1 capitalize">
+                            {viewingExercise.location}
+                          </Text>
+                        </View>
+                      )}
                     </View>
                   </View>
 

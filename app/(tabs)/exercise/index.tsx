@@ -24,11 +24,13 @@ import { useExercisePlanData } from '@/lib/hooks/use-exercise-plan-data';
 // Import new components
 import { WorkoutsSection } from '@/components/exercise/workouts-section';
 import { WeeklyPlanSection } from '@/components/exercise/weekly-plan-section';
+import { WorkoutFocusSelector } from '@/components/exercise/workout-focus-selector';
 
 export default function ExerciseScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showWeeklyPlan, setShowWeeklyPlan] = useState(false);
   const [generatedPlan, setGeneratedPlan] = useState<any>(null);
+  const [showFocusSelectorForRegenerate, setShowFocusSelectorForRegenerate] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -88,14 +90,19 @@ export default function ExerciseScreen() {
   };
 
   const handleRegeneratePlan = async (context: string) => {
+    // Show focus selector instead of directly regenerating
+    setShowFocusSelectorForRegenerate(true);
+  };
+
+  const handleRegenerateFocusConfirm = async (data: { focusAreas: string[]; locations: string[] }) => {
     try {
       const enhancedPlanData = {
         ...planGenerationData,
-        fitness_goals: {
-          ...planGenerationData.fitness_goals,
-          additional_context: context,
-        },
+        focus_areas: data.focusAreas,
+        workout_locations: data.locations,
       };
+
+      setShowFocusSelectorForRegenerate(false);
 
       const result = await generateWeeklyPlan.mutateAsync({
         plan_data: enhancedPlanData,
@@ -182,6 +189,14 @@ export default function ExerciseScreen() {
           onRegenerate={handleRegeneratePlan}
         />
       )}
+
+      {/* Focus Area Selector for Regeneration */}
+      <WorkoutFocusSelector
+        visible={showFocusSelectorForRegenerate}
+        onClose={() => setShowFocusSelectorForRegenerate(false)}
+        onConfirm={handleRegenerateFocusConfirm}
+        isGenerating={generateWeeklyPlan.isPending}
+      />
     </PageLayout>
   );
 }
