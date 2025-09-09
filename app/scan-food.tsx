@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { View, TouchableOpacity, Alert, StatusBar, StyleSheet } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -8,6 +8,7 @@ import { useCreateMealEntry } from '@/lib/hooks/use-meal-tracking';
 import { useFoodAnalysisRealtime } from '@/lib/hooks/use-food-analysis-realtime';
 import { getLocalDateTime } from '@/lib/utils/date-helpers';
 import { FoodScanGuideModal } from '@/components/food-scan-help';
+import { useRevenueCat } from '@/context/revenuecat-provider';
 
 import { Camera, Image as ImageIcon, X, HelpCircle } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
@@ -18,6 +19,7 @@ export default function ScanFoodScreen() {
   const params = useLocalSearchParams();
   const scanFood = useScanFood();
   const createMealEntry = useCreateMealEntry();
+  const { requiresSubscriptionForFeature } = useRevenueCat();
 
   // Set up realtime notifications for food analysis
   const { updateAnalysisProgress, markAnalysisComplete, markAnalysisFailed } =
@@ -44,6 +46,13 @@ export default function ScanFoodScreen() {
   });
 
   const [foodContext] = useState<string>(''); // Keep empty since we removed the input
+
+  // Check paywall access on component mount
+  useEffect(() => {
+    if (requiresSubscriptionForFeature('scan-food')) {
+      router.replace('/paywall');
+    }
+  }, [requiresSubscriptionForFeature, router]);
 
   const takePicture = async () => {
     if (!cameraRef.current) return;

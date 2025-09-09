@@ -29,6 +29,8 @@ interface SubscriptionContextValue extends SubscriptionState {
   restorePurchases: () => Promise<CustomerInfo>;
   // Core RevenueCat functionality
   purchasePackage: (pack: PurchasesPackage) => Promise<{ success: boolean; error?: string }>;
+  // Feature-specific paywall checks
+  requiresSubscriptionForFeature: (feature: 'workout-generation' | 'scan-food') => boolean;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextValue | undefined>(undefined);
@@ -43,7 +45,7 @@ export function RevenueCatProvider({ children }: { children: ReactNode }) {
     offerings: null,
     isInGracePeriod: false,
     daysRemainingInGrace: 0,
-    shouldShowPaywall: true,
+    shouldShowPaywall: false,
   });
 
   // Initialize RevenueCat on mount
@@ -70,7 +72,7 @@ export function RevenueCatProvider({ children }: { children: ReactNode }) {
         customerInfo: null,
         isInGracePeriod: false,
         daysRemainingInGrace: 0,
-        shouldShowPaywall: true,
+        shouldShowPaywall: false,
         loading: false,
       }));
     }
@@ -167,7 +169,8 @@ export function RevenueCatProvider({ children }: { children: ReactNode }) {
       }
 
       // PayWall decision: Show paywall ONLY if no active subscription AND not in grace period
-      const shouldShowPaywall = !hasActiveSubscription && !isInGracePeriod;
+      // Changed: Now we allow free access to most features, only restrict workout generation and scan food
+      const shouldShowPaywall = false; // Always allow app access
 
       setState((prev) => ({
         ...prev,
@@ -206,11 +209,22 @@ export function RevenueCatProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const requiresSubscriptionForFeature = (feature: 'workout-generation' | 'scan-food'): boolean => {
+    // If user has active subscription or is in grace period, allow all features
+    if (state.isSubscribed || state.isInGracePeriod) {
+      return false;
+    }
+    
+    // Only require subscription for workout generation and scan food
+    return feature === 'workout-generation' || feature === 'scan-food';
+  };
+
   const value: SubscriptionContextValue = {
     ...state,
     refreshSubscriptionStatus,
     restorePurchases,
     purchasePackage,
+    requiresSubscriptionForFeature,
   };
 
   return <SubscriptionContext.Provider value={value}>{children}</SubscriptionContext.Provider>;

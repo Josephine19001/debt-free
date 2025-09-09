@@ -1,4 +1,4 @@
-import { View, Image, ColorValue } from 'react-native';
+import { View, Image, ColorValue, Dimensions } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { LinearGradient } from 'expo-linear-gradient';
 import WeeklyCalendar from '@/components/nutrition/weekly-calendar';
@@ -29,6 +29,9 @@ const PageLayout = ({
   onDateSelect,
   loggedDates,
 }: Props) => {
+  const { width: screenWidth } = Dimensions.get('window');
+  const isTablet = screenWidth >= 768;
+  
   const getGradientColors = () => {
     switch (theme) {
       case 'nutrition':
@@ -66,22 +69,29 @@ const PageLayout = ({
           bottom: 0,
         }}
       />
-      <View className="flex-row items-center justify-between pb-4 pt-12 px-4">
+      <View 
+        className={`flex-row items-center justify-between pb-4 pt-12 ${isTablet ? 'px-8' : 'px-4'}`}
+        style={isTablet ? { maxWidth: 1024, marginHorizontal: 'auto', width: '100%' } : undefined}
+      >
         <View className="flex-row items-center flex-1">
           {theme !== 'settings' && (
-            <NavigationErrorBoundary size={48}>
-              <NavigableAvatar size={48} />
+            <NavigationErrorBoundary size={isTablet ? 56 : 48}>
+              <NavigableAvatar size={isTablet ? 56 : 48} />
             </NavigationErrorBoundary>
           )}
           <View className={theme !== 'settings' ? 'ml-3 flex-1' : 'flex-1'}>
-            <Text className="text-3xl font-bold text-black">{title}</Text>
-            {extraSubtitle && <Text className="text-sm text-gray-600 mt-1">{extraSubtitle}</Text>}
+            <Text className={`${isTablet ? 'text-4xl' : 'text-3xl'} font-bold text-black`}>{title}</Text>
+            {extraSubtitle && (
+              <Text className={`${isTablet ? 'text-base' : 'text-sm'} text-gray-600 mt-1`}>
+                {extraSubtitle}
+              </Text>
+            )}
           </View>
         </View>
         {image && (
           <Image
             source={require('@/assets/images/avatar.png')}
-            className="w-14 h-14 rounded-full mr-4"
+            className={`${isTablet ? 'w-16 h-16' : 'w-14 h-14'} rounded-full mr-4`}
           />
         )}
         {btn}
@@ -90,16 +100,20 @@ const PageLayout = ({
       {/* Only show WeeklyCalendar for non-settings themes */}
       {shouldShowCalendar && (
         <NavigationErrorBoundary fallback={<View />}>
-          <WeeklyCalendar
-            selectedDate={selectedDate!}
-            onDateSelect={onDateSelect!}
-            loggedDates={loggedDates || []}
-            theme={theme}
-          />
+          <View style={isTablet ? { maxWidth: 1024, marginHorizontal: 'auto', width: '100%' } : undefined}>
+            <WeeklyCalendar
+              selectedDate={selectedDate!}
+              onDateSelect={onDateSelect!}
+              loggedDates={loggedDates || []}
+              theme={theme}
+            />
+          </View>
         </NavigationErrorBoundary>
       )}
 
-      {children}
+      <View style={isTablet ? { maxWidth: 1024, marginHorizontal: 'auto', width: '100%', flex: 1 } : { flex: 1 }}>
+        {children}
+      </View>
     </View>
   );
 };

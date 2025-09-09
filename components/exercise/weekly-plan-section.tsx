@@ -5,6 +5,8 @@ import { Sparkles, Timer, Flame, Dumbbell, TrendingUp } from 'lucide-react-nativ
 import { useGenerateWeeklyExercisePlan } from '@/lib/hooks/use-weekly-exercise-planner';
 import { WorkoutFocusSelector } from './workout-focus-selector';
 import { useState } from 'react';
+import { useRevenueCat } from '@/context/revenuecat-provider';
+import { useRouter } from 'expo-router';
 
 export function WeeklyPlanSection({
   currentWeeklyPlan,
@@ -23,6 +25,8 @@ export function WeeklyPlanSection({
 }) {
   const generateWeeklyPlan = useGenerateWeeklyExercisePlan();
   const [showFocusSelector, setShowFocusSelector] = useState(false);
+  const { requiresSubscriptionForFeature } = useRevenueCat();
+  const router = useRouter();
 
   // Check if we should show the generate button (only on day before plan ends)
   const shouldShowGenerateButton = () => {
@@ -48,6 +52,12 @@ export function WeeklyPlanSection({
   };
 
   const handleGeneratePlan = () => {
+    // Check if user needs subscription for workout generation
+    if (requiresSubscriptionForFeature('workout-generation')) {
+      router.push('/paywall');
+      return;
+    }
+    
     setShowFocusSelector(true);
   };
 

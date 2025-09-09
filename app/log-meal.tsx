@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import { toast } from 'sonner-native';
 import { useCreateMealEntry } from '@/lib/hooks/use-meal-tracking';
 import { useScanFood } from '@/lib/hooks/use-food-scanner';
+import { useRevenueCat } from '@/context/revenuecat-provider';
 import { FoodItem, FoodItemWithQuantity } from '@/lib/types/nutrition-tracking';
 import { convertToFoodItem } from '@/lib/hooks/use-food-database';
 import {
@@ -31,6 +32,7 @@ export default function LogMealScreen() {
   const router = useRouter();
   const createMealEntry = useCreateMealEntry();
   const scanFood = useScanFood();
+  const { requiresSubscriptionForFeature } = useRevenueCat();
 
   // Get current meal type based on time of day
   const getCurrentMealType = () => {
@@ -169,10 +171,22 @@ export default function LogMealScreen() {
   };
 
   const handleScanFood = () => {
+    // Check if user needs subscription for scan food
+    if (requiresSubscriptionForFeature('scan-food')) {
+      router.push('/paywall');
+      return;
+    }
+    
     router.push(`/scan-food?mealType=${selectedMealType}&returnTo=/(tabs)/nutrition`);
   };
 
   const handleAIScan = () => {
+    // Check if user needs subscription for scan food
+    if (requiresSubscriptionForFeature('scan-food')) {
+      router.push('/paywall');
+      return;
+    }
+    
     router.push(`/scan-food?mealType=${selectedMealType}&returnTo=/(tabs)/nutrition`);
   };
 

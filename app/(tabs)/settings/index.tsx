@@ -1,4 +1,4 @@
-import { View, Pressable, Linking, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Pressable, Linking, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { Text } from '@/components/ui/text';
 import {
   FileText,
@@ -11,10 +11,12 @@ import {
   MessageCircle,
   Bug,
   Star,
+  Crown,
+  Sparkles,
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ConfirmationModal, Skeleton } from '@/components/ui';
+import { Skeleton } from '@/components/ui';
 import { DeleteAccountFeedbackModal } from '@/components/modals/delete-account-feedback-modal';
 import PageLayout from '@/components/layouts/page-layout';
 import { useAuth } from '@/context/auth-provider';
@@ -22,6 +24,8 @@ import { toast } from 'sonner-native';
 import { useAccount, useDeleteAccount } from '@/lib/hooks/use-accounts';
 import { AvatarUpload } from '@/components/settings/avatar-upload';
 import * as StoreReview from 'expo-store-review';
+import { useRevenueCat } from '@/context/revenuecat-provider';
+import { supabase } from '@/lib/supabase/client';
 
 function SettingsPageSkeleton() {
   return (
@@ -116,15 +120,17 @@ function SettingsPageSkeleton() {
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { signOut } = useAuth();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const { width: screenWidth } = Dimensions.get('window');
+  const isTablet = screenWidth >= 768;
 
   const { data: account, isLoading } = useAccount();
   const { mutate: deleteAccount, isPending: isDeleting } = useDeleteAccount();
+  const { isSubscribed, isInGracePeriod } = useRevenueCat();
 
   const handleLogout = async () => {
     try {
-      await signOut();
+      await supabase.auth.signOut();
       router.replace('/auth');
     } catch (error) {
       toast.error('Failed to sign out');
@@ -206,7 +212,12 @@ export default function SettingsScreen() {
         <ScrollView
           className="flex-1"
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 100 }}
+          contentContainerStyle={{
+            paddingBottom: 100,
+            maxWidth: isTablet ? 600 : '100%',
+            marginHorizontal: 'auto',
+            width: '100%',
+          }}
         >
           {isLoading ? (
             <SettingsPageSkeleton />
@@ -214,7 +225,9 @@ export default function SettingsScreen() {
             <>
               {/* User Profile Card */}
               <TouchableOpacity
-                className="bg-white mx-4 rounded-2xl shadow mb-4 p-4"
+                className={`bg-white ${isTablet ? 'mx-8' : 'mx-4'} rounded-2xl shadow mb-4 ${
+                  isTablet ? 'p-6' : 'p-4'
+                }`}
                 onPress={() => router.push('/settings/personal-details')}
               >
                 <View className="flex-row items-center">
@@ -225,6 +238,58 @@ export default function SettingsScreen() {
                   </View>
                 </View>
               </TouchableOpacity>
+
+              {/* Subscription Section */}
+              {!isSubscribed && !isInGracePeriod && (
+                <TouchableOpacity
+                  className={`bg-gradient-to-r from-purple-500 to-pink-500 ${
+                    isTablet ? 'mx-8' : 'mx-4'
+                  } rounded-2xl shadow mb-4 ${isTablet ? 'p-6' : 'p-4'}`}
+                  style={{
+                    backgroundColor: '#8B5CF6',
+                    shadowColor: '#8B5CF6',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 8,
+                    elevation: 6,
+                  }}
+                  onPress={() => router.push('/paywall')}
+                >
+                  <View className="flex-row items-center">
+                    <View className="w-12 h-12 bg-white/20 rounded-full items-center justify-center mr-4">
+                      <Crown size={24} color="white" />
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-white text-lg font-bold">Upgrade to Premium</Text>
+                      <Text className="text-white/90 text-sm">Get more out of LunaSync</Text>
+                    </View>
+                    <Sparkles size={20} color="white" />
+                  </View>
+                </TouchableOpacity>
+              )}
+
+              {/* Show subscription status for premium users */}
+              {(isSubscribed || isInGracePeriod) && (
+                <View
+                  className={`bg-green-50 border border-green-200 ${
+                    isTablet ? 'mx-8' : 'mx-4'
+                  } rounded-2xl mb-4 ${isTablet ? 'p-6' : 'p-4'}`}
+                >
+                  <View className="flex-row items-center">
+                    <View className="w-12 h-12 bg-green-100 rounded-full items-center justify-center mr-4">
+                      <Crown size={24} color="#10B981" />
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-green-800 text-lg font-bold">Premium Active</Text>
+                      <Text className="text-green-600 text-sm">
+                        {isInGracePeriod
+                          ? 'Grace period - enjoy all features'
+                          : 'All features unlocked'}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              )}
 
               {/* Personal Settings */}
               {/* <View className="bg-white mx-4 rounded-2xl shadow"> */}
@@ -268,7 +333,7 @@ export default function SettingsScreen() {
               {/* <View className="mx-4 mt-3">
                 <Text className="text-lg font-semibold text-black mb-3">Wellness</Text>
               </View> */}
-              <View className="bg-white mx-4 rounded-2xl shadow mb-4">
+              <View className={`bg-white ${isTablet ? 'mx-8' : 'mx-4'} rounded-2xl shadow mb-4`}>
                 <SettingsItem
                   icon={Target}
                   label="Fitness goals"
@@ -288,7 +353,7 @@ export default function SettingsScreen() {
               </View>
 
               {/* Support Section */}
-              <View className="bg-white mx-4 rounded-2xl shadow mb-4">
+              <View className={`bg-white ${isTablet ? 'mx-8' : 'mx-4'} rounded-2xl shadow mb-4`}>
                 <SettingsItem
                   icon={MessageCircle}
                   label="Contact"
@@ -331,7 +396,7 @@ export default function SettingsScreen() {
               {/* <View className="mx-4 mt-3 mb-8">
                 <Text className="text-lg font-semibold text-black mb-3">Legal & Account</Text>
               </View> */}
-              <View className="bg-white mx-4 rounded-2xl shadow">
+              <View className={`bg-white ${isTablet ? 'mx-8' : 'mx-4'} rounded-2xl shadow`}>
                 <SettingsItem
                   icon={FileText}
                   label="Terms"
@@ -378,13 +443,18 @@ function SettingsItem({
   onPress?: () => void;
   textClassName?: string;
 }) {
+  const { width: screenWidth } = Dimensions.get('window');
+  const isTablet = screenWidth >= 768;
+
   return (
     <Pressable
-      className={`flex-row items-center p-4 ${!isLast && 'border-b border-gray-100'}`}
+      className={`flex-row items-center ${isTablet ? 'p-6' : 'p-4'} ${
+        !isLast && 'border-b border-gray-100'
+      }`}
       onPress={onPress}
     >
-      <Icon size={20} color="black" />
-      <Text className={`text-lg ${textClassName} ml-2`}>{label}</Text>
+      <Icon size={isTablet ? 24 : 20} color="black" />
+      <Text className={`${isTablet ? 'text-xl' : 'text-lg'} ${textClassName} ml-2`}>{label}</Text>
     </Pressable>
   );
 }

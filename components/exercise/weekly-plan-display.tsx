@@ -176,13 +176,13 @@ export function WeeklyPlanDisplay({ plan, onClose, onSave, onRegenerate }: Weekl
           {/* Action Buttons */}
           <View className="p-6 pt-4 border-t border-gray-100 bg-white">
             <View className="flex-row gap-3">
-              <TouchableOpacity
+              {/* <TouchableOpacity
                 onPress={() => setShowRegenerateModal(true)}
                 className="flex-1 bg-gray-100 py-4 rounded-xl flex-row items-center justify-center"
               >
                 <RotateCcw size={16} color="#6B7280" />
                 <Text className="text-gray-700 font-semibold ml-2">Regenerate</Text>
-              </TouchableOpacity>
+              </TouchableOpacity> */}
               <TouchableOpacity
                 onPress={handleSave}
                 className="flex-1 bg-purple-500 py-4 rounded-xl flex-row items-center justify-center"
@@ -196,17 +196,17 @@ export function WeeklyPlanDisplay({ plan, onClose, onSave, onRegenerate }: Weekl
       </View>
 
       {/* Regenerate Context Modal */}
-      <Modal visible={showRegenerateModal} animationType="slide" transparent>
+      {/* <Modal visible={showRegenerateModal} animationType="slide" transparent>
         <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-white rounded-t-3xl p-6">
-            {/* <View className="flex-row items-center justify-between mb-6">
+          <View className="bg-white rounded-t-3xl p-6"> */}
+      {/* <View className="flex-row items-center justify-between mb-6">
               <Text className="text-xl font-bold text-gray-900">Regenerate Plan</Text>
               <TouchableOpacity onPress={() => setShowRegenerateModal(false)}>
                 <X size={24} color="#6B7280" />
               </TouchableOpacity>
             </View> */}
 
-            <View className="mb-6">
+      {/* <View className="mb-6">
               <Text className="text-gray-700 mb-3">
                 What would you like to focus on in your new plan?
               </Text>
@@ -229,9 +229,9 @@ export function WeeklyPlanDisplay({ plan, onClose, onSave, onRegenerate }: Weekl
                 className="bg-gray-50 rounded-xl p-4 text-gray-900 text-base"
                 textAlignVertical="top"
               />
-            </View>
+            </View> */}
 
-            <View className="flex-row gap-3">
+      {/* <View className="flex-row gap-3">
               <TouchableOpacity
                 onPress={() => setShowRegenerateModal(false)}
                 className="flex-1 bg-gray-100 py-4 rounded-xl"
@@ -248,7 +248,7 @@ export function WeeklyPlanDisplay({ plan, onClose, onSave, onRegenerate }: Weekl
             </View>
           </View>
         </View>
-      </Modal>
+      </Modal> */}
     </Modal>
   );
 }

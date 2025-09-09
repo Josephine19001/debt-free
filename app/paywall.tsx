@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { View, TouchableOpacity, Linking } from 'react-native';
+import { View, TouchableOpacity, Linking, Dimensions, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Heart, Dumbbell, Apple } from 'lucide-react-native';
+import { Sparkles, Heart, Dumbbell, Apple, ArrowLeft } from 'lucide-react-native';
 import { useRevenueCat } from '@/context/revenuecat-provider';
 import { router, useLocalSearchParams } from 'expo-router';
 import { toast } from 'sonner-native';
@@ -43,15 +43,17 @@ const features = [
 export default function PaywallScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('yearly');
-  const { 
-    offerings, 
-    purchasePackage, 
-    restorePurchases, 
-    error, 
+  const { width: screenWidth } = Dimensions.get('window');
+  const isTablet = screenWidth >= 768;
+  const {
+    offerings,
+    purchasePackage,
+    restorePurchases,
+    error,
     loading,
     isSubscribed,
     isInGracePeriod,
-    shouldShowPaywall
+    shouldShowPaywall,
   } = useRevenueCat();
   // Auto-redirect if user is already subscribed or in grace period
   useEffect(() => {
@@ -112,7 +114,7 @@ export default function PaywallScreen() {
   const handleRestorePurchases = async () => {
     try {
       setIsLoading(true);
-      
+
       // Use RevenueCat provider's restore function - it handles everything properly
       const customerInfo = await restorePurchases();
 
@@ -121,7 +123,7 @@ export default function PaywallScreen() {
         Object.keys(customerInfo.entitlements.active).length > 0
       ) {
         toast.success('Purchases restored! Redirecting...');
-        
+
         // The RevenueCat provider already refreshed the subscription status
         // The useEffect hook will handle the redirect when subscriptionStatus updates
         setTimeout(() => {
@@ -145,11 +147,11 @@ export default function PaywallScreen() {
     pkg.identifier.includes('monthly')
   );
 
-  const monthlyPrice = monthlyPackage?.product.priceString || '$6.99';
+  const monthlyPrice = monthlyPackage?.product.priceString || '$3.99';
 
   // Calculate yearly savings
-  const yearlyMonthlyCost = yearlyPackage ? yearlyPackage.product.price / 12 : 7.49;
-  const monthlyCost = monthlyPackage?.product.price || 12.99;
+  const yearlyMonthlyCost = yearlyPackage ? yearlyPackage.product.price / 12 : 2.49;
+  const monthlyCost = monthlyPackage?.product.price || 3.99;
   const savings = Math.round(((monthlyCost - yearlyMonthlyCost) / monthlyCost) * 100);
 
   // Show loading state - since data is preloaded during app initialization,
@@ -190,141 +192,244 @@ export default function PaywallScreen() {
   return (
     <View className="flex-1 bg-white" style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1 }}>
-        <View className="flex-1 pt-8">
-          {/* Title Section */}
-          <View className="px-6 py-8 mb-8">
-            <Text className="text-2xl font-bold text-slate-900 text-center mb-4">
-              Upgrade to Premium
-            </Text>
-            <Text className="text-base text-slate-600 text-center leading-6">
-              Join thousands of women taking control of their health
-            </Text>
-          </View>
-
-          {/* Features List - Grid Layout */}
-          <View className="px-6 mb-10">
-            <View className="flex-row flex-wrap justify-between">
-              {features.map((feature) => (
-                <View
-                  key={feature.title}
-                  className="w-[48%] p-4 bg-gray-50 rounded-2xl border border-gray-100 mb-3"
-                >
-                  <View
-                    className="w-12 h-12 rounded-2xl items-center justify-center mb-3"
-                    style={{ backgroundColor: feature.bgColor }}
-                  >
-                    <feature.icon size={24} color={feature.color} />
-                  </View>
-                  <Text className="text-slate-900 font-bold text-base mb-2">{feature.title}</Text>
-                  <Text className="text-slate-600 text-xs leading-4">{feature.description}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-
-          {/* Pricing Plans */}
-          <View className="px-6 flex-1 justify-end pb-8">
-            <View className="flex flex-row gap-4 mb-6">
-              {/* Monthly Plan */}
-              <TouchableOpacity
-                onPress={() => setSelectedPlan('monthly')}
-                className={`relative flex-1 p-6 rounded-3xl border-2 bg-white ${
-                  selectedPlan === 'monthly' ? 'border-pink-500' : 'border-gray-200'
-                }`}
-              >
-                {selectedPlan === 'monthly' && (
-                  <View className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-pink-500 px-4 py-1 rounded-full">
-                    <Text className="text-white text-sm font-bold">7 days free trial</Text>
-                  </View>
-                )}
-                {selectedPlan === 'monthly' && (
-                  <View className="absolute -top-2 -right-2 w-8 h-8 bg-pink-500 rounded-full items-center justify-center">
-                    <Text className="text-white text-lg font-bold">✓</Text>
-                  </View>
-                )}
-                <View className="items-center">
-                  <Text className="text-lg font-semibold text-gray-700 mb-2">Monthly</Text>
-                  <Text className="text-3xl font-black text-gray-900">
-                    {monthlyPackage?.product.priceString
-                      ? monthlyPackage.product.price.toLocaleString('en-US', {
-                          style: 'currency',
-                          currency: monthlyPackage.product.currencyCode || 'USD',
-                        })
-                      : monthlyPrice}{' '}
-                    <Text className="text-lg font-medium text-gray-500">/mo</Text>
-                  </Text>
-                </View>
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{
+            flexGrow: 1,
+            maxWidth: isTablet ? 600 : '100%',
+            marginHorizontal: 'auto',
+            width: '100%',
+          }}
+          showsVerticalScrollIndicator={false}
+        >
+          <View className="flex-1 pt-8">
+            {/* Back Button & Continue for Free */}
+            <View
+              className={`${
+                isTablet ? 'px-12' : 'px-6'
+              } mb-4 flex-row items-center justify-between`}
+            >
+              <TouchableOpacity onPress={() => router.back()} className="flex-row items-center">
+                <ArrowLeft size={20} color="#6B7280" />
+                <Text className="text-gray-600 ml-2 text-base">Back</Text>
               </TouchableOpacity>
 
-              {/* Yearly Plan */}
               <TouchableOpacity
-                onPress={() => setSelectedPlan('yearly')}
-                className={`relative flex-1 p-6 rounded-3xl border-2 bg-white ${
-                  selectedPlan === 'yearly' ? 'border-pink-500' : 'border-gray-200'
-                }`}
-              >
-                {selectedPlan === 'yearly' && (
-                  <View className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-pink-500 px-4 py-1 rounded-full">
-                    <Text className="text-white text-sm font-bold">Save {savings}%</Text>
-                  </View>
-                )}
-                {selectedPlan === 'yearly' && (
-                  <View className="absolute -top-2 -right-2 w-8 h-8 bg-pink-500 rounded-full items-center justify-center">
-                    <Text className="text-white text-lg font-bold">✓</Text>
-                  </View>
-                )}
-                <View className="items-center">
-                  <Text className="text-lg font-semibold text-gray-700 mb-2">Yearly</Text>
-                  <Text className="text-3xl font-black text-gray-900">
-                    {yearlyPackage?.product.priceString
-                      ? (yearlyPackage.product.price / 12).toLocaleString('en-US', {
-                          style: 'currency',
-                          currency: yearlyPackage.product.currencyCode || 'USD',
-                        })
-                      : `$${yearlyMonthlyCost.toFixed(2)}`}{' '}
-                    <Text className="text-lg font-medium text-gray-500">/mo</Text>
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-
-            {/* Subscribe Button */}
-            <Button
-              title={isLoading ? 'Processing your subscription...' : `Continue`}
-              onPress={() => handlePurchase(selectedPlan)}
-              variant="primary"
-              size="large"
-              className="bg-pink-500 text-white"
-              disabled={isLoading}
-            />
-
-            {/* Restore Purchases & Terms */}
-            <View className="mt-3">
-              <TouchableOpacity
-                onPress={handleRestorePurchases}
-                className="mb-2"
+                onPress={() => router.replace('/(tabs)/nutrition')}
+                className="py-2 px-3"
                 disabled={isLoading}
               >
-                <Text className="text-slate-500 text-center text-xs underline">
-                  Restore Purchases
+                <Text className="text-gray-500 font-medium text-sm underline">
+                  Continue for Free
                 </Text>
               </TouchableOpacity>
+            </View>
 
-              {/* Terms and Privacy Links */}
-              <View className="flex-row justify-center items-center">
+            {/* Title Section */}
+            <View className={`${isTablet ? 'px-12' : 'px-6'} py-8 mb-8`}>
+              <Text
+                className={`${
+                  isTablet ? 'text-4xl' : 'text-2xl'
+                } font-bold text-slate-900 text-center mb-4`}
+              >
+                Upgrade to Premium
+              </Text>
+              <Text
+                className={`${
+                  isTablet ? 'text-lg' : 'text-base'
+                } text-slate-600 text-center leading-6`}
+              >
+                Join thousands of women taking control of their health
+              </Text>
+            </View>
+
+            {/* Features List - Grid Layout */}
+            <View className={`${isTablet ? 'px-12' : 'px-6'} mb-10`}>
+              <View
+                className={`${isTablet ? 'grid grid-cols-2' : 'flex-row flex-wrap'} ${
+                  isTablet ? 'gap-6' : 'justify-between'
+                }`}
+              >
+                {features.map((feature) => (
+                  <View
+                    key={feature.title}
+                    className={`${
+                      isTablet ? 'w-full' : 'w-[48%]'
+                    } p-6 bg-gray-50 rounded-2xl border border-gray-100 mb-3`}
+                  >
+                    <View
+                      className={`${
+                        isTablet ? 'w-16 h-16' : 'w-12 h-12'
+                      } rounded-2xl items-center justify-center mb-3`}
+                      style={{ backgroundColor: feature.bgColor }}
+                    >
+                      <feature.icon size={isTablet ? 32 : 24} color={feature.color} />
+                    </View>
+                    <Text
+                      className={`text-slate-900 font-bold ${
+                        isTablet ? 'text-xl' : 'text-base'
+                      } mb-2`}
+                    >
+                      {feature.title}
+                    </Text>
+                    <Text
+                      className={`text-slate-600 ${isTablet ? 'text-base' : 'text-xs'} leading-4`}
+                    >
+                      {feature.description}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            {/* Pricing Plans */}
+            <View className={`${isTablet ? 'px-12' : 'px-6'} flex-1 justify-end pb-8`}>
+              <View
+                className={`flex ${isTablet ? 'flex-row max-w-md mx-auto' : 'flex-row'} gap-4 mb-6`}
+              >
+                {/* Monthly Plan */}
                 <TouchableOpacity
-                  onPress={() => Linking.openURL('https://lunasync.app/terms')}
-                  className="mr-4"
+                  onPress={() => setSelectedPlan('monthly')}
+                  className={`relative flex-1 ${
+                    isTablet ? 'p-8' : 'p-6'
+                  } rounded-3xl border-2 bg-white ${
+                    selectedPlan === 'monthly' ? 'border-pink-500' : 'border-gray-200'
+                  }`}
                 >
-                  <Text className="text-slate-500 text-xs underline">Terms</Text>
+                  {selectedPlan === 'monthly' && (
+                    <View className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-pink-500 px-4 py-1 rounded-full">
+                      <Text className="text-white text-sm font-bold">7 days free trial</Text>
+                    </View>
+                  )}
+                  {selectedPlan === 'monthly' && (
+                    <View className="absolute -top-2 -right-2 w-8 h-8 bg-pink-500 rounded-full items-center justify-center">
+                      <Text className="text-white text-lg font-bold">✓</Text>
+                    </View>
+                  )}
+                  <View className="items-center">
+                    <Text
+                      className={`${
+                        isTablet ? 'text-xl' : 'text-lg'
+                      } font-semibold text-gray-700 mb-2`}
+                    >
+                      Monthly
+                    </Text>
+                    <Text
+                      className={`${isTablet ? 'text-4xl' : 'text-3xl'} font-black text-gray-900`}
+                    >
+                      {monthlyPackage?.product.priceString
+                        ? monthlyPackage.product.price.toLocaleString('en-US', {
+                            style: 'currency',
+                            currency: monthlyPackage.product.currencyCode || 'USD',
+                          })
+                        : monthlyPrice}{' '}
+                      <Text
+                        className={`${isTablet ? 'text-xl' : 'text-lg'} font-medium text-gray-500`}
+                      >
+                        /mo
+                      </Text>
+                    </Text>
+                  </View>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => Linking.openURL('https://lunasync.app/privacy')}>
-                  <Text className="text-slate-500 text-xs underline">Privacy</Text>
+
+                {/* Yearly Plan */}
+                <TouchableOpacity
+                  onPress={() => setSelectedPlan('yearly')}
+                  className={`relative flex-1 ${
+                    isTablet ? 'p-8' : 'p-6'
+                  } rounded-3xl border-2 bg-white ${
+                    selectedPlan === 'yearly' ? 'border-pink-500' : 'border-gray-200'
+                  }`}
+                >
+                  {selectedPlan === 'yearly' && (
+                    <View className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-pink-500 px-4 py-1 rounded-full">
+                      <Text className="text-white text-sm font-bold">Save {savings}%</Text>
+                    </View>
+                  )}
+                  {selectedPlan === 'yearly' && (
+                    <View className="absolute -top-2 -right-2 w-8 h-8 bg-pink-500 rounded-full items-center justify-center">
+                      <Text className="text-white text-lg font-bold">✓</Text>
+                    </View>
+                  )}
+                  <View className="items-center">
+                    <Text
+                      className={`${
+                        isTablet ? 'text-xl' : 'text-lg'
+                      } font-semibold text-gray-700 mb-2`}
+                    >
+                      Yearly
+                    </Text>
+                    <Text
+                      className={`${isTablet ? 'text-4xl' : 'text-3xl'} font-black text-gray-900`}
+                    >
+                      {yearlyPackage?.product.priceString
+                        ? (yearlyPackage.product.price / 12).toLocaleString('en-US', {
+                            style: 'currency',
+                            currency: yearlyPackage.product.currencyCode || 'USD',
+                          })
+                        : `$${yearlyMonthlyCost.toFixed(2)}`}{' '}
+                      <Text
+                        className={`${isTablet ? 'text-xl' : 'text-lg'} font-medium text-gray-500`}
+                      >
+                        /mo
+                      </Text>
+                    </Text>
+                  </View>
                 </TouchableOpacity>
+              </View>
+
+              {/* Subscribe Button */}
+              <View className={isTablet ? 'max-w-md mx-auto w-full' : ''}>
+                <Button
+                  title={isLoading ? 'Processing your subscription...' : `Start Premium`}
+                  onPress={() => handlePurchase(selectedPlan)}
+                  variant="primary"
+                  size="large"
+                  className="bg-pink-500 text-white"
+                  disabled={isLoading}
+                />
+              </View>
+
+              {/* Restore Purchases & Terms */}
+              <View className="mt-3">
+                <TouchableOpacity
+                  onPress={handleRestorePurchases}
+                  className="mb-2"
+                  disabled={isLoading}
+                >
+                  <Text
+                    className={`text-slate-500 text-center ${
+                      isTablet ? 'text-sm' : 'text-xs'
+                    } underline`}
+                  >
+                    Restore Purchases
+                  </Text>
+                </TouchableOpacity>
+
+                {/* Terms and Privacy Links */}
+                <View className="flex-row justify-center items-center">
+                  <TouchableOpacity
+                    onPress={() => Linking.openURL('https://lunasync.app/terms')}
+                    className="mr-4"
+                  >
+                    <Text
+                      className={`text-slate-500 ${isTablet ? 'text-sm' : 'text-xs'} underline`}
+                    >
+                      Terms
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => Linking.openURL('https://lunasync.app/privacy')}>
+                    <Text
+                      className={`text-slate-500 ${isTablet ? 'text-sm' : 'text-xs'} underline`}
+                    >
+                      Privacy
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           </View>
-        </View>
+        </ScrollView>
       </SafeAreaView>
     </View>
   );
