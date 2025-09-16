@@ -7,7 +7,7 @@ export const EmptyMealsState = ({ onAddMealPress }: { onAddMealPress?: () => voi
   const themed = useThemedStyles();
   
   return (
-    <View className={themed("bg-white rounded-2xl p-8 items-center shadow-sm border border-gray-50", "bg-gray-800 rounded-2xl p-8 items-center shadow-sm border border-gray-700")}>
+    <View className={themed("bg-white rounded-2xl p-8 items-center border border-gray-100", "bg-gray-900 rounded-2xl p-8 items-center border border-green-700")}>
       <View className={themed("w-16 h-16 bg-gray-100 rounded-full items-center justify-center mb-4", "w-16 h-16 bg-gray-700 rounded-full items-center justify-center mb-4")}>
         <Utensils size={24} color="#9CA3AF" />
       </View>

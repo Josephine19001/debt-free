@@ -1,37 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, TouchableOpacity } from 'react-native';
+import { Text } from '@/components/ui/text';
 import { router, useLocalSearchParams } from 'expo-router';
 import SubPageLayout from '@/components/layouts/sub-page';
 import { ElegantPeriodCalendar } from '@/components/cycle/ElegantPeriodCalendar';
-import { PeriodEditingModal } from '@/components/cycle/PeriodEditingModal';
-import { Edit3 } from 'lucide-react-native';
 import { useTheme } from '@/context/theme-provider';
 import { getLocalDateString } from '@/lib/utils/date-helpers';
 import {
+  usePeriodDates,
+  useLogPeriodDays,
   useCurrentCycleInfo,
-  usePeriodCycles,
-  useStartPeriod,
-  useUpdateCycleDates,
-  useDeletePeriodCycle,
-  type PeriodCycle,
 } from '@/lib/hooks/use-cycle-flo-style';
 
 export default function LogPeriodScreen() {
   const { date } = useLocalSearchParams<{ date?: string }>();
   const initialDate = date ? new Date(date) : new Date();
   const [selectedDate, setSelectedDate] = useState(initialDate);
-  const [showEditModal, setShowEditModal] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [originalPeriodDates, setOriginalPeriodDates] = useState<string[]>([]);
+  const [currentPeriodDates, setCurrentPeriodDates] = useState<string[]>([]);
   const { isDark } = useTheme();
 
-  const {
-    data: currentCycleInfo,
-  } = useCurrentCycleInfo(getLocalDateString(selectedDate));
-
-  const { data: periodCycles = [] } = usePeriodCycles(10);
+  // Use the new simplified period dates hook
+  const { data: periodDates = [], isLoading } = usePeriodDates();
+  const logPeriodDays = useLogPeriodDays();
   
-  const startPeriod = useStartPeriod();
-  const updateCycleDates = useUpdateCycleDates();
-  const deletePeriodCycle = useDeletePeriodCycle();
+  // Get current cycle info to show predicted periods
+  const { data: currentCycleInfo } = useCurrentCycleInfo();
+
+  // Load existing period data when component mounts
+  useEffect(() => {
+    if (!isLoading && periodDates) {
+      console.log('=== LOADING PERIOD DATA (NEW) ===');
+      console.log('Period dates:', periodDates);
+
+      setOriginalPeriodDates(periodDates);
+      setCurrentPeriodDates(periodDates);
+      setHasChanges(false);
+    }
+  }, [periodDates, isLoading]);
 
   const handleDateSelect = React.useCallback((date: Date) => {
     if (!date || isNaN(date.getTime())) {
@@ -51,139 +58,119 @@ export default function LogPeriodScreen() {
     }
   }, []);
 
-  const hasOngoingPeriod = React.useCallback(() => {
-    return periodCycles.some((cycle: PeriodCycle) => cycle.end_date === null);
-  }, [periodCycles]);
+  // Get predicted next period dates for calendar using same logic as CyclePhase
+  const predictedDates = React.useMemo(() => {
+    const dates: string[] = [];
 
-  // Get all period dates for calendar display (actual + predicted)
-  const getAllPeriodDatesForCalendar = () => {
-    const allDates: string[] = [];
+    console.log('[DEBUG] Getting predicted dates for calendar...');
+    console.log('[DEBUG] currentCycleInfo:', JSON.stringify(currentCycleInfo, null, 2));
 
     try {
-      // Add actual period dates from completed cycles
-      periodCycles.forEach((cycle: PeriodCycle) => {
-        try {
-          const startDate = new Date(cycle.start_date);
-          if (isNaN(startDate.getTime())) {
-            console.warn('Invalid start date in cycle:', cycle.start_date);
-            return;
-          }
+      if (!currentCycleInfo?.next_period_prediction) {
+        console.log('[DEBUG] No next_period_prediction found');
+        return dates;
+      }
 
-          let endDate: Date;
+      const nextPeriodPrediction = currentCycleInfo.next_period_prediction;
+      console.log('[DEBUG] Next period prediction:', nextPeriodPrediction);
+      
+      const nextPeriodDate = new Date(nextPeriodPrediction.start_date);
+      const nextPeriodEndDate = new Date(nextPeriodPrediction.end_date);
 
-          if (cycle.end_date) {
-            // Completed cycle
-            endDate = new Date(cycle.end_date);
-          } else if (cycle.predicted_end_date) {
-            // Ongoing cycle with predicted end
-            endDate = new Date(cycle.predicted_end_date);
+      console.log('[DEBUG] Parsed dates - start:', nextPeriodDate, 'end:', nextPeriodEndDate);
+
+      // Reset time to avoid timezone issues
+      nextPeriodDate.setHours(0, 0, 0, 0);
+      nextPeriodEndDate.setHours(0, 0, 0, 0);
+
+      if (!isNaN(nextPeriodDate.getTime()) && !isNaN(nextPeriodEndDate.getTime())) {
+        const currentDate = new Date(nextPeriodDate);
+        while (currentDate <= nextPeriodEndDate) {
+          const dateStr = getLocalDateString(currentDate);
+          console.log('[DEBUG] Generated predicted date:', dateStr);
+          
+          // Don't show predicted dates that are already logged as actual periods
+          if (!currentPeriodDates.includes(dateStr)) {
+            dates.push(dateStr);
+            console.log('[DEBUG] Added predicted date:', dateStr);
           } else {
-            // Ongoing cycle without prediction, use today
-            endDate = new Date();
+            console.log('[DEBUG] Skipped predicted date (already logged):', dateStr);
           }
-
-          if (isNaN(endDate.getTime())) {
-            console.warn('Invalid end date in cycle:', cycle);
-            return;
-          }
-
-          const currentDate = new Date(startDate);
-          while (currentDate <= endDate && !isNaN(currentDate.getTime())) {
-            allDates.push(getLocalDateString(currentDate));
-            currentDate.setDate(currentDate.getDate() + 1);
-
-            // Safety check to prevent infinite loop
-            if (allDates.length > 1000) {
-              console.warn('Too many dates generated, breaking loop');
-              break;
-            }
-          }
-        } catch (error) {
-          console.error('Error processing cycle:', cycle, error);
+          currentDate.setDate(currentDate.getDate() + 1);
         }
-      });
+      } else {
+        console.log('[DEBUG] Invalid dates - start valid:', !isNaN(nextPeriodDate.getTime()), 'end valid:', !isNaN(nextPeriodEndDate.getTime()));
+      }
     } catch (error) {
-      console.error('Error generating calendar dates:', error);
+      console.error('[DEBUG] Error generating predicted calendar dates:', error);
     }
 
-    return allDates;
-  };
+    console.log('[DEBUG] Final predicted dates:', dates);
+    return dates;
+  }, [currentCycleInfo, currentPeriodDates]);
 
-  // Get predicted next period dates for calendar
-  const getPredictedPeriodDates = () => {
-    if (!currentCycleInfo?.next_period_prediction) return [];
+  const handleDateToggle = (date: Date, shouldBePeriodDate: boolean) => {
+    const dateString = getLocalDateString(date);
+    console.log(
+      `Toggling date ${dateString} to ${shouldBePeriodDate ? 'period' : 'non-period'} date`
+    );
 
-    const prediction = currentCycleInfo.next_period_prediction;
-    return [prediction.start_date];
-  };
-
-  const handleStartPeriod = (date: Date) => {
-    const startDateString = getLocalDateString(date);
-
-    // If there's an ongoing period, end it first, then start new one
-    if (hasOngoingPeriod()) {
-      const ongoingCycle = periodCycles.find((cycle: PeriodCycle) => cycle.end_date === null);
-      if (ongoingCycle) {
-        // Delete the ongoing period first
-        deletePeriodCycle.mutate(ongoingCycle.id, {
-          onSuccess: () => {
-            // Then start the new period
-            startPeriod.mutate({
-              start_date: startDateString,
-              flow_intensity: 'moderate',
-              notes: 'Period started',
-            }, {
-              onSuccess: () => {
-                router.push('/(tabs)/cycle');
-              }
-            });
-          },
-        });
-        return;
+    setCurrentPeriodDates((prev) => {
+      let newDates;
+      if (shouldBePeriodDate) {
+        // Add date to period dates
+        newDates = [...prev, dateString].sort();
+      } else {
+        // Remove date from period dates
+        newDates = prev.filter((d) => d !== dateString);
       }
-    }
 
-    // Normal case: no ongoing period
-    startPeriod.mutate({
-      start_date: startDateString,
-      flow_intensity: 'moderate',
-      notes: 'Period started',
-    }, {
-      onSuccess: () => {
-        router.push('/(tabs)/cycle');
-      }
+      // Check if there are changes from original
+      const hasActualChanges =
+        newDates.length !== originalPeriodDates.length ||
+        !newDates.every((date) => originalPeriodDates.includes(date));
+
+      setHasChanges(hasActualChanges);
+      return newDates;
     });
   };
 
-  const handleEndPeriod = (date: Date) => {
-    const endDateString = getLocalDateString(date);
-    
-    // Find the current ongoing cycle
-    const ongoingCycle = periodCycles.find((cycle: PeriodCycle) => cycle.end_date === null);
-    
-    if (!ongoingCycle) {
-      console.error('No ongoing cycle found to end');
+  const handleSaveChanges = async () => {
+    if (!hasChanges) {
+      console.log('No changes detected, skipping save');
       return;
     }
-    
-    // Use update-cycle-dates which should work once backend removes period_length calculation
-    updateCycleDates.mutate({
-      cycle_id: ongoingCycle.id,
-      end_date: endDateString,
-    }, {
-      onSuccess: () => {
-        router.push('/(tabs)/cycle');
-      },
-      onError: (error) => {
-        console.error('Failed to update cycle end date:', error);
-      }
-    });
-  };
 
-  const handleEditPeriodDates = (newPeriodDates: string[]) => {
-    // TODO: Implement period dates editing logic
-    // This would typically involve updating the backend with the new period dates
-    console.log('New period dates:', newPeriodDates);
+    console.log('=== SAVING PERIOD CHANGES (SIMPLIFIED) ===');
+    console.log('Current period dates:', currentPeriodDates);
+    console.log('Original period dates:', originalPeriodDates);
+
+    try {
+      // Calculate what actually changed
+      const datesToAdd = currentPeriodDates.filter(date => !originalPeriodDates.includes(date));
+      const datesToRemove = originalPeriodDates.filter(date => !currentPeriodDates.includes(date));
+      
+      console.log('Dates to add:', datesToAdd);
+      console.log('Dates to remove:', datesToRemove);
+      
+      // Use the simplified endpoint that only needs the changes
+      const result = await logPeriodDays.mutateAsync({
+        dates_to_add: datesToAdd,
+        dates_to_remove: datesToRemove,
+      });
+
+      console.log('Successfully saved period changes with new simplified API');
+      console.log('Save result:', result);
+
+      // Add a small delay before navigation to allow cache invalidation
+      setTimeout(() => {
+        setHasChanges(false);
+        router.push('/(tabs)/cycle');
+      }, 500);
+    } catch (error) {
+      console.error('Failed to save period changes:', error);
+      // Don't navigate back on error, let user try again
+    }
   };
 
   return (
@@ -192,34 +179,41 @@ export default function LogPeriodScreen() {
       onBack={() => router.back()}
       rightElement={
         <TouchableOpacity
-          onPress={() => setShowEditModal(true)}
-          className={`w-10 h-10 items-center justify-center rounded-full ${
-            isDark ? 'bg-gray-700 border border-gray-600' : 'bg-pink-50 border border-pink-200'
+          onPress={handleSaveChanges}
+          disabled={!hasChanges}
+          className={`px-4 py-2 rounded-full ${
+            hasChanges
+              ? isDark
+                ? 'bg-pink-600'
+                : 'bg-pink-500'
+              : isDark
+              ? 'bg-gray-700'
+              : 'bg-gray-300'
           }`}
         >
-          <Edit3 size={18} color={isDark ? '#ffffff' : '#EC4899'} />
+          <Text
+            className={`font-medium ${
+              hasChanges ? 'text-white' : isDark ? 'text-gray-400' : 'text-gray-500'
+            }`}
+          >
+            Log
+          </Text>
         </TouchableOpacity>
       }
     >
       <View className="flex-1">
-        {/* New Elegant Calendar */}
         <ElegantPeriodCalendar
           selectedDate={selectedDate}
           onDateSelect={handleDateSelect}
-          periodDates={getAllPeriodDatesForCalendar()}
-          predictedDates={getPredictedPeriodDates()}
+          periodDates={currentPeriodDates}
+          predictedDates={predictedDates}
+          editMode={true}
+          onDateToggle={handleDateToggle}
+          maxDate={currentCycleInfo?.next_period_prediction ? 
+            new Date(new Date(currentCycleInfo.next_period_prediction.end_date).getTime() + 7 * 24 * 60 * 60 * 1000) : // Add 7 days buffer
+            new Date()}
         />
-
       </View>
-
-      {/* Period Editing Modal */}
-      <PeriodEditingModal
-        visible={showEditModal}
-        onClose={() => setShowEditModal(false)}
-        initialPeriodDates={getAllPeriodDatesForCalendar()}
-        onSave={handleEditPeriodDates}
-        title="Edit Period Dates"
-      />
     </SubPageLayout>
   );
 }

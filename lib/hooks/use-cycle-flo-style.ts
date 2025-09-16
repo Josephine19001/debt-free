@@ -55,6 +55,7 @@ export const floStyleQueryKeys = {
   currentInfo: (date?: string) => [...floStyleQueryKeys.all, 'current-info', date] as const,
   cycles: () => [...floStyleQueryKeys.all, 'cycles'] as const,
   settings: () => [...floStyleQueryKeys.all, 'settings'] as const,
+  periodDates: () => [...floStyleQueryKeys.all, 'period-dates'] as const,
 };
 
 // Edge function helper
@@ -68,7 +69,7 @@ async function callFloStyleCycleFunction(endpoint: string, options?: RequestInit
   }
 
   const response = await fetch(
-    `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/cycle-manager/${endpoint}`,
+    `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/cycle-manager-2/${endpoint}`,
     {
       headers: {
         Authorization: `Bearer ${session.access_token}`,
@@ -89,12 +90,16 @@ async function callFloStyleCycleFunction(endpoint: string, options?: RequestInit
 // MAIN HOOK: Get current cycle info with Flo-style predictions
 export function useCurrentCycleInfo(selectedDate?: string) {
   return useQuery({
-    queryKey: floStyleQueryKeys.currentInfo(selectedDate),
-    queryFn: () => {
+    queryKey: [...floStyleQueryKeys.currentInfo(selectedDate), 'v2'], // Added v2 to bust cache
+    queryFn: async () => {
+      console.log('[DEBUG] 🚀 Calling current-info endpoint with selectedDate:', selectedDate);
       const params = selectedDate ? `?date=${selectedDate}` : '';
-      return callFloStyleCycleFunction(`current-info${params}`);
+      const result = await callFloStyleCycleFunction(`current-info${params}`);
+      console.log('[DEBUG] 📡 current-info response:', JSON.stringify(result, null, 2));
+      return result;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 0, // Always fresh for debugging
+    cacheTime: 0, // Don't cache for debugging
   });
 }
 
@@ -113,6 +118,16 @@ export function useCycleSettings() {
     queryKey: floStyleQueryKeys.settings(),
     queryFn: () => callFloStyleCycleFunction('settings'),
     staleTime: 10 * 60 * 1000,
+  });
+}
+
+// Get all period dates (for calendar)
+export function usePeriodDates() {
+  return useQuery({
+    queryKey: floStyleQueryKeys.periodDates(),
+    queryFn: () => callFloStyleCycleFunction('period-dates'),
+    staleTime: 5 * 60 * 1000,
+    select: (data) => data.dates || [], // Extract dates array from response
   });
 }
 
@@ -268,4 +283,88 @@ export function usePeriodPredictions() {
     cycleDay: cycleInfo?.day_in_cycle,
     currentPhase: cycleInfo?.phase,
   };
+}
+
+// NEW: Simple flexible period date logging
+export function useLogPeriodDays() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (periodData: { dates_to_add?: string[]; dates_to_remove?: string[] }) =>
+      callFloStyleCycleFunction('log-period-days', {
+        method: 'POST',
+        body: JSON.stringify(periodData),
+      }),
+    onSuccess: (data) => {
+      // Invalidate all cycle queries to refresh data
+      queryClient.invalidateQueries({ queryKey: floStyleQueryKeys.all });
+
+      // Show success message based on new response format
+      const { dates_added = 0, dates_removed = 0, periods_created = 0 } = data;
+
+      if (dates_added > 0 || dates_removed > 0) {
+        const changes = [];
+        if (dates_added > 0) changes.push(`${dates_added} dates added`);
+        if (dates_removed > 0) changes.push(`${dates_removed} dates removed`);
+
+        toast.success(`Period updated: ${changes.join(', ')}`, {
+          description: `${periods_created} period(s) detected from your dates`,
+        });
+      } else {
+        toast.success('Period data up to date');
+      }
+    },
+    onError: (error: Error) => {
+      toast.error('Failed to save period changes', {
+        description: error.message,
+      });
+    },
+  });
+}
+
+// Get flow data for a specific date
+export function useFlowForDate(date: string) {
+  return useQuery({
+    queryKey: [...floStyleQueryKeys.all, 'flow', date],
+    queryFn: async () => {
+      const result = await callFloStyleCycleFunction(`flow-for-date?date=${date}`);
+      return result.flow_data; // Extract the flow_data from the response
+    },
+    staleTime: 5 * 60 * 1000,
+    enabled: !!date,
+  });
+}
+
+// Save flow data for a specific date
+export function useSaveFlow() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (flowData: { 
+      date: string; 
+      flow_level: 'light' | 'moderate' | 'heavy' | 'spotting';
+      notes?: string; 
+    }) =>
+      callFloStyleCycleFunction('save-flow', {
+        method: 'POST',
+        body: JSON.stringify(flowData),
+      }),
+    onSuccess: (data, variables) => {
+      // Invalidate flow data for the specific date
+      queryClient.invalidateQueries({ 
+        queryKey: [...floStyleQueryKeys.all, 'flow', variables.date] 
+      });
+      // Also invalidate all cycle queries in case this affects period detection
+      queryClient.invalidateQueries({ queryKey: floStyleQueryKeys.all });
+      
+      toast.success(`Flow data ${data.action}`, {
+        description: 'Your flow information has been saved',
+      });
+    },
+    onError: (error: Error) => {
+      toast.error('Failed to save flow data', {
+        description: error.message,
+      });
+    },
+  });
 }

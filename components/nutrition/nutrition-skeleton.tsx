@@ -11,8 +11,8 @@ export const CaloriesSummaryCardSkeleton = () => {
   return (
     <View className="px-4 mb-6">
       <View
-        className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-3xl p-6 shadow-sm ${
-          isDark ? 'border border-gray-700' : 'border border-gray-100'
+        className={`${isDark ? 'bg-gray-900' : 'bg-white'} rounded-2xl p-4 ${
+          isDark ? 'border border-green-700' : 'border border-gray-100'
         }`}
       >
         {/* Main content */}
@@ -63,8 +63,8 @@ const IndividualMacroCardSkeleton = () => {
   return (
     <View
       className={`${
-        isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-50'
-      } rounded-2xl p-5 shadow-sm border mb-4`}
+        isDark ? 'bg-gray-900 border-green-700' : 'bg-white border-gray-100'
+      } rounded-2xl p-4 border mb-4`}
     >
       <View className="flex-row items-center justify-between">
         {/* Left side - Value and label */}
@@ -107,8 +107,8 @@ export const WaterIntakeCardSkeleton = () => {
     <View className="px-4 mb-6">
       <View
         className={`${
-          isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-50'
-        } rounded-2xl p-5 shadow-sm border`}
+          isDark ? 'bg-gray-900 border-green-700' : 'bg-white border-gray-100'
+        } rounded-2xl p-4 border`}
       >
         <View className="flex-row items-center justify-between mb-4">
           <View className="flex-row items-center">
@@ -136,8 +136,8 @@ const MealCardSkeleton = ({ isAnalyzing = false }: { isAnalyzing?: boolean }) =>
   return (
     <View
       className={`${
-        isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-50'
-      } rounded-2xl p-4 mb-3 shadow-sm border`}
+        isDark ? 'bg-gray-900 border-green-700' : 'bg-white border-gray-100'
+      } rounded-2xl p-4 mb-3 border`}
     >
       <View className="flex-row items-center justify-between mb-3">
         <View className="flex-row items-center flex-1">

@@ -30,28 +30,41 @@ export const WeeklyCalendarSkeleton = () => (
 // Cycle Phase Card Skeleton
 export const CyclePhaseSkeleton = () => {
   const { isDark } = useTheme();
-  
+
   return (
-    <View className="mx-4 mb-6">
-      <View className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-3xl p-6 shadow-sm`}>
-        <View className="flex-row items-center justify-between mb-4">
-          <SkeletonBox width={120} height={24} className="rounded" />
-          <SkeletonBox width={24} height={24} className="rounded-full" />
-        </View>
-
-        <View className="mb-4">
-          <SkeletonBox width={300} height={16} className="rounded mb-2" />
-          <SkeletonBox width={240} height={16} className="rounded" />
-        </View>
-
-        <View className="flex-row justify-between">
-          <View className="items-center">
-            <SkeletonBox width={60} height={14} className="rounded mb-1" />
-            <SkeletonBox width={40} height={20} className="rounded" />
+    <View className="px-4 mb-6">
+      <View className={`${isDark ? 'bg-gray-900 border-pink-700' : 'bg-white border-gray-100'} rounded-3xl p-6 border`}>
+        {/* Circular Progress Section */}
+        <View className="items-center mb-8">
+          <View className="relative items-center justify-center">
+            {/* Circular Progress Placeholder */}
+            <SkeletonBox width={180} height={180} className="rounded-full" />
+            <View className="absolute items-center justify-center">
+              <SkeletonBox width={80} height={36} className="rounded mb-2" />
+              <SkeletonBox width={100} height={16} className="rounded" />
+            </View>
           </View>
-          <View className="items-center">
-            <SkeletonBox width={80} height={14} className="rounded mb-1" />
-            <SkeletonBox width={50} height={20} className="rounded" />
+        </View>
+
+        {/* Two Column Layout - Side by Side */}
+        <View className="flex-row justify-between gap-3">
+          <View className={`flex-1 ${isDark ? 'bg-gray-800/50' : 'bg-gray-50'} rounded-2xl p-4`}>
+            <View className="items-center">
+              <View className="flex-row items-center mb-2">
+                <SkeletonBox width={16} height={16} className="rounded mr-2" />
+                <SkeletonBox width={60} height={16} className="rounded" />
+              </View>
+              <SkeletonBox width={40} height={12} className="rounded" />
+            </View>
+          </View>
+          <View className={`flex-1 ${isDark ? 'bg-gray-800/50' : 'bg-gray-50'} rounded-2xl p-4`}>
+            <View className="items-center">
+              <View className="flex-row items-center mb-2">
+                <SkeletonBox width={16} height={16} className="rounded mr-2" />
+                <SkeletonBox width={80} height={16} className="rounded" />
+              </View>
+              <SkeletonBox width={60} height={12} className="rounded" />
+            </View>
           </View>
         </View>
       </View>
@@ -62,22 +75,26 @@ export const CyclePhaseSkeleton = () => {
 // Today's Mood Skeleton
 export const TodaysMoodSkeleton = () => {
   const { isDark } = useTheme();
-  
+
   return (
-    <View className="mx-4 mb-6">
-      <View className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-3xl p-6 shadow-sm`}>
+    <View className="px-4 mb-6">
+      <View className={`${isDark ? 'bg-gray-900 border-pink-700' : 'bg-white border-gray-100'} rounded-2xl p-4 border`}>
+        {/* Header */}
         <View className="flex-row items-center justify-between mb-4">
-          <SkeletonBox width={100} height={20} className="rounded" />
-          <SkeletonBox width={60} height={16} className="rounded" />
+          <View className="flex-row items-center">
+            <SkeletonBox width={40} height={40} className="rounded-2xl mr-3" />
+            <SkeletonBox width={80} height={20} className="rounded" />
+          </View>
+          <SkeletonBox width={32} height={32} className="rounded-full" />
         </View>
 
-        <View className="flex-row justify-between">
-          {Array.from({ length: 5 }).map((_, index) => (
-            <View key={index} className="items-center">
-              <SkeletonBox width={40} height={40} className="rounded-full mb-2" />
-              <SkeletonBox width={30} height={12} className="rounded" />
-            </View>
-          ))}
+        {/* Mood Content */}
+        <View className={`${isDark ? 'bg-pink-900/30' : 'bg-purple-50'} rounded-2xl p-4`}>
+          <View className="items-center">
+            <SkeletonBox width={60} height={60} className="rounded-full mb-4" />
+            <SkeletonBox width={120} height={24} className="rounded mb-2" />
+            <SkeletonBox width={80} height={16} className="rounded" />
+          </View>
         </View>
       </View>
     </View>
@@ -87,7 +104,7 @@ export const TodaysMoodSkeleton = () => {
 // Today's Supplements Skeleton
 export const TodaysSupplementsSkeleton = () => {
   const { isDark } = useTheme();
-  
+
   return (
     <View className="mx-4 mb-6">
       <View className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-3xl p-6 shadow-sm`}>
@@ -108,7 +125,9 @@ export const TodaysSupplementsSkeleton = () => {
           {Array.from({ length: 3 }).map((_, index) => (
             <View
               key={index}
-              className={`flex-row items-center justify-between p-3 ${isDark ? 'bg-gray-700' : 'bg-gray-50'} rounded-xl`}
+              className={`flex-row items-center justify-between p-3 ${
+                isDark ? 'bg-gray-700' : 'bg-gray-50'
+              } rounded-xl`}
             >
               <View className="flex-row items-center">
                 <SkeletonBox width={24} height={24} className="rounded-full mr-3" />
@@ -126,18 +145,26 @@ export const TodaysSupplementsSkeleton = () => {
 // Today's Symptoms Skeleton
 export const TodaysSymptomsSkeleton = () => {
   const { isDark } = useTheme();
-  
+
   return (
-    <View className="mx-4 mb-6">
-      <View className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-3xl p-6 shadow-sm`}>
+    <View className="px-4 mb-6">
+      <View className={`${isDark ? 'bg-gray-900 border-pink-700' : 'bg-white border-gray-100'} rounded-2xl p-4 border`}>
+        {/* Header */}
         <View className="flex-row items-center justify-between mb-4">
-          <SkeletonBox width={120} height={20} className="rounded" />
-          <SkeletonBox width={60} height={16} className="rounded" />
+          <View className="flex-row items-center">
+            <SkeletonBox width={40} height={40} className="rounded-2xl mr-3" />
+            <SkeletonBox width={100} height={20} className="rounded" />
+          </View>
+          <SkeletonBox width={32} height={32} className="rounded-full" />
         </View>
 
-        <View className="flex-row flex-wrap gap-2">
+        {/* Symptoms Grid */}
+        <View className="flex-row flex-wrap gap-3">
           {Array.from({ length: 6 }).map((_, index) => (
-            <SkeletonBox key={index} width={80} height={32} className="rounded-full" />
+            <View key={index} className={`${isDark ? 'bg-pink-900/30' : 'bg-purple-50'} rounded-2xl p-3 items-center`} style={{ width: '30%' }}>
+              <SkeletonBox width={28} height={28} className="rounded mb-2" />
+              <SkeletonBox width={60} height={12} className="rounded" />
+            </View>
           ))}
         </View>
       </View>
@@ -145,17 +172,97 @@ export const TodaysSymptomsSkeleton = () => {
   );
 };
 
-// Complete Cycle Page Skeleton
-export const CyclePageSkeleton = () => {
+// Period Prediction Button Skeleton
+export const PeriodPredictionButtonSkeleton = () => {
   const { isDark } = useTheme();
-  
+
   return (
-    <View className={`flex-1 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
-      <WeeklyCalendarSkeleton />
-      <CyclePhaseSkeleton />
-      <TodaysMoodSkeleton />
-      <TodaysSupplementsSkeleton />
-      <TodaysSymptomsSkeleton />
+    <View className="mx-4 mb-6">
+      <View className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-3xl p-4 shadow-sm`}>
+        <View className="flex-row items-center justify-between">
+          <View className="flex-1">
+            <SkeletonBox width={180} height={16} className="rounded mb-2" />
+            <SkeletonBox width={120} height={14} className="rounded" />
+          </View>
+          <SkeletonBox width={80} height={32} className="rounded-full" />
+        </View>
+      </View>
     </View>
+  );
+};
+
+// Cycle Averages Skeleton
+export const CycleAveragesSkeleton = () => {
+  const { isDark } = useTheme();
+
+  return (
+    <View className="px-4 mb-6">
+      {/* Two Column Layout */}
+      <View className="flex-row gap-3">
+        {/* First Column - Cycle Length */}
+        <View className={`flex-1 ${isDark ? 'bg-gray-900 border-pink-700' : 'bg-white border-gray-100'} rounded-2xl p-4 border`}>
+          <View className="items-center">
+            <SkeletonBox width={40} height={40} className="rounded-full mb-3" />
+            <SkeletonBox width={32} height={32} className="rounded mb-1" />
+            <SkeletonBox width={80} height={14} className="rounded mb-1" />
+            <SkeletonBox width={30} height={12} className="rounded" />
+          </View>
+        </View>
+
+        {/* Second Column - Period Length */}
+        <View className={`flex-1 ${isDark ? 'bg-gray-900 border-pink-700' : 'bg-white border-gray-100'} rounded-2xl p-4 border`}>
+          <View className="items-center">
+            <SkeletonBox width={40} height={40} className="rounded-full mb-3" />
+            <SkeletonBox width={32} height={32} className="rounded mb-1" />
+            <SkeletonBox width={90} height={14} className="rounded mb-1" />
+            <SkeletonBox width={30} height={12} className="rounded" />
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+};
+
+// Today's Flow Skeleton
+export const TodaysFlowSkeleton = () => {
+  const { isDark } = useTheme();
+
+  return (
+    <View className="px-4 mb-6">
+      <View className={`${isDark ? 'bg-gray-900 border-pink-700' : 'bg-white border-gray-100'} rounded-2xl p-4 border`}>
+        {/* Header */}
+        <View className="flex-row items-center justify-between mb-4">
+          <View className="flex-row items-center">
+            <SkeletonBox width={40} height={40} className="rounded-2xl mr-3" />
+            <SkeletonBox width={60} height={20} className="rounded" />
+          </View>
+          <SkeletonBox width={32} height={32} className="rounded-full" />
+        </View>
+
+        {/* Flow Content */}
+        <View className={`${isDark ? 'bg-pink-900/30' : 'bg-purple-50'} rounded-2xl p-4`}>
+          <View className="items-center">
+            <View className="rounded-2xl items-center justify-center my-8">
+              <SkeletonBox width={40} height={40} className="rounded" />
+            </View>
+            <SkeletonBox width={120} height={24} className="rounded" />
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+};
+
+// Complete Cycle Page Skeleton - Updated to match current structure
+export const CyclePageSkeleton = () => {
+  return (
+    <>
+      {/* <PeriodPredictionButtonSkeleton /> */}
+      <CyclePhaseSkeleton />
+      <CycleAveragesSkeleton />
+      <TodaysFlowSkeleton />
+      <TodaysSymptomsSkeleton />
+      <TodaysMoodSkeleton />
+    </>
   );
 };

@@ -6,6 +6,7 @@ import { toast } from 'sonner-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Crypto from 'expo-crypto';
 import { OnboardingStorage } from '@/lib/utils/onboarding-storage';
+import { emailService } from '@/lib/services/email-service';
 
 interface AuthContextType {
   session: Session | null;
@@ -21,6 +22,10 @@ interface AuthContextType {
     plan?: string
   ) => Promise<void>;
   signUpWithAppleOnboarding: (plan?: string) => Promise<void>;
+  resetPasswordForEmail: (email: string) => Promise<void>;
+  sendOTPEmail: (email: string) => Promise<{ otpCode: string }>;
+  verifyOTP: (otpCode: string) => Promise<boolean>;
+  resetPasswordWithVerifiedOTP: (email: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [otpTokenStorage, setOtpTokenStorage] = useState<string | null>(null);
 
   // Helper function to ensure account exists in database
   const ensureAccountExists = async (userId: string): Promise<void> => {
@@ -147,7 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               p_height: onboardingData.height,
               p_weight: onboardingData.weight,
               p_units: onboardingData.units,
-              
+
               // Optional parameters with defaults
               p_last_period_start: onboardingData.lastPeriodStart,
               p_cycle_regularity: onboardingData.cycleRegularity,
@@ -158,7 +164,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               p_fitness_styles: onboardingData.fitnessStyles || [],
               p_fitness_location: onboardingData.fitnessLocation,
               p_weight_goal: onboardingData.weightGoal,
-              p_plan: plan || 'free'
+              p_plan: plan || 'free',
             };
 
             const { error } = await supabase.rpc('process_chat_onboarding_data', rpcParams);
@@ -313,6 +319,81 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const resetPasswordForEmail = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    if (error) throw error;
+  };
+
+  const sendOTPEmail = async (email: string): Promise<{ otpCode: string }> => {
+    // Generate OTP code on client side
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+    const { data, error } = await supabase.functions.invoke('sent-otp-email', {
+      body: { email, otpCode },
+    });
+
+    if (error) {
+      throw new Error(error.message || 'Failed to send OTP email');
+    }
+
+    // Store the OTP code temporarily for verification (in production, use more secure storage)
+    setOtpTokenStorage(otpCode);
+
+    return { otpCode: 'sent' }; // Don't return actual code for security
+  };
+
+  const verifyOTP = async (otpCode: string): Promise<boolean> => {
+    if (!otpTokenStorage) {
+      throw new Error('No OTP session found. Please request a new code.');
+    }
+
+    // Verify OTP matches what we stored
+    if (otpTokenStorage !== otpCode) {
+      throw new Error('Invalid verification code. Please try again.');
+    }
+
+    return true;
+  };
+
+  const resetPasswordWithVerifiedOTP = async (email: string, newPassword: string) => {
+    if (!otpTokenStorage) {
+      throw new Error('No OTP session found. Please request a new code.');
+    }
+
+    // Reset password using our Edge Function
+    try {
+      console.log('Attempting to reset password for email:', email);
+      const { data, error } = await supabase.functions.invoke('reset-password-with-otp', {
+        body: {
+          email,
+          newPassword,
+        },
+      });
+
+      console.log('Edge function response:', { data, error });
+
+      // Clear the stored OTP after attempt
+      setOtpTokenStorage(null);
+
+      if (error) {
+        console.error('Edge function error:', error);
+        throw new Error(error.message || 'Failed to reset password');
+      }
+
+      if (!data?.success) {
+        console.error('Password reset failed, data:', data);
+        throw new Error(data?.error || 'Password reset failed');
+      }
+
+      console.log('Password reset successful');
+    } catch (error: any) {
+      // Clear the token after attempt (success or failure)
+      setOtpTokenStorage(null);
+      console.error('Reset password error:', error);
+      throw error;
+    }
+  };
+
   const value = {
     session,
     user,
@@ -321,6 +402,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signInWithApple,
     signUpWithOnboarding,
     signUpWithAppleOnboarding,
+    resetPasswordForEmail,
+    sendOTPEmail,
+    verifyOTP,
+    resetPasswordWithVerifiedOTP,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

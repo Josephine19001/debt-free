@@ -32,7 +32,7 @@ export function useLogSymptoms() {
 
       // Use cycle manager endpoint for consistency
       const response = await fetch(
-        `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/cycle-manager/log-symptoms`,
+        `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/cycle-manager-2/log-symptoms`,
         {
           method: 'POST',
           headers: {
@@ -83,7 +83,7 @@ export function useLogMood() {
 
       // Use cycle manager endpoint for consistency
       const response = await fetch(
-        `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/cycle-manager/log-mood`,
+        `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/cycle-manager-2/log-mood`,
         {
           method: 'POST',
           headers: {

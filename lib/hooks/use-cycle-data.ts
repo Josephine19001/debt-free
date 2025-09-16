@@ -51,7 +51,7 @@ async function callCycleFunction(endpoint: string, options?: RequestInit) {
   }
 
   const response = await fetch(
-    `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/cycle-manager/${endpoint}`,
+    `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/cycle-manager-2/${endpoint}`,
     {
       headers: {
         Authorization: `Bearer ${session.access_token}`,

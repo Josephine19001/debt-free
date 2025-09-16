@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { Text } from '@/components/ui/text';
 import PageLayout from '@/components/layouts/page-layout';
-import { CalendarHeart } from 'lucide-react-native';
+import { CalendarHeart, Calendar } from 'lucide-react-native';
 import { RobotIcon } from '@/components/ui/robot-icon';
 import { AIChatInterface } from '@/components/ui/ai-chat-interface';
 import { useAIChat } from '@/lib/hooks/use-ai-chat';
@@ -12,13 +12,17 @@ import {
   useCurrentCycleInfo,
   usePeriodCycles,
   useCycleSettings,
+  useFlowForDate,
   type PeriodCycle,
+  type CurrentCycleInfo,
 } from '@/lib/hooks/use-cycle-flo-style';
 import { useMoodForDate } from '@/lib/hooks/use-daily-moods';
 import { useSymptomsForDate } from '@/lib/hooks/use-daily-symptoms';
 
 import { TodaysMood } from '@/components/cycle/TodaysMood';
 import { TodaysSymptoms } from '@/components/cycle/TodaysSymptoms';
+import { TodaysFlow } from '@/components/cycle/TodaysFlow';
+import { CycleAverages } from '@/components/cycle/CycleAverages';
 import { CyclePhase } from '@/components/cycle/CyclePhase';
 import { CyclePageSkeleton } from '@/components/cycle/cycle-skeleton';
 import { PredictionInfoModal } from '@/components/cycle/PredictionInfoModal';
@@ -41,36 +45,13 @@ export default function CycleScreen() {
   const { data: periodCycles = [] } = usePeriodCycles(10);
   const { data: selectedDateMood } = useMoodForDate(getLocalDateString(selectedDate));
   const { data: selectedDateSymptoms } = useSymptomsForDate(getLocalDateString(selectedDate));
+  const { data: selectedDateFlow } = useFlowForDate(getLocalDateString(selectedDate));
 
+  // All predictions now come from currentCycleInfo
+  const nextPeriodPrediction = (currentCycleInfo as CurrentCycleInfo)?.next_period_prediction;
 
-  const isMainDataLoading = cycleInfoLoading || settingsLoading;
-  const hasCriticalErrors = cycleInfoError;
-
-  const handleDateSelect = React.useCallback((date: Date) => {
-    // Ensure we have a valid date
-    if (!date || isNaN(date.getTime())) {
-      console.warn('Invalid date passed to handleDateSelect:', date);
-      return;
-    }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const selectedDay = new Date(date);
-    selectedDay.setHours(0, 0, 0, 0);
-
-    if (selectedDay > today) {
-      setSelectedDate(today);
-    } else {
-      setSelectedDate(date);
-    }
-  }, []);
-
-  const handlePeriodPredictionPress = React.useCallback(() => {
-    router.push('/log-period');
-  }, []);
-
-  // Get all period dates for calendar display (actual + predicted)
-  const getAllPeriodDatesForCalendar = () => {
+  // Get actual period dates for calendar display
+  const getActualPeriodDates = React.useCallback(() => {
     const allDates: string[] = [];
 
     try {
@@ -121,9 +102,57 @@ export default function CycleScreen() {
     }
 
     return allDates;
-  };
-  // All predictions now come from currentCycleInfo
-  const nextPeriodPrediction = currentCycleInfo?.next_period_prediction;
+  }, [periodCycles]);
+
+
+  // Check if user is currently on their period for the selected date
+  const isOnPeriod = React.useMemo(() => {
+    if (!periodCycles.length) return false;
+
+    const selectedDateStr = getLocalDateString(selectedDate);
+    return getActualPeriodDates().includes(selectedDateStr);
+  }, [selectedDate, getActualPeriodDates]);
+
+  // Get cycle settings which includes calculated averages from backend
+  const { data: cycleSettings } = useCycleSettings();
+  
+  // Get average cycle data from backend settings
+  const averageCycleData = React.useMemo(() => {
+    if (!cycleSettings) return undefined;
+    
+    return {
+      average_cycle_length: cycleSettings.cycle_length || 28,
+      average_period_length: cycleSettings.period_length || 5,
+      cycle_count: periodCycles.length, // Use periodCycles length as cycle count
+      last_updated: new Date().toISOString(),
+    };
+  }, [cycleSettings, periodCycles.length]);
+
+  const isMainDataLoading = cycleInfoLoading || settingsLoading;
+  const hasCriticalErrors = cycleInfoError;
+
+  const handleDateSelect = React.useCallback((date: Date) => {
+    // Ensure we have a valid date
+    if (!date || isNaN(date.getTime())) {
+      console.warn('Invalid date passed to handleDateSelect:', date);
+      return;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDay = new Date(date);
+    selectedDay.setHours(0, 0, 0, 0);
+
+    if (selectedDay > today) {
+      setSelectedDate(today);
+    } else {
+      setSelectedDate(date);
+    }
+  }, []);
+
+  const handlePeriodPredictionPress = React.useCallback(() => {
+    router.push('/log-period');
+  }, []);
 
   return (
     <PageLayout
@@ -131,21 +160,39 @@ export default function CycleScreen() {
       theme="cycle"
       selectedDate={selectedDate}
       onDateSelect={handleDateSelect}
-      loggedDates={getAllPeriodDatesForCalendar()}
+      loggedDates={getActualPeriodDates()}
       btn={
-        <TouchableOpacity
-          className="bg-pink-500 p-3 rounded-full"
-          onPress={openChat}
-          style={{
-            shadowColor: '#EC4899',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.3,
-            shadowRadius: 4,
-            elevation: 3,
-          }}
-        >
-          <RobotIcon size={18} color="#FFFFFF" theme="cycle" />
-        </TouchableOpacity>
+        <View className="flex-row gap-3">
+          {/* Edit/Log Period Button */}
+          <TouchableOpacity
+            className="bg-pink-600 p-3 rounded-full"
+            onPress={() => router.push('/log-period')}
+            style={{
+              shadowColor: '#EC4899',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.3,
+              shadowRadius: 4,
+              elevation: 3,
+            }}
+          >
+            <Calendar size={18} color="#FFFFFF" />
+          </TouchableOpacity>
+
+          {/* AI Chat Button */}
+          <TouchableOpacity
+            className="bg-pink-500 p-3 rounded-full"
+            onPress={openChat}
+            style={{
+              shadowColor: '#EC4899',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.3,
+              shadowRadius: 4,
+              elevation: 3,
+            }}
+          >
+            <RobotIcon size={18} color="#FFFFFF" theme="cycle" />
+          </TouchableOpacity>
+        </View>
       }
     >
       {isMainDataLoading ? (
@@ -184,15 +231,24 @@ export default function CycleScreen() {
           contentContainerStyle={{ paddingBottom: 100 }}
         >
           <PeriodPredictionButton
-            nextPeriodPrediction={nextPeriodPrediction}
+            nextPeriodPrediction={nextPeriodPrediction || null}
             onPress={handlePeriodPredictionPress}
           />
 
           <CyclePhase
-            currentCycleInfo={currentCycleInfo}
+            currentCycleInfo={currentCycleInfo as CurrentCycleInfo}
             onLogPeriod={() => router.push('/log-period')}
             isLoading={isMainDataLoading}
             selectedDate={selectedDate}
+          />
+
+          <CycleAverages averageData={averageCycleData} isLoading={isMainDataLoading} />
+
+          <TodaysFlow
+            selectedDate={selectedDate}
+            flowData={selectedDateFlow}
+            isLoading={false}
+            isOnPeriod={isOnPeriod}
           />
 
           <TodaysSymptoms
@@ -241,7 +297,6 @@ export default function CycleScreen() {
         quickActions={config.quickActions}
         onSendMessage={handleSendMessage}
       />
-
     </PageLayout>
   );
 }

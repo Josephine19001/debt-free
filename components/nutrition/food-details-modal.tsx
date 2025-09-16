@@ -27,6 +27,7 @@ import {
 import { OliveOilIcon } from '@/components/icons/olive-oil-icon';
 import { MacroCard } from './macro-card';
 import { useThemedStyles } from '@/lib/utils/theme';
+import { useTheme } from '@/context/theme-provider';
 
 interface MealData {
   id: string;
@@ -62,6 +63,7 @@ export function FoodDetailsModal({
   onRetry,
 }: FoodDetailsModalProps) {
   const themed = useThemedStyles();
+  const { isDark } = useTheme();
   const [quantity, setQuantity] = useState(1);
   const [originalQuantity, setOriginalQuantity] = useState(1); // Track original quantity for change detection
   const [editableCalories, setEditableCalories] = useState<number | null>(null);
@@ -259,8 +261,8 @@ export function FoodDetailsModal({
             <View className={themed("rounded-2xl p-4 border border-yellow-200 bg-white shadow-sm", "rounded-2xl p-4 border border-yellow-800/30 bg-gray-800 shadow-sm")}>
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center flex-1">
-                  <View className={themed("w-10 h-10 bg-yellow-100 rounded-full items-center justify-center mr-3", "w-10 h-10 bg-yellow-900/30 rounded-full items-center justify-center mr-3")}>
-                    <Flame size={18} color="#EAB308" />
+                  <View className={themed("w-8 h-8 bg-yellow-100 rounded-full items-center justify-center mr-3", "w-8 h-8 bg-yellow-900/30 rounded-full items-center justify-center mr-3")}>
+                    <Flame size={14} color="#EAB308" />
                   </View>
                   <View className="flex-1">
                     <Text className={themed("text-lg font-semibold text-gray-800", "text-lg font-semibold text-gray-200")}>Calories</Text>
@@ -306,9 +308,9 @@ export function FoodDetailsModal({
                 title="Protein"
                 value={nutrition.protein}
                 color="#EF4444"
-                bgColor="#FFFFFF"
-                borderColor="#FEF2F2"
-                iconBgColor="#FEF2F2"
+                bgColor={isDark ? "#1F2937" : "#FFFFFF"}
+                borderColor={isDark ? "#374151" : "#FEF2F2"}
+                iconBgColor={isDark ? "rgba(127, 29, 29, 0.3)" : "#FEF2F2"}
                 icon={Beef}
                 isEditing={editableProtein !== null}
                 onEdit={() =>
@@ -320,9 +322,9 @@ export function FoodDetailsModal({
                 title="Carbs"
                 value={nutrition.carbs}
                 color="#F59E0B"
-                bgColor="#FFFFFF"
-                borderColor="#FFFBEB"
-                iconBgColor="#FFFBEB"
+                bgColor={isDark ? "#1F2937" : "#FFFFFF"}
+                borderColor={isDark ? "#374151" : "#FFFBEB"}
+                iconBgColor={isDark ? "rgba(146, 64, 14, 0.3)" : "#FFFBEB"}
                 icon={Wheat}
                 isEditing={editableCarbs !== null}
                 onEdit={() => setEditableCarbs(editableCarbs !== null ? null : nutrition.carbs)}
@@ -332,9 +334,9 @@ export function FoodDetailsModal({
                 title="Fat"
                 value={nutrition.fat}
                 color="#8B5CF6"
-                bgColor="#FFFFFF"
-                borderColor="#FAF5FF"
-                iconBgColor="#FAF5FF"
+                bgColor={isDark ? "#1F2937" : "#FFFFFF"}
+                borderColor={isDark ? "#374151" : "#FAF5FF"}
+                iconBgColor={isDark ? "rgba(88, 28, 135, 0.3)" : "#FAF5FF"}
                 icon={OliveOilIcon}
                 isEditing={editableFat !== null}
                 onEdit={() => setEditableFat(editableFat !== null ? null : nutrition.fat)}
@@ -346,22 +348,22 @@ export function FoodDetailsModal({
           {/* Detailed Ingredients */}
           {food.detailed_ingredients && food.detailed_ingredients.length > 0 && (
             <View className="mb-8">
-              <Text className="text-xl font-bold text-gray-900 mb-4">Ingredients</Text>
+              <Text className={themed("text-xl font-bold text-gray-900 mb-4", "text-xl font-bold text-white mb-4")}>Ingredients</Text>
 
               {food.detailed_ingredients.map((ingredient: any, index: number) => (
                 <View
                   key={index}
-                  className="bg-white rounded-xl p-4 mb-3 border border-gray-100 flex-row items-center justify-between"
+                  className={themed("bg-white rounded-xl p-4 mb-3 border border-gray-100 flex-row items-center justify-between", "bg-gray-800 rounded-xl p-4 mb-3 border border-gray-700 flex-row items-center justify-between")}
                 >
                   <View className="flex-1">
-                    <Text className="font-semibold text-gray-900 mb-1">{ingredient.name}</Text>
-                    <Text className="text-gray-600 text-sm">{ingredient.portion}</Text>
+                    <Text className={themed("font-semibold text-gray-900 mb-1", "font-semibold text-white mb-1")}>{ingredient.name}</Text>
+                    <Text className={themed("text-gray-600 text-sm", "text-gray-400 text-sm")}>{ingredient.portion}</Text>
                   </View>
                   <View className="items-end">
-                    <Text className="font-bold text-gray-900">
+                    <Text className={themed("font-bold text-gray-900", "font-bold text-white")}>
                       {Math.round((ingredient.calories || 0) * quantity)} cal
                     </Text>
-                    <Text className="text-gray-500 text-xs">
+                    <Text className={themed("text-gray-500 text-xs", "text-gray-400 text-xs")}>
                       {Math.round((ingredient.nutrition?.protein || 0) * quantity * 10) / 10}p •{' '}
                       {Math.round((ingredient.nutrition?.carbs || 0) * quantity * 10) / 10}c •{' '}
                       {Math.round((ingredient.nutrition?.fat || 0) * quantity * 10) / 10}f
@@ -374,8 +376,8 @@ export function FoodDetailsModal({
 
           {/* AI Confidence */}
           {food.confidence && (
-            <View className="bg-green-50 rounded-xl p-4 mb-8">
-              <Text className="text-green-800 font-medium text-center">
+            <View className={themed("bg-green-50 rounded-xl p-4 mb-8", "bg-green-900/30 rounded-xl p-4 mb-8")}>
+              <Text className={themed("text-green-800 font-medium text-center", "text-green-300 font-medium text-center")}>
                 AI Confidence: {food.confidence}%
               </Text>
             </View>
@@ -391,10 +393,10 @@ export function FoodDetailsModal({
                 onRetry(meal);
                 onClose();
               }}
-              className="flex-row items-center justify-center bg-orange-100 px-6 py-3 rounded-xl"
+              className={themed("flex-row items-center justify-center bg-orange-100 px-6 py-3 rounded-xl", "flex-row items-center justify-center bg-orange-900/30 px-6 py-3 rounded-xl")}
             >
               <RotateCcw size={18} color="#F97316" />
-              <Text className="text-orange-600 font-medium ml-2">Retry Scan</Text>
+              <Text className={themed("text-orange-600 font-medium ml-2", "text-orange-400 font-medium ml-2")}>Retry Scan</Text>
             </TouchableOpacity>
           )}
 
@@ -402,10 +404,10 @@ export function FoodDetailsModal({
           {onDelete && (
             <TouchableOpacity
               onPress={handleDelete}
-              className="flex-row items-center justify-center bg-red-100 px-6 py-3 rounded-xl"
+              className={themed("flex-row items-center justify-center bg-red-100 px-6 py-3 rounded-xl", "flex-row items-center justify-center bg-red-900/30 px-6 py-3 rounded-xl")}
             >
               <Trash2 size={18} color="#EF4444" />
-              <Text className="text-red-600 font-medium ml-2">Delete</Text>
+              <Text className={themed("text-red-600 font-medium ml-2", "text-red-400 font-medium ml-2")}>Delete</Text>
             </TouchableOpacity>
           )}
 

@@ -10,7 +10,7 @@ interface MoodIconProps {
 export const SmileIcon: React.FC<MoodIconProps> = ({ size = 40 }) => (
   <View style={{ width: size, height: size }}>
     <Svg viewBox="0 0 512 512" width={size} height={size}>
-      <Circle fill="#F472B6" cx="256" cy="256" r="256" />
+      <Circle fill="#EC4899" cx="256" cy="256" r="256" />
       <Path
         fill="#3E4347"
         d="M256,420.544c-74.864,0-140.096-50.704-158.624-123.28c-1.456-5.712,1.984-11.52,7.696-12.976
@@ -18,7 +18,7 @@ export const SmileIcon: React.FC<MoodIconProps> = ({ size = 40 }) => (
 	c1.44-5.712,7.248-9.184,12.976-7.696c5.712,1.456,9.152,7.264,7.696,12.976C396.096,369.84,330.864,420.544,256,420.544z"
       />
       <Path
-        fill="#E879A7"
+        fill="#BE185D"
         d="M512,256c0,141.44-114.64,256-256,256c-80.48,0-152.32-37.12-199.28-95.28
 	c43.92,35.52,99.84,56.72,160.72,56.72c141.36,0,256-114.56,256-256c0-60.88-21.2-116.8-56.72-160.72
 	C474.8,103.68,512,175.52,512,256z"
@@ -43,10 +43,10 @@ export const AmazingIcon: React.FC<MoodIconProps> = ({ size = 40 }) => (
   <View style={{ width: size, height: size }}>
     <Svg viewBox="0 0 512 512" width={size} height={size}>
       <G id="Body">
-        <Circle cx="256" cy="256" fill="#F472B6" r="256" />
+        <Circle cx="256" cy="256" fill="#EC4899" r="256" />
         <Path
           d="m512 256c0 141.38-114.62 256-256 256s-256-114.62-256-256c0-10.15.59-20.16 1.74-30 14.85 127.24 123.03 226 254.26 226s239.41-98.76 254.26-226c1.15 9.84 1.74 19.85 1.74 30z"
-          fill="#E879A7"
+          fill="#BE185D"
         />
       </G>
       <G id="Mouth">
@@ -75,10 +75,10 @@ export const OkayIcon: React.FC<MoodIconProps> = ({ size = 40 }) => (
   <View style={{ width: size, height: size }}>
     <Svg viewBox="0 0 512 512" width={size} height={size}>
       <G id="Body">
-        <Circle cx="256" cy="256" fill="#F472B6" r="256" />
+        <Circle cx="256" cy="256" fill="#EC4899" r="256" />
         <Path
           d="m512 256c0 141.38-114.62 256-256 256s-256-114.62-256-256c0-10.15.59-20.16 1.74-30 14.85 127.24 123.03 226 254.26 226s239.41-98.76 254.26-226c1.15 9.84 1.74 19.85 1.74 30z"
-          fill="#E879A7"
+          fill="#BE185D"
         />
       </G>
       <G id="Mouth">
@@ -96,10 +96,10 @@ export const StrugglingIcon: React.FC<MoodIconProps> = ({ size = 40 }) => (
   <View style={{ width: size, height: size }}>
     <Svg viewBox="0 0 512 512" width={size} height={size}>
       <G id="Body">
-        <Circle cx="256" cy="256" fill="#F472B6" r="256" />
+        <Circle cx="256" cy="256" fill="#EC4899" r="256" />
         <Path
           d="m512 256c0 141.38-114.62 256-256 256s-256-114.62-256-256c0-10.15.59-20.16 1.74-30 14.85 127.24 123.03 226 254.26 226s239.41-98.76 254.26-226c1.15 9.84 1.74 19.85 1.74 30z"
-          fill="#E879A7"
+          fill="#BE185D"
         />
       </G>
       <G id="Mouth">
@@ -120,9 +120,9 @@ export const StrugglingIcon: React.FC<MoodIconProps> = ({ size = 40 }) => (
 export const ToughIcon: React.FC<MoodIconProps> = ({ size = 40 }) => (
   <View style={{ width: size, height: size }}>
     <Svg viewBox="0 0 512 512" width={size} height={size}>
-      <Circle fill="#F472B6" cx="256" cy="256" r="256" />
+      <Circle fill="#EC4899" cx="256" cy="256" r="256" />
       <Path
-        fill="#E879A7"
+        fill="#BE185D"
         d="M512,255.984c0,141.44-114.56,256-256,256c-81.12,0-153.44-37.76-200.48-96.64
 	c43.68,34.88,99.2,55.68,159.52,55.68c141.44,0,256-114.56,256-256c0-60.32-20.8-115.84-55.68-159.52
 	C474.24,102.544,512,174.864,512,255.984z"

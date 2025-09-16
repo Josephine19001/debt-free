@@ -22,10 +22,12 @@ import {
   StrugglingIcon,
 } from '@/components/icons/mood-icons';
 import { Button } from '@/components/ui/button';
+import { useTheme } from '@/context/theme-provider';
 
 export default function LogMoodScreen() {
   const { date } = useLocalSearchParams<{ date?: string }>();
   const selectedDate = date || getLocalDateString(new Date());
+  const { isDark } = useTheme();
   
   const [selectedMood, setSelectedMood] = useState<
     'happy' | 'normal' | 'sad' | 'irritable' | 'anxious' | ''
@@ -122,7 +124,7 @@ export default function LogMoodScreen() {
   const isFormValid = selectedMood;
 
   return (
-    <View className="flex-1" style={{ backgroundColor: '#F5F1E8' }}>
+    <View className={`flex-1 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <SubPageLayout
         title="Log Mood"
         onBack={() => router.back()}
@@ -155,10 +157,10 @@ export default function LogMoodScreen() {
             >
               {/* Header */}
               <View className="mb-8">
-                <Text className="text-3xl font-bold text-gray-900 mb-4">
+                <Text className={`text-3xl font-bold ${isDark ? 'text-gray-100' : 'text-gray-900'} mb-4`}>
                   How are you feeling today?
                 </Text>
-                <Text className="text-gray-600 text-base">
+                <Text className={`${isDark ? 'text-gray-300' : 'text-gray-600'} text-base`}>
                   Choose the emoji that best matches your current mood.
                 </Text>
               </View>
@@ -175,12 +177,13 @@ export default function LogMoodScreen() {
                         className="flex-row items-center p-6 rounded-2xl"
                         style={{
                           backgroundColor: isSelected
-                            ? 'rgba(255, 182, 193, 0.3)'
-                            : 'rgba(255, 255, 255, 0.8)',
-                          borderWidth: 0,
-                          shadowColor: '#000',
+                            ? isDark ? 'rgba(236, 72, 153, 0.2)' : 'rgba(255, 182, 193, 0.3)'
+                            : isDark ? 'rgba(55, 65, 81, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+                          borderWidth: isSelected ? 1 : 0,
+                          borderColor: isSelected ? '#EC4899' : 'transparent',
+                          shadowColor: isDark ? '#EC4899' : '#000',
                           shadowOffset: { width: 0, height: 2 },
-                          shadowOpacity: 0.1,
+                          shadowOpacity: isDark ? 0.2 : 0.1,
                           shadowRadius: 8,
                           elevation: 3,
                         }}
@@ -193,7 +196,7 @@ export default function LogMoodScreen() {
                           {option.icon === 'struggling' && <StrugglingIcon size={60} />}
                         </View>
                         <View className="flex-1">
-                          <Text className="text-xl font-medium text-gray-800">{option.label}</Text>
+                          <Text className={`text-xl font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>{option.label}</Text>
                         </View>
                       </TouchableOpacity>
                     );

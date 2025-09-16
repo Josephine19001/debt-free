@@ -3,8 +3,9 @@ import { Text } from '@/components/ui/text';
 import { Coffee, Utensils, Sandwich, Cookie, Flame } from 'lucide-react-native';
 import { DailyNutritionSummary } from '@/lib/types/nutrition-tracking';
 import { CaloriesSummaryCardSkeleton } from './nutrition-skeleton';
-import { getAccurateCircularProgressStyles } from '@/lib/utils/progress-circle';
 import { useThemedStyles, useThemedColors } from '@/lib/utils/theme';
+import { useTheme } from '@/context/theme-provider';
+import CircularProgress from '@/components/CircularProgress';
 
 interface CaloriesSummaryCardProps {
   macroData: {
@@ -24,19 +25,16 @@ export default function CaloriesSummaryCard({
 }: CaloriesSummaryCardProps) {
   const themed = useThemedStyles();
   const colors = useThemedColors();
+  const { isDark } = useTheme();
   
   const caloriesLeft = isLoading ? 0 : macroData.calories.target - macroData.calories.consumed;
   const isOverTarget = !isLoading && macroData.calories.target > 0 && caloriesLeft < 0;
   const hasValidTarget = !isLoading && macroData.calories.target > 0;
 
-  // Get progress styles using utility function
-  const progressStyles = hasValidTarget
-    ? getAccurateCircularProgressStyles(
-        macroData.calories.consumed,
-        macroData.calories.target,
-        isOverTarget ? '#EF4444' : '#10B981'
-      )
-    : getAccurateCircularProgressStyles(0, 2000, '#10B981');
+  // Determine progress color and values
+  const progressColor = isOverTarget ? '#EF4444' : '#10B981';
+  const progressConsumed = hasValidTarget ? macroData.calories.consumed : 0;
+  const progressTarget = hasValidTarget ? macroData.calories.target : 2000;
 
   // Calculate calories by meal type
   const getMealCalories = (mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack') => {
@@ -67,7 +65,7 @@ export default function CaloriesSummaryCard({
 
   return (
     <View className="px-4 mb-6">
-      <View className={themed("bg-white rounded-3xl p-6 shadow-sm border border-gray-100", "bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-700")}>
+      <View className={themed("bg-white rounded-2xl p-4 border border-gray-100", "bg-gray-900 rounded-2xl p-4 border border-green-700")}>
         <View className="flex-row items-center justify-between mb-4">
           {/* Left side - Large number and text */}
           <View className="flex-1">
@@ -94,25 +92,21 @@ export default function CaloriesSummaryCard({
           </View>
 
           {/* Right side - Circular progress */}
-          <View className="relative w-20 h-20 items-center justify-center">
-            {/* Background circle - always visible */}
-            <View className="absolute rounded-full" style={progressStyles.backgroundCircle} />
-
-            {/* Progress circle - partial progress */}
-            {progressStyles.progressCircle && (
-              <View className="absolute rounded-full" style={progressStyles.progressCircle} />
-            )}
-
-            {/* Complete circle when 100% or more */}
-            {progressStyles.fullCircle && (
-              <View className="absolute rounded-full" style={progressStyles.fullCircle} />
-            )}
-
-            {/* Center icon - smaller and positioned in the center */}
-            <View className="w-12 h-12 bg-orange-100 rounded-full items-center justify-center">
+          <CircularProgress
+            consumed={progressConsumed}
+            target={progressTarget}
+            size={80}
+            strokeWidth={6}
+            color={progressColor}
+            isDark={isDark}
+            showCenterText={false}
+            animated={true}
+            showOverflow={true}
+          >
+            <View className={themed("w-12 h-12 bg-orange-100 rounded-full items-center justify-center", "w-12 h-12 bg-orange-900/30 rounded-full items-center justify-center")}>
               <Flame size={20} color="#F59E0B" />
             </View>
-          </View>
+          </CircularProgress>
         </View>
 
         {/* Meal Breakdown */}

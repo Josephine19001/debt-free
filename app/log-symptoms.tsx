@@ -14,6 +14,7 @@ import SubPageLayout from '@/components/layouts/sub-page';
 import { Check } from 'lucide-react-native';
 import { useSymptomsForDate, useLogDailySymptoms } from '@/lib/hooks/use-daily-symptoms';
 import { Button } from '@/components/ui/button';
+import { useTheme } from '@/context/theme-provider';
 import { getLocalDateString } from '@/lib/utils/date-helpers';
 import {
   CrampsIcon,
@@ -33,6 +34,7 @@ import {
 export default function LogSymptomsScreen() {
   const { date } = useLocalSearchParams<{ date?: string }>();
   const selectedDate = date || getLocalDateString(new Date());
+  const { isDark } = useTheme();
   
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
   const [selectedSeverity, setSelectedSeverity] = useState<'mild' | 'moderate' | 'severe' | ''>('');
@@ -140,7 +142,7 @@ export default function LogSymptomsScreen() {
   const isFormValid = selectedSymptoms.length > 0;
 
   return (
-    <View className="flex-1" style={{ backgroundColor: '#F5F1E8' }}>
+    <View className={`flex-1 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <SubPageLayout
         title="Log Symptoms"
         onBack={() => router.back()}
@@ -174,8 +176,8 @@ export default function LogSymptomsScreen() {
             >
               {/* Header */}
               <View className="mb-8">
-                <Text className="text-3xl font-bold text-gray-900 mb-4">Track Your Symptoms</Text>
-                <Text className="text-gray-600 text-base">
+                <Text className={`text-3xl font-bold ${isDark ? 'text-gray-100' : 'text-gray-900'} mb-4`}>Track Your Symptoms</Text>
+                <Text className={`${isDark ? 'text-gray-300' : 'text-gray-600'} text-base`}>
                   Select any symptoms you're experiencing today.
                 </Text>
               </View>
@@ -192,12 +194,13 @@ export default function LogSymptomsScreen() {
                         className="flex-row items-center p-6 rounded-2xl"
                         style={{
                           backgroundColor: isSelected
-                            ? 'rgba(255, 182, 193, 0.3)'
-                            : 'rgba(255, 255, 255, 0.8)',
-                          borderWidth: 0,
-                          shadowColor: '#000',
+                            ? isDark ? 'rgba(236, 72, 153, 0.2)' : 'rgba(255, 182, 193, 0.3)'
+                            : isDark ? 'rgba(55, 65, 81, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+                          borderWidth: isSelected ? 1 : 0,
+                          borderColor: isSelected ? '#EC4899' : 'transparent',
+                          shadowColor: isDark ? '#EC4899' : '#000',
                           shadowOffset: { width: 0, height: 2 },
-                          shadowOpacity: 0.1,
+                          shadowOpacity: isDark ? 0.2 : 0.1,
                           shadowRadius: 8,
                           elevation: 3,
                         }}
@@ -219,7 +222,7 @@ export default function LogSymptomsScreen() {
                           {option.icon === 'anxiety' && <AnxietyIcon size={60} />}
                         </View>
                         <View className="flex-1">
-                          <Text className="text-xl font-medium text-gray-800">{option.label}</Text>
+                          <Text className={`text-xl font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>{option.label}</Text>
                         </View>
                         {isSelected && (
                           <View

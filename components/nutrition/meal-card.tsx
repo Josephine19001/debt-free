@@ -18,6 +18,7 @@ import {
 } from 'lucide-react-native';
 import { OliveOilIcon } from '@/components/icons/olive-oil-icon';
 import { useThemedStyles } from '@/lib/utils/theme';
+import { useTheme } from '@/context/theme-provider';
 
 interface MealData {
   id: string;
@@ -128,6 +129,7 @@ export const MealCard = ({
   onDiscardPending?: (meal: MealData) => void;
 }) => {
   const themed = useThemedStyles();
+  const { isDark } = useTheme();
   const IconComponent = getMealIcon(meal.type);
   const mealTypeColor = getMealTypeColor(meal.type);
 
@@ -169,7 +171,7 @@ export const MealCard = ({
 
   return (
     <TouchableOpacity
-      className={themed("bg-white rounded-2xl p-4 mb-3 shadow-sm border border-gray-50 relative", "bg-gray-800 rounded-2xl p-4 mb-3 shadow-sm border border-gray-700 relative")}
+      className={themed("bg-white rounded-2xl p-4 mb-3 border border-gray-100 relative", "bg-gray-900 rounded-2xl p-4 mb-3 border border-green-700 relative")}
       onPress={handlePress}
       disabled={isAnalyzing}
       style={{ opacity: isAnalyzing ? 0.9 : isFailed ? 0.8 : 1 }}
@@ -288,7 +290,7 @@ export const MealCard = ({
           {/* Macronutrients with Icons */}
           <View className="flex-row items-center gap-4">
             <View className="flex-row items-center">
-              <View className="rounded-full bg-red-100 p-1">
+              <View className={themed("rounded-full bg-red-100 p-1", "rounded-full bg-red-900/30 p-1")}>
                 <Beef size={14} color="#EF4444" />
               </View>
               {isAnalyzing ? (
@@ -298,7 +300,7 @@ export const MealCard = ({
               )}
             </View>
             <View className="flex-row items-center">
-              <View className="rounded-full bg-amber-100 p-1">
+              <View className={themed("rounded-full bg-amber-100 p-1", "rounded-full bg-amber-900/30 p-1")}>
                 <Wheat size={14} color="#F59E0B" />
               </View>
               {isAnalyzing ? (
@@ -308,7 +310,7 @@ export const MealCard = ({
               )}
             </View>
             <View className="flex-row items-center">
-              <View className="rounded-full bg-blue-100 p-1">
+              <View className={themed("rounded-full bg-purple-100 p-1", "rounded-full bg-purple-900/30 p-1")}>
                 <OliveOilIcon size={14} color="#8B5CF6" />
               </View>
               {isAnalyzing ? (

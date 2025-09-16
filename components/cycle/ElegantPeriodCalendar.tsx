@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { View, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import { View, TouchableOpacity, ScrollView, Dimensions, Modal } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { ChevronDown } from 'lucide-react-native';
 import { useTheme } from '@/context/theme-provider';
@@ -91,17 +91,50 @@ export function ElegantPeriodCalendar({
 
   // Scroll to current month when component mounts or year changes
   useEffect(() => {
-    if (selectedYear === new Date().getFullYear()) {
-      const currentMonth = new Date().getMonth();
-      const timeout = setTimeout(() => {
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    
+    const timeout = setTimeout(() => {
+      if (selectedYear === currentYear) {
+        // Calculate scroll position accounting for month spacing
+        // Each month takes approximately 320px (header + calendar + margin)
+        const scrollPosition = currentMonth * 320;
+        
         scrollViewRef.current?.scrollTo({
-          y: currentMonth * 400, // Approximate height per month
+          y: scrollPosition,
           animated: true,
         });
-      }, 100);
+      } else {
+        // For other years, scroll to top (January)
+        scrollViewRef.current?.scrollTo({
+          y: 0,
+          animated: false,
+        });
+      }
+    }, 150);
+    
+    return () => clearTimeout(timeout);
+  }, [selectedYear]);
+
+  // Initial scroll to current month on first mount
+  useEffect(() => {
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    
+    if (selectedYear === currentYear) {
+      const timeout = setTimeout(() => {
+        // Calculate scroll position for current month
+        const scrollPosition = currentMonth * 320;
+        
+        scrollViewRef.current?.scrollTo({
+          y: scrollPosition,
+          animated: false, // No animation on initial load
+        });
+      }, 300); // Longer delay for initial load to ensure layout is ready
+      
       return () => clearTimeout(timeout);
     }
-  }, [selectedYear]);
+  }, []); // Empty dependency array for initial mount only
 
   const isDateInPeriod = useCallback((year: number, month: number, day: number): boolean => {
     const dateString = getLocalDateString(new Date(year, month, day));
@@ -140,7 +173,7 @@ export function ElegantPeriodCalendar({
     
     if (editMode && onDateToggle) {
       const isPeriodDate = isDateInPeriod(year, month, day);
-      onDateToggle(date, isPeriodDate);
+      onDateToggle(date, !isPeriodDate); // Toggle the period state
     } else if (onDateSelect) {
       onDateSelect(date);
     }
@@ -285,96 +318,87 @@ export function ElegantPeriodCalendar({
         </View>
       )}
 
-      {/* Year Picker Bottom Sheet */}
+      {/* Year Picker Modal */}
       {showYearPicker && (
-        <View className="absolute inset-0 z-50 flex-1">
-          <TouchableOpacity 
-            className="flex-1 bg-black/50"
-            activeOpacity={1}
-            onPress={() => setShowYearPicker(false)}
-          />
-          
-          <View 
-            className={`rounded-t-3xl ${isDark ? 'bg-gray-800' : 'bg-white'}`}
-            style={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: -4 },
-              shadowOpacity: 0.15,
-              shadowRadius: 12,
-              elevation: 12,
-            }}
-          >
-              {/* Handle Bar */}
-              <View className="items-center pt-3 pb-2">
-                <View className={`w-10 h-1 rounded-full ${isDark ? 'bg-gray-600' : 'bg-gray-300'}`} />
+        <Modal
+          visible={true}
+          transparent={true}
+          animationType="slide"
+          presentationStyle="overFullScreen"
+          onRequestClose={() => setShowYearPicker(false)}
+        >
+          <View className="flex-1 bg-black/50 justify-end">
+            <TouchableOpacity 
+              className="flex-1"
+              activeOpacity={1}
+              onPress={() => setShowYearPicker(false)}
+            />
+            
+            <View 
+              className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-t-3xl`}
+              style={{ maxHeight: '70%' }}
+            >
+            {/* Handle Bar */}
+            <View className="items-center pt-3 pb-2">
+              <View className={`w-10 h-1 rounded-full ${isDark ? 'bg-gray-600' : 'bg-gray-300'}`} />
+            </View>
+            
+            {/* Header */}
+            <View className="items-center py-4 px-6">
+              <Text className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Select Year
+              </Text>
+            </View>
+            
+            {/* Year Options */}
+            <ScrollView 
+              className="max-h-80 px-6" 
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 20 }}
+            >
+              <View className="flex-row flex-wrap justify-center">
+                {availableYears.slice().reverse().map((year) => (
+                  <TouchableOpacity
+                    key={year}
+                    onPress={() => {
+                      setSelectedYear(year);
+                      setShowYearPicker(false);
+                    }}
+                    className={`w-20 py-4 px-3 rounded-2xl m-2 ${
+                      year === selectedYear
+                        ? 'bg-pink-500'
+                        : (isDark ? 'bg-gray-700' : 'bg-gray-100')
+                    }`}
+                  >
+                    <Text className={`text-center text-lg font-semibold ${
+                      year === selectedYear
+                        ? 'text-white'
+                        : (isDark ? 'text-gray-200' : 'text-gray-800')
+                    }`}>
+                      {year}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
-              
-              {/* Header */}
-              <View className="items-center py-4 px-6">
-                <Text className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  Select Year
-                </Text>
-              </View>
-              
-              {/* Year Options - Grid Layout for better space usage */}
-              <ScrollView 
-                className="max-h-80 px-6" 
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 20 }}
+            </ScrollView>
+            
+            {/* Cancel Button */}
+            <View className={`border-t ${isDark ? 'border-gray-700' : 'border-gray-200'} mx-6 mt-4`}>
+              <TouchableOpacity
+                onPress={() => setShowYearPicker(false)}
+                className="py-4"
               >
-                <View className="flex-row flex-wrap justify-center">
-                  {availableYears.slice().reverse().map((year) => (
-                    <TouchableOpacity
-                      key={year}
-                      onPress={() => {
-                        setSelectedYear(year);
-                        setShowYearPicker(false);
-                      }}
-                      className={`w-20 py-4 px-3 rounded-2xl m-2 ${
-                        year === selectedYear
-                          ? 'bg-pink-500'
-                          : (isDark ? 'bg-gray-700' : 'bg-gray-100')
-                      }`}
-                      style={{
-                        shadowColor: year === selectedYear ? '#EC4899' : 'transparent',
-                        shadowOffset: { width: 0, height: 2 },
-                        shadowOpacity: 0.2,
-                        shadowRadius: 6,
-                        elevation: year === selectedYear ? 3 : 0,
-                      }}
-                    >
-                      <Text className={`text-center text-lg font-semibold ${
-                        year === selectedYear
-                          ? 'text-white'
-                          : (isDark ? 'text-gray-200' : 'text-gray-800')
-                      }`}>
-                        {year}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </ScrollView>
-              
-              {/* Cancel Button */}
-              <View className={`border-t ${isDark ? 'border-gray-700' : 'border-gray-200'} mx-6 mt-4`}>
-                <TouchableOpacity
-                  onPress={() => setShowYearPicker(false)}
-                  className="py-4"
-                >
-                  <Text className="text-pink-600 font-semibold text-center text-lg">
-                    Cancel
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              
+                <Text className="text-pink-600 font-semibold text-center text-lg">
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+            </View>
+            
               {/* Safe Area Bottom Spacing */}
               <View className="h-8" />
+            </View>
           </View>
-        </View>
+        </Modal>
       )}
     </View>
   );

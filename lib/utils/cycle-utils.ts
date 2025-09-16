@@ -7,6 +7,7 @@
 export interface PeriodLog {
   date: string;
   is_start_day: boolean;
+  flow?: 'light' | 'moderate' | 'heavy' | 'spotting';
   notes?: string;
   mood?: string;
   symptoms?: string[];

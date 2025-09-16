@@ -1,8 +1,9 @@
 import { View, TouchableOpacity } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { GlassWater, Plus } from 'lucide-react-native';
-import { getAccurateCircularProgressStyles } from '@/lib/utils/progress-circle';
 import { useThemedStyles } from '@/lib/utils/theme';
+import { useTheme } from '@/context/theme-provider';
+import CircularProgress from '@/components/CircularProgress';
 
 interface WaterIntakeCardProps {
   waterData: {
@@ -21,58 +22,53 @@ export default function WaterIntakeCard({
   onQuickAdd,
 }: WaterIntakeCardProps) {
   const themed = useThemedStyles();
-  const progressStyles = getAccurateCircularProgressStyles(
-    waterData.consumed,
-    waterData.goal,
-    '#3B82F6'
-  );
+  const { isDark } = useTheme();
 
   return (
     <View className="px-4 mb-3">
-      <View className={themed("bg-white rounded-2xl p-4 shadow-sm border border-gray-50", "bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-700")}>
+      <View className={themed("bg-white rounded-xl p-3 border border-gray-100", "bg-gray-900 rounded-xl p-3 border border-green-700")}>
         <View className="flex-row items-center justify-between">
           {/* Left side - Text content */}
           <View className="flex-1">
-            <Text className={themed("text-lg font-bold text-gray-900 mb-1", "text-lg font-bold text-white mb-1")}>Water</Text>
-            <Text className={themed("text-3xl font-bold text-gray-900 mb-1", "text-3xl font-bold text-white mb-1")}>{waterData.consumed}ml</Text>
-            <Text className={themed("text-sm text-gray-500", "text-sm text-gray-400")}>of {waterData.goal}ml</Text>
+            <Text className={themed("text-base font-bold text-gray-900 mb-1", "text-base font-bold text-white mb-1")}>Water</Text>
+            <Text className={themed("text-2xl font-bold text-gray-900 mb-1", "text-2xl font-bold text-white mb-1")}>{waterData.consumed}ml</Text>
+            <Text className={themed("text-xs text-gray-500", "text-xs text-gray-400")}>of {waterData.goal}ml • {Math.round((waterData.consumed / waterData.goal) * 100)}%</Text>
           </View>
 
           {/* Right side - Circular progress with plus button */}
           <View className="items-center">
-            <View className="relative w-20 h-20 items-center justify-center">
-              {/* Background circle - always visible */}
-              <View className="absolute rounded-full" style={progressStyles.backgroundCircle} />
-
-              {/* Progress circle - partial progress */}
-              {progressStyles.progressCircle && (
-                <View className="absolute rounded-full" style={progressStyles.progressCircle} />
-              )}
-
-              {/* Complete circle when 100% or more */}
-              {progressStyles.fullCircle && (
-                <View className="absolute rounded-full" style={progressStyles.fullCircle} />
-              )}
-
-              {/* Center icon - positioned in the center */}
-              <View className="w-12 h-12 bg-blue-100 rounded-full items-center justify-center">
-                <GlassWater size={22} color="#3B82F6" />
+            <CircularProgress
+              consumed={waterData.consumed}
+              target={waterData.goal}
+              size={64}
+              strokeWidth={4}
+              color="#3B82F6"
+              isDark={isDark}
+              showCenterText={false}
+              animated={true}
+              showOverflow={true}
+            >
+              <View 
+                className="w-9 h-9 rounded-full items-center justify-center"
+                style={{ backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)' }}
+              >
+                <GlassWater size={18} color="#3B82F6" />
               </View>
-            </View>
+            </CircularProgress>
 
             {/* Plus button */}
             <TouchableOpacity
               onPress={onQuickAdd}
-              className="bg-blue-500 rounded-full w-10 h-10 items-center justify-center mt-2"
+              className="bg-blue-500 rounded-full w-8 h-8 items-center justify-center mt-2"
               style={{
                 shadowColor: '#3B82F6',
-                shadowOffset: { width: 0, height: 2 },
+                shadowOffset: { width: 0, height: 1 },
                 shadowOpacity: 0.2,
-                shadowRadius: 4,
-                elevation: 4,
+                shadowRadius: 3,
+                elevation: 3,
               }}
             >
-              <Plus size={20} color="#FFFFFF" />
+              <Plus size={16} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
         </View>

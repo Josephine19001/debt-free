@@ -4,8 +4,9 @@ import { Text } from '@/components/ui/text';
 import {  Beef, Wheat } from 'lucide-react-native';
 import { OliveOilIcon } from '@/components/icons/olive-oil-icon';
 import { MacroBreakdownSkeleton } from './nutrition-skeleton';
-import { getAccurateCircularProgressStyles } from '@/lib/utils/progress-circle';
 import { useThemedStyles } from '@/lib/utils/theme';
+import { useTheme } from '@/context/theme-provider';
+import CircularProgress from '@/components/CircularProgress';
 
 interface MacroBreakdownProps {
   macroData: {
@@ -33,48 +34,57 @@ const MacroCard = ({
   icon: React.ElementType;
 }) => {
   const themed = useThemedStyles();
+  const { isDark } = useTheme();
   const remaining = target - consumed;
-  const progressStyles = getAccurateCircularProgressStyles(consumed, target, color);
 
   return (
-    <View className={themed("bg-white rounded-2xl p-4 border border-gray-50 shadow-sm", "bg-gray-800 rounded-2xl p-4 border border-gray-700 shadow-sm")}>
-      <View className="flex-row items-center justify-between">
-        {/* Left side - Large number and text */}
-        <View className="flex-1">
-          <Text className={themed("text-4xl font-bold text-gray-900 mb-1", "text-4xl font-bold text-white mb-1")}>
-            {remaining}
-            {unit}
-          </Text>
-          <Text className={themed("text-gray-600 font-medium", "text-gray-300 font-medium")}>{title} left</Text>
-        </View>
-
-        {/* Right side - Circular progress */}
-        <View className="relative w-20 h-20 items-center justify-center">
-          {/* Background circle - always visible */}
-          <View className="absolute rounded-full" style={progressStyles.backgroundCircle} />
-
-          {/* Progress circle - partial progress */}
-          {progressStyles.progressCircle && (
-            <View className="absolute rounded-full" style={progressStyles.progressCircle} />
-          )}
-
-          {/* Complete circle when 100% or more */}
-          {progressStyles.fullCircle && (
-            <View className="absolute rounded-full" style={progressStyles.fullCircle} />
-          )}
-
-          {/* Center icon - positioned in the center */}
+    <View className={themed("bg-white rounded-xl p-3 border border-gray-100", "bg-gray-800 rounded-xl p-3 border border-gray-700")}>
+      {/* Top - Icon and progress circle */}
+      <View className="items-center mb-3">
+        <CircularProgress
+          consumed={consumed}
+          target={target}
+          size={48}
+          strokeWidth={4}
+          color={color}
+          isDark={isDark}
+          showCenterText={false}
+          animated={true}
+          showOverflow={true}
+        >
           <View
-            className="w-12 h-12 rounded-full items-center justify-center"
-            style={{ backgroundColor: `${color}20` }}
+            className="w-7 h-7 rounded-full items-center justify-center"
+            style={{ 
+              backgroundColor: isDark 
+                ? `rgba(${parseInt(color.slice(1, 3), 16)}, ${parseInt(color.slice(3, 5), 16)}, ${parseInt(color.slice(5, 7), 16)}, 0.2)` 
+                : `${color}20` 
+            }}
           >
             {icon === OliveOilIcon ? (
-              <OliveOilIcon size={22} color={color} />
+              <OliveOilIcon size={14} color={color} />
             ) : (
-              React.createElement(icon, { size: 22, color })
+              React.createElement(icon, { size: 14, color })
             )}
           </View>
+        </CircularProgress>
+      </View>
+
+      {/* Bottom - Text content */}
+      <View className="items-center">
+        <View className="flex-row items-baseline mb-1">
+          <Text className={themed("text-xl font-bold text-gray-900", "text-xl font-bold text-white")}>
+            {remaining}
+          </Text>
+          <Text className={themed("text-sm font-medium text-gray-700", "text-sm font-medium text-gray-300")}>
+            {unit}
+          </Text>
         </View>
+        <Text className={themed("text-xs text-gray-600 text-center", "text-xs text-gray-400 text-center")}>
+          {title} left
+        </Text>
+        <Text className={themed("text-xs text-gray-500", "text-xs text-gray-400")}>
+          {Math.round((consumed / target) * 100)}%
+        </Text>
       </View>
     </View>
   );
@@ -98,9 +108,9 @@ export default function MacroBreakdown({ macroData, isLoading = false }: MacroBr
 
   return (
     <View className="px-4 mb-6">
-      {/* Single column layout for better readability */}
-      <View>
-        <View className="mb-3">
+      {/* Three cards in a row */}
+      <View className="flex-row gap-2">
+        <View className="flex-1">
           <MacroCard
             title="Protein"
             consumed={getDisplayData(macroData.protein, 150).consumed}
@@ -111,7 +121,7 @@ export default function MacroBreakdown({ macroData, isLoading = false }: MacroBr
           />
         </View>
 
-        <View className="mb-3">
+        <View className="flex-1">
           <MacroCard
             title="Carbs"
             consumed={getDisplayData(macroData.carbs, 250).consumed}
@@ -122,14 +132,16 @@ export default function MacroBreakdown({ macroData, isLoading = false }: MacroBr
           />
         </View>
 
-        <MacroCard
-          title="Fat"
-          consumed={getDisplayData(macroData.fat, 67).consumed}
-          target={getDisplayData(macroData.fat, 67).target}
-          unit="g"
-          color="#8B5CF6"
-          icon={OliveOilIcon}
-        />
+        <View className="flex-1">
+          <MacroCard
+            title="Fat"
+            consumed={getDisplayData(macroData.fat, 67).consumed}
+            target={getDisplayData(macroData.fat, 67).target}
+            unit="g"
+            color="#8B5CF6"
+            icon={OliveOilIcon}
+          />
+        </View>
       </View>
     </View>
   );
