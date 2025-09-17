@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Pressable } from 'react-native';
 import { Text } from '@/components/ui/text';
+import { useTheme } from '@/context/theme-provider';
 import { Scale, TrendingDown, TrendingUp, Minus, Plus } from 'lucide-react-native';
 import {
   WeightEntry,
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export const WeightProgressChart = ({ weightEntries, goalWeight, isLoading }: Props) => {
+  const { theme } = useTheme();
   const hasData = weightEntries.length > 0;
 
   // Modal state
@@ -27,9 +29,9 @@ export const WeightProgressChart = ({ weightEntries, goalWeight, isLoading }: Pr
 
   if (!hasData) {
     return (
-      <View className="bg-white rounded-3xl p-6 mx-4 mb-4">
+      <View className={`${theme === 'dark' ? 'bg-slate-700' : 'bg-white'} rounded-3xl p-6 mx-4 mb-4`}>
         <View className="flex-row justify-between items-center mb-2">
-          <Text className="text-2xl font-bold">Weight Progress</Text>
+          <Text className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Weight Progress</Text>
           <Pressable
             onPress={() => setShowAddEntry(true)}
             className="bg-pink-500 px-3 py-2 rounded-xl flex-row items-center gap-2"
@@ -39,16 +41,16 @@ export const WeightProgressChart = ({ weightEntries, goalWeight, isLoading }: Pr
           </Pressable>
         </View>
         <View className="mb-6 flex flex-row gap-2 items-center">
-          <Text className="text-4xl font-bold">--</Text>
-          <Text className="text-gray-500">kg</Text>
+          <Text className={`text-4xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>--</Text>
+          <Text className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>kg</Text>
         </View>
 
         <View className="flex flex-col items-center justify-center h-64 px-6">
-          <View className="rounded-xl bg-slate-100 p-4 flex items-center justify-center mb-4">
-            <Scale size={24} color="#64748b" />
+          <View className={`rounded-xl ${theme === 'dark' ? 'bg-gray-700' : 'bg-slate-100'} p-4 flex items-center justify-center mb-4`}>
+            <Scale size={24} color={theme === 'dark' ? '#9CA3AF' : '#64748b'} />
           </View>
-          <Text className="text-2xl font-bold mb-4 text-center">No weight data</Text>
-          <Text className="text-lg text-center text-gray-600">
+          <Text className={`text-2xl font-bold mb-4 text-center ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>No weight data</Text>
+          <Text className={`text-lg text-center ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
             Start logging your weight to track your progress
           </Text>
         </View>
@@ -125,9 +127,9 @@ export const WeightProgressChart = ({ weightEntries, goalWeight, isLoading }: Pr
   }
 
   return (
-    <View className="bg-white rounded-3xl p-6 mx-4 mb-4">
+    <View className={`${theme === 'dark' ? 'bg-slate-700' : 'bg-white'} rounded-3xl p-6 mx-4 mb-4`}>
       <View className="flex-row justify-between items-center mb-2">
-        <Text className="text-2xl font-bold">Weight Progress</Text>
+        <Text className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Weight Progress</Text>
         <Pressable
           onPress={() => setShowAddEntry(true)}
           className="bg-pink-500 px-3 py-2 rounded-xl flex-row items-center gap-2"
@@ -137,8 +139,8 @@ export const WeightProgressChart = ({ weightEntries, goalWeight, isLoading }: Pr
         </Pressable>
       </View>
       <View className="mb-2 flex flex-row gap-2 items-center">
-        <Text className="text-4xl font-bold">{currentWeight.toFixed(1)}</Text>
-        <Text className="text-gray-500">{units}</Text>
+        <Text className={`text-4xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{currentWeight.toFixed(1)}</Text>
+        <Text className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>{units}</Text>
       </View>
 
       {/* Trend indicator */}
@@ -162,7 +164,7 @@ export const WeightProgressChart = ({ weightEntries, goalWeight, isLoading }: Pr
               style={{ top: yPosition }}
             >
               <Text className="text-xs text-gray-400 w-12 text-right mr-2">{value.toFixed(1)}</Text>
-              <View className="flex-1 h-[1px] bg-gray-100" />
+              <View className={`flex-1 h-[1px] ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-100'}`} />
             </View>
           );
         })}
@@ -228,14 +230,14 @@ export const WeightProgressChart = ({ weightEntries, goalWeight, isLoading }: Pr
         <View className="absolute bottom-0 left-14 right-0 flex-row justify-between">
           {weightEntries.length > 0 && (
             <>
-              <Text className="text-xs text-gray-600">
+              <Text className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                 {new Date(weightEntries[0].measured_at).toLocaleDateString('en-US', {
                   month: 'short',
                   day: 'numeric',
                 })}
               </Text>
               {weightEntries.length > 1 && (
-                <Text className="text-xs text-gray-600">
+                <Text className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                   {new Date(weightEntries[weightEntries.length - 1].measured_at).toLocaleDateString(
                     'en-US',
                     {
@@ -254,12 +256,12 @@ export const WeightProgressChart = ({ weightEntries, goalWeight, isLoading }: Pr
       <View className="flex-row justify-center items-center gap-4 mt-4">
         <View className="flex-row items-center gap-2">
           <View className="w-3 h-3 rounded-full bg-pink-500" />
-          <Text className="text-sm">Weight</Text>
+          <Text className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Weight</Text>
         </View>
         {goalWeight && (
           <View className="flex-row items-center gap-2">
             <View className="w-3 h-0.5 bg-pink-400 border-dashed" />
-            <Text className="text-sm">
+            <Text className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
               Goal ({goalWeight}
               {units === 'metric' ? 'kg' : 'lbs'})
             </Text>

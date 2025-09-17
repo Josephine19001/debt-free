@@ -24,19 +24,29 @@ const SettingsDetailItem = ({
   isLast,
 }: SettingsDetailItemProps) => {
   const { isDark } = useTheme();
-  
+
   return (
     <View
-      className={`flex-row justify-between items-center ${isDark ? 'bg-gray-700' : 'bg-slate-100'} rounded-2xl p-4 ${!isLast && `border-b ${isDark ? 'border-gray-600' : 'border-gray-100'} pb-4`}`}
+      className={`flex-row justify-between items-center ${
+        isDark ? 'bg-gray-700' : 'bg-slate-100'
+      } rounded-2xl p-4 ${
+        !isLast && `border-b ${isDark ? 'border-gray-600' : 'border-gray-100'} pb-4`
+      }`}
     >
-      <Text className={`text-base font-medium ${isDark ? 'text-white' : 'text-black'} flex-shrink-0`}>{label}</Text>
+      <Text
+        className={`text-base font-medium ${isDark ? 'text-white' : 'text-black'} flex-shrink-0`}
+      >
+        {label}
+      </Text>
       <View className="flex-row items-center flex-1 justify-end">
         {isEditing && label.toLowerCase().includes('date') ? null : isEditing ? (
           <>
             <TextInput
               value={tempValue}
               onChangeText={onChangeText}
-              className={`text-base mr-3 px-2 py-1 flex-1 min-w-[120px] text-right ${isDark ? 'text-white' : 'text-black'}`}
+              className={`text-base mr-3 px-2 py-1 flex-1 min-w-[120px] text-right ${
+                isDark ? 'text-white' : 'text-black'
+              }`}
               autoFocus
               multiline={false}
               placeholderTextColor={isDark ? '#9ca3af' : '#999'}
@@ -50,7 +60,11 @@ const SettingsDetailItem = ({
           </>
         ) : (
           <>
-            <Text className={`text-base ${isDark ? 'text-gray-300' : 'text-gray-700'} mr-3 flex-1 text-right`}>
+            <Text
+              className={`text-base ${
+                isDark ? 'text-gray-300' : 'text-gray-700'
+              } mr-3 flex-1 text-right`}
+            >
               {typeof value === 'string' ? value : value.toLocaleDateString()}
             </Text>
             <Pressable

@@ -1,5 +1,6 @@
 import { View, TouchableOpacity, Alert } from 'react-native';
 import { Text } from '@/components/ui/text';
+import { useTheme } from '@/context/theme-provider';
 import { PhotoGrid } from '@/components/photo-grid';
 import { Camera, Upload } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
@@ -12,6 +13,7 @@ type ProgressPicturesSectionProps = {
 };
 
 export function ProgressPicturesSection({ startDate, endDate }: ProgressPicturesSectionProps) {
+  const { theme } = useTheme();
   const [isUploading, setIsUploading] = useState(false);
   const { photos, uploadPhoto, deletePhoto, isLoading } = useProgressPhotos(startDate, endDate);
 
@@ -91,9 +93,9 @@ export function ProgressPicturesSection({ startDate, endDate }: ProgressPictures
   };
 
   return (
-    <View className="bg-white rounded-2xl p-6 mx-4 mb-6">
+    <View className={`${theme === 'dark' ? 'bg-slate-700' : 'bg-white'} rounded-2xl p-6 mx-4 mb-6`}>
       <View className="flex-row items-center justify-between mb-4">
-        <Text className="text-lg font-semibold text-gray-900">Progress Pictures</Text>
+        <Text className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Progress Pictures</Text>
         <TouchableOpacity
           onPress={showUploadOptions}
           disabled={isUploading}
@@ -109,16 +111,16 @@ export function ProgressPicturesSection({ startDate, endDate }: ProgressPictures
       
       {photos.length === 0 ? (
         <View className="items-center py-8">
-          <Camera size={48} color="#D1D5DB" />
-          <Text className="text-gray-500 text-center mt-2 mb-4">
+          <Camera size={48} color={theme === 'dark' ? '#6B7280' : '#D1D5DB'} />
+          <Text className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} text-center mt-2 mb-4`}>
             No progress pictures yet for this week
           </Text>
           <TouchableOpacity
             onPress={showUploadOptions}
             disabled={isUploading}
-            className="bg-pink-100 rounded-xl px-4 py-2"
+            className={`${theme === 'dark' ? 'bg-pink-900/30' : 'bg-pink-100'} rounded-xl px-4 py-2`}
           >
-            <Text className="text-pink-600 font-medium">
+            <Text className={`${theme === 'dark' ? 'text-pink-400' : 'text-pink-600'} font-medium`}>
               {isUploading ? 'Uploading...' : 'Add Your First Picture'}
             </Text>
           </TouchableOpacity>

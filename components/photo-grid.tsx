@@ -8,6 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import { Text } from '@/components/ui/text';
+import { useTheme } from '@/context/theme-provider';
 import { X, Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
 
@@ -24,6 +25,7 @@ type PhotoGridProps = {
 };
 
 export function PhotoGrid({ photos, onDeletePhoto }: PhotoGridProps) {
+  const { theme } = useTheme();
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
 
   if (photos.length === 0) {
@@ -65,7 +67,7 @@ export function PhotoGrid({ photos, onDeletePhoto }: PhotoGridProps) {
                 resizeMode="cover"
               />
             </TouchableOpacity>
-            <Text className="text-gray-600 text-sm mt-2">{photo.date}</Text>
+            <Text className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} text-sm mt-2`}>{photo.date}</Text>
           </View>
         ))}
       </ScrollView>

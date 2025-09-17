@@ -21,10 +21,8 @@ const CircularProgress = ({
   size?: number;
   isDark?: boolean;
 }) => {
-  const progressAngle = (progress / 100) * 360;
   const dashCount = 40; // Number of dashes around the circle
   const dashLength = 8;
-  const gapLength = 4;
 
   // Create array of dashes based on progress
   const renderDashes = () => {

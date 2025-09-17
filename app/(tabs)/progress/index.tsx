@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { ScrollView, TouchableOpacity } from 'react-native';
+import { useTheme } from '@/context/theme-provider';
 import PageLayout from '@/components/layouts/page-layout';
 import { Calendar } from 'lucide-react-native';
 import { PeriodSelectionModal } from '@/components/progress/period-selection-modal';

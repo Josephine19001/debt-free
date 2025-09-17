@@ -638,12 +638,22 @@ export default function NutritionGoalsScreen() {
 
         {/* Goals Button */}
         <View className="px-4 mb-8">
-          <GenerateMacrosButton 
-            variant="secondary"
-            onGenerationComplete={() => {
-              // Goals will be automatically refreshed by the hook
-            }}
-          />
+          {nutritionGoals && nutritionGoals.calories && nutritionGoals.protein ? (
+            <Button
+              title="Update Goals"
+              variant="secondary"
+              className="w-full"
+              onPress={() => setShowQuestionnaire(true)}
+              preIcon={<Sparkles size={20} color="#ec4899" />}
+            />
+          ) : (
+            <GenerateMacrosButton 
+              variant="secondary"
+              onGenerationComplete={() => {
+                // Goals will be automatically refreshed by the hook
+              }}
+            />
+          )}
         </View>
       </ScrollView>
 

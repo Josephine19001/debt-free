@@ -3,50 +3,61 @@ import { QuestionnaireStep } from '@/components/ui';
 export const nutritionQuestionnaireSteps: QuestionnaireStep[] = [
   {
     key: 'goal',
-    title: "What's your nutrition goal?",
-    subtitle: 'This will help us customize your plan.',
+    title: "What's your nutrition goal right now? 🥗",
+    subtitle: 'This will help us customize your plan',
     options: [
       {
         value: 'lose_weight',
-        label: 'Lose Weight',
-        description: 'Healthy weight loss for women',
+        label: 'Weight loss ⚖️',
+        description: 'Healthy weight loss goals',
+        icon: '⚖️',
       },
       {
         value: 'gain_muscle',
-        label: 'Build Muscle',
-        description: 'Lean muscle development',
+        label: 'Muscle gain 💪',
+        description: 'Build lean muscle mass',
+        icon: '💪',
+      },
+      {
+        value: 'hormone_balance',
+        label: 'Hormone balance 🌸',
+        description: 'Support hormonal health',
+        icon: '🌸',
+      },
+      {
+        value: 'better_energy',
+        label: 'Better energy ⚡',
+        description: 'Boost daily energy levels',
+        icon: '⚡',
       },
       {
         value: 'maintain',
-        label: 'Maintain Weight',
-        description: 'Stay at current healthy weight',
-      },
-      {
-        value: 'improve_health',
-        label: 'Improve Health',
-        description: 'Focus on overall wellness',
+        label: 'Just eat better 🥗',
+        description: 'Focus on overall nutrition',
+        icon: '🥗',
       },
     ],
   },
   {
     key: 'activity',
-    title: 'How active are you?',
-    subtitle: 'This affects your daily calorie needs.',
+    title: 'How active are you in daily life? 🚶‍♀️',
+    subtitle: 'This affects your daily calorie needs',
     options: [
-      { value: 'sedentary', label: 'Sedentary', description: 'Desk job, minimal exercise' },
-      { value: 'light', label: 'Light Activity', description: 'Light workouts 1-3 days/week' },
+      { value: 'sedentary', label: 'Mostly sitting 🪑', description: 'Desk job, little exercise', icon: '🪑' },
+      { value: 'light', label: 'Lightly active 🚶', description: 'Light exercise 1-3 days/week', icon: '🚶' },
       {
         value: 'moderate',
-        label: 'Moderate Activity',
-        description: 'Regular workouts 3-5 days/week',
+        label: 'On my feet a lot 🏃‍♀️',
+        description: 'Regular exercise 3-5 days/week',
+        icon: '🏃‍♀️',
       },
-      { value: 'active', label: 'Very Active', description: 'Intense workouts 6-7 days/week' },
+      { value: 'active', label: 'Very active 🔥', description: 'Intense exercise 6-7 days/week', icon: '🔥' },
     ],
   },
   {
     key: 'experience',
-    title: "What's your nutrition experience?",
-    subtitle: "We'll adjust recommendations accordingly.",
+    title: 'Nutrition tracking experience?',
+    subtitle: "We'll adjust the complexity for you",
     options: [
       { value: 'beginner', label: 'Beginner', description: 'New to nutrition tracking' },
       {
@@ -66,22 +77,22 @@ export const nutritionQuestionnaireSteps: QuestionnaireStep[] = [
 // Helper functions to format display values
 export const formatGoal = (goal: string) => {
   const goalMap: Record<string, string> = {
-    lose_weight: 'Lose Weight',
-    gain_muscle: 'Gain Muscle', 
-    maintain: 'Maintain Weight',
-    improve_health: 'Improve Health',
-    // NEW VALUES from onboarding chat
+    lose_weight: 'Weight Loss',
+    gain_muscle: 'Muscle Gain', 
     hormone_balance: 'Hormone Balance',
     better_energy: 'Better Energy',
+    maintain: 'Just Eat Better',
+    // Legacy values for backward compatibility
+    improve_health: 'Improve Health',
   };
   return goalMap[goal] || goal.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 };
 
 export const formatActivityLevel = (level: string) => {
   const levelMap: Record<string, string> = {
-    sedentary: 'Sedentary',
-    light: 'Light Activity',
-    moderate: 'Moderate Activity',
+    sedentary: 'Mostly Sitting',
+    light: 'Lightly Active',
+    moderate: 'On My Feet A Lot',
     active: 'Very Active',
   };
   return levelMap[level] || level.replace('_', ' ');

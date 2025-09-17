@@ -1,5 +1,6 @@
 import { View, Modal, TouchableOpacity, Pressable } from 'react-native';
 import { Text } from '@/components/ui/text';
+import { useTheme } from '@/context/theme-provider';
 import { X, Calendar } from 'lucide-react-native';
 import { cn } from '@/lib/utils';
 
@@ -25,6 +26,7 @@ export function PeriodSelectionModal({
   selectedPeriod,
   onSelectPeriod,
 }: PeriodSelectionModalProps) {
+  const { theme } = useTheme();
   const handleSelectPeriod = (period: PeriodType) => {
     onSelectPeriod(period);
     onClose();
@@ -42,25 +44,25 @@ export function PeriodSelectionModal({
         onPress={onClose}
       >
         <Pressable
-          className="bg-white rounded-t-3xl"
+          className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-t-3xl`}
           onPress={(e) => e.stopPropagation()}
         >
           {/* Handle Bar */}
           <View className="items-center py-3">
-            <View className="w-12 h-1 bg-gray-300 rounded-full" />
+            <View className={`w-12 h-1 ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-300'} rounded-full`} />
           </View>
 
           {/* Header */}
           <View className="flex-row items-center justify-between px-6 pb-4">
             <View className="flex-row items-center">
-              <Calendar size={24} color="#374151" />
-              <Text className="text-xl font-semibold ml-2">Select Time Period</Text>
+              <Calendar size={24} color={theme === 'dark' ? '#F3F4F6' : '#374151'} />
+              <Text className={`text-xl font-semibold ml-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Select Time Period</Text>
             </View>
             <TouchableOpacity
               onPress={onClose}
-              className="w-8 h-8 items-center justify-center rounded-full bg-gray-100"
+              className={`w-8 h-8 items-center justify-center rounded-full ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'}`}
             >
-              <X size={18} color="#6B7280" />
+              <X size={18} color={theme === 'dark' ? '#D1D5DB' : '#6B7280'} />
             </TouchableOpacity>
           </View>
 
@@ -72,19 +74,25 @@ export function PeriodSelectionModal({
                 onPress={() => handleSelectPeriod(option.value)}
                 className={cn(
                   'flex-row items-center justify-between py-4 px-4 rounded-2xl mb-3',
-                  selectedPeriod === option.value ? 'bg-pink-50 border border-pink-200' : 'bg-gray-50'
+                  selectedPeriod === option.value 
+                    ? theme === 'dark' ? 'bg-pink-900/30 border border-pink-400' : 'bg-pink-50 border border-pink-200'
+                    : theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
                 )}
               >
                 <View className="flex-1">
                   <Text className={cn(
                     'text-lg font-medium',
-                    selectedPeriod === option.value ? 'text-pink-700' : 'text-gray-900'
+                    selectedPeriod === option.value 
+                      ? theme === 'dark' ? 'text-pink-300' : 'text-pink-700'
+                      : theme === 'dark' ? 'text-white' : 'text-gray-900'
                   )}>
                     {option.label}
                   </Text>
                   <Text className={cn(
                     'text-sm mt-1',
-                    selectedPeriod === option.value ? 'text-pink-600' : 'text-gray-500'
+                    selectedPeriod === option.value 
+                      ? theme === 'dark' ? 'text-pink-400' : 'text-pink-600'
+                      : theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                   )}>
                     {option.description}
                   </Text>

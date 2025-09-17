@@ -2,7 +2,7 @@ import { View, ScrollView, Pressable, Modal, SafeAreaView } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Check } from 'lucide-react-native';
-import { useThemedStyles, useThemedColors } from '@/lib/utils/theme';
+import { useTheme } from '@/context/theme-provider';
 
 export type QuestionnaireStep = {
   key: string;
@@ -48,8 +48,7 @@ export default function Questionnaire({
   const currentStep = steps[currentStepIndex];
   const isLastStep = currentStepIndex === steps.length - 1;
   const isComplete = currentStepIndex >= steps.length;
-  const themed = useThemedStyles();
-  const colors = useThemedColors();
+  const { theme } = useTheme();
 
   const handleNext = () => {
     if (isLastStep) {
@@ -66,9 +65,9 @@ export default function Questionnaire({
       <Pressable
         key={option.value}
         onPress={() => onSelectValue(stepKey, option.value)}
-        className={themed(`p-6 rounded-2xl mb-4 border border-pink-100`, `p-6 rounded-2xl mb-4 `)}
+        className={`p-6 rounded-2xl mb-4 ${theme === 'dark' ? '' : 'border border-pink-100'}`}
         style={{
-          backgroundColor: isSelected ? accentColor : colors.card,
+          backgroundColor: isSelected ? accentColor : theme === 'dark' ? '#374151' : '#ffffff',
         }}
       >
         {option.icon && (
@@ -76,7 +75,7 @@ export default function Questionnaire({
             <Text className="text-2xl mr-3">{option.icon}</Text>
             <Text
               className={`text-xl font-semibold ${
-                isSelected ? 'text-white' : colors.isDark ? 'text-white' : 'text-black'
+                isSelected ? 'text-white' : theme === 'dark' ? 'text-gray-100' : 'text-black'
               }`}
             >
               {option.label}
@@ -87,7 +86,7 @@ export default function Questionnaire({
         {!option.icon && (
           <Text
             className={`text-xl font-semibold mb-2 ${
-              isSelected ? 'text-white' : colors.isDark ? 'text-white' : 'text-black'
+              isSelected ? 'text-white' : theme === 'dark' ? 'text-gray-100' : 'text-black'
             }`}
           >
             {option.label}
@@ -96,7 +95,7 @@ export default function Questionnaire({
 
         <Text
           className={`${
-            isSelected ? 'text-white' : colors.isDark ? 'text-gray-300' : 'text-gray-600'
+            isSelected ? 'text-white' : theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
           } ${option.icon ? '' : 'ml-0'}`}
         >
           {option.description}
@@ -107,16 +106,16 @@ export default function Questionnaire({
 
   return (
     <Modal visible={visible} animationType="slide">
-      <SafeAreaView className={themed('flex-1 bg-gray-50', 'flex-1 bg-gray-900')}>
+      <SafeAreaView className={`flex-1 ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'}`}>
         {/* Header with Back Button and Progress */}
         <View className="px-4 py-4">
           <View className="flex-row items-center mb-4">
             <Pressable onPress={onBack} className="mr-4 p-2">
-              <ArrowLeft size={24} color={colors.foreground} />
+              <ArrowLeft size={24} color={theme === 'dark' ? '#F3F4F6' : '#374151'} />
             </Pressable>
             <View className="flex-1">
               <View
-                className={themed('bg-gray-200 rounded-full h-1', 'bg-gray-700 rounded-full h-1')}
+                className={`rounded-full h-1 ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'}`}
               >
                 <View
                   className="rounded-full h-1 transition-all duration-300"
@@ -134,26 +133,23 @@ export default function Questionnaire({
           {isComplete || isGenerating ? (
             <View className="flex-1 justify-center items-center">
               <View
-                className={themed(
-                  'bg-green-100 w-20 h-20 rounded-full items-center justify-center mb-6',
-                  'bg-green-900/20 w-20 h-20 rounded-full items-center justify-center mb-6'
-                )}
+                className={`w-20 h-20 rounded-full items-center justify-center mb-6 ${
+                  theme === 'dark' ? 'bg-green-900/20' : 'bg-green-100'
+                }`}
               >
                 <Check size={40} color="#22c55e" />
               </View>
               <Text
-                className={themed(
-                  'text-3xl font-bold text-center mb-4',
-                  'text-3xl font-bold text-center mb-4 text-white'
-                )}
+                className={`text-3xl font-bold text-center mb-4 ${
+                  theme === 'dark' ? 'text-white' : 'text-gray-900'
+                }`}
               >
                 Generating your goals...
               </Text>
               <Text
-                className={themed(
-                  'text-gray-600 text-center text-lg',
-                  'text-gray-300 text-center text-lg'
-                )}
+                className={`text-center text-lg ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                }`}
               >
                 This will take just a moment
               </Text>
@@ -161,11 +157,11 @@ export default function Questionnaire({
           ) : currentStep ? (
             <View>
               <Text
-                className={themed('text-3xl font-bold mb-2', 'text-3xl font-bold mb-2 text-white')}
+                className={`text-3xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}
               >
                 {currentStep.title}
               </Text>
-              <Text className={themed('text-gray-600 text-lg mb-8', 'text-gray-300 text-lg mb-8')}>
+              <Text className={`text-lg mb-8 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                 {currentStep.subtitle}
               </Text>
 

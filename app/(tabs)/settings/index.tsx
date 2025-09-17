@@ -509,7 +509,7 @@ function SettingsItem({
   return (
     <Pressable
       className={`flex-row items-center ${isTablet ? 'p-6' : 'p-4'} ${
-        !isLast && `border-b ${isDark ? '' : 'border-gray-100'}`
+        !isLast && `border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`
       }`}
       onPress={onPress}
     >
