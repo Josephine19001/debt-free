@@ -8,6 +8,7 @@ import { Toaster } from 'sonner-native';
 import { AuthProvider } from './auth-provider';
 import { RevenueCatProvider } from './revenuecat-provider';
 import { ThemeProvider } from './theme-provider';
+import { TabBarProvider } from './tab-bar-provider';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,8 +30,10 @@ export const RootProvider = ({ children }: PropsWithChildren) => {
           <RevenueCatProvider>
             <GestureHandlerRootView style={{ flex: 1 }}>
               <BottomSheetModalProvider>
-                {children}
-                <Toaster />
+                <TabBarProvider>
+                  {children}
+                  <Toaster />
+                </TabBarProvider>
               </BottomSheetModalProvider>
             </GestureHandlerRootView>
           </RevenueCatProvider>

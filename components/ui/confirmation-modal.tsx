@@ -1,6 +1,6 @@
-import { View, Modal, Pressable } from 'react-native';
+import { View, Modal, Pressable, StyleSheet } from 'react-native';
 import { Text } from '@/components/ui/text';
-import { useThemedStyles } from '@/lib/utils/theme';
+import { BlurView } from 'expo-blur';
 
 type Props = {
   visible: boolean;
@@ -19,32 +19,66 @@ export function ConfirmationModal({
   onConfirm,
   title,
   message,
-  confirmText = 'Delete',
+  confirmText = 'Confirm',
   cancelText = 'Cancel',
   destructive = false,
 }: Props) {
-  const themed = useThemedStyles();
   return (
     <Modal visible={visible} transparent animationType="fade">
-      <View className="flex-1 justify-center items-center bg-black/50 px-4">
-        <View className={themed("bg-white w-full rounded-xl p-6", "bg-gray-800 w-full rounded-xl p-6")}>
-          <Text className={themed("text-2xl font-semibold text-center mb-2", "text-2xl font-semibold text-center mb-2 text-white")}>{title}</Text>
-          <Text className={themed("text-gray-600 text-center mb-8", "text-gray-300 text-center mb-8")}>{message}</Text>
+      <Pressable
+        className="flex-1 justify-center items-center px-6"
+        style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
+        onPress={onClose}
+      >
+        <Pressable
+          className="w-full rounded-3xl overflow-hidden"
+          onPress={(e) => e.stopPropagation()}
+        >
+          <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFill}>
+            <View
+              style={{
+                ...StyleSheet.absoluteFillObject,
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              }}
+            />
+          </BlurView>
+          <View
+            style={{
+              ...StyleSheet.absoluteFillObject,
+              borderRadius: 24,
+              borderWidth: 1,
+              borderColor: 'rgba(255, 255, 255, 0.1)',
+            }}
+          />
+          <View className="p-6">
+            <Text className="text-xl font-semibold text-center mb-2 text-white">
+              {title}
+            </Text>
+            <Text className="text-gray-400 text-center mb-6">{message}</Text>
 
-          <View className="flex-row gap-4">
-            <Pressable
-              onPress={onConfirm}
-              className={themed(`flex-1 py-3 rounded-xl ${destructive ? 'bg-red-600' : 'bg-blue-500'}`, `flex-1 py-3 rounded-xl ${destructive ? 'bg-red-700' : 'bg-blue-600'}`)}
-            >
-              <Text className="text-white text-center font-medium">{confirmText}</Text>
-            </Pressable>
+            <View className="gap-3">
+              <Pressable
+                onPress={onConfirm}
+                className={`py-4 rounded-2xl ${destructive ? 'bg-red-500/80' : 'bg-emerald-500/80'}`}
+              >
+                <Text className="text-white text-center font-semibold">
+                  {confirmText}
+                </Text>
+              </Pressable>
 
-            <Pressable onPress={onClose} className={themed("flex-1 py-3 rounded-xl bg-gray-100", "flex-1 py-3 rounded-xl bg-gray-700")}>
-              <Text className={themed("text-center font-medium", "text-center font-medium text-white")}>{cancelText}</Text>
-            </Pressable>
+              <Pressable
+                onPress={onClose}
+                className="py-4 rounded-2xl"
+                style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+              >
+                <Text className="text-white text-center font-medium">
+                  {cancelText}
+                </Text>
+              </Pressable>
+            </View>
           </View>
-        </View>
-      </View>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 }

@@ -1,14 +1,8 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Platform,
-  StatusBar,
-  Pressable,
-} from 'react-native';
+import { View, Text, StyleSheet, Platform, StatusBar, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { ChevronLeft } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 
@@ -69,9 +63,8 @@ export function PageLayout({
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       {renderHeader()}
-      <View style={[styles.content, { paddingBottom: insets.bottom + 100 }]}>
-        {children}
-      </View>
+      {/* <View style={[styles.content, { paddingBottom: 100 }]}> */}
+      <View style={[styles.content]}>{children}</View>
     </View>
   );
 }
@@ -85,12 +78,14 @@ interface GlassCardProps {
 export function GlassCard({ children, style }: GlassCardProps) {
   return (
     <View style={[styles.glassCard, style]}>
-      <LinearGradient
-        colors={['rgba(255, 255, 255, 0.08)', 'rgba(255, 255, 255, 0.03)']}
-        style={StyleSheet.absoluteFill}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      />
+      <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill}>
+        <View
+          style={{
+            ...StyleSheet.absoluteFillObject,
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+          }}
+        />
+      </BlurView>
       <View style={styles.glassCardBorder} />
       <View style={styles.glassCardContent}>{children}</View>
     </View>
