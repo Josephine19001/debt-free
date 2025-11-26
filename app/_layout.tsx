@@ -43,6 +43,9 @@ export default function Layout() {
           <Stack.Screen name="feedback" />
           <Stack.Screen name="notifications" />
 
+          {/* Debt Pages */}
+          <Stack.Screen name="debt" />
+
           {/* Error Handling */}
           <Stack.Screen name="+not-found" />
         </Stack>

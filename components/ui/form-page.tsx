@@ -13,6 +13,8 @@ import {
 import { BlurView } from 'expo-blur';
 import { PageLayout } from '@/components/layouts';
 
+import type { KeyboardTypeOptions } from 'react-native';
+
 interface FormFieldProps {
   label: string;
   value: string;
@@ -21,6 +23,7 @@ interface FormFieldProps {
   editable?: boolean;
   multiline?: boolean;
   numberOfLines?: number;
+  keyboardType?: KeyboardTypeOptions;
 }
 
 export function FormField({
@@ -31,6 +34,7 @@ export function FormField({
   editable = true,
   multiline = false,
   numberOfLines = 1,
+  keyboardType = 'default',
 }: FormFieldProps) {
   const height = multiline ? 56 * numberOfLines : 56;
 
@@ -51,6 +55,7 @@ export function FormField({
           editable={editable}
           multiline={multiline}
           numberOfLines={numberOfLines}
+          keyboardType={keyboardType}
           textAlignVertical={multiline ? 'top' : 'center'}
           className={`flex-1 text-base px-4 ${multiline ? 'py-4' : ''} ${editable ? 'text-white' : 'text-gray-500'}`}
         />

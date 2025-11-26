@@ -2167,6 +2167,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native-community/slider@npm:^5.1.1":
+  version: 5.1.1
+  resolution: "@react-native-community/slider@npm:5.1.1"
+  checksum: 10c0/d32bc014b4464fc4e3672da0e98ef6cc622a31e32d053b93f22ac1ddd39431454774442cbb088490626a52d16ba189c092fa0c59464de6779a6e6381f555ea04
+  languageName: node
+  linkType: hard
+
 "@react-native/assets-registry@npm:0.79.5":
   version: 0.79.5
   resolution: "@react-native/assets-registry@npm:0.79.5"
@@ -4485,6 +4492,7 @@ __metadata:
     "@gorhom/bottom-sheet": "npm:4"
     "@react-native-async-storage/async-storage": "npm:2.1.2"
     "@react-native-community/datetimepicker": "npm:8.4.1"
+    "@react-native-community/slider": "npm:^5.1.1"
     "@supabase/supabase-js": "npm:^2.49.8"
     "@tanstack/react-query": "npm:^5.77.0"
     "@types/react": "npm:~19.0.10"

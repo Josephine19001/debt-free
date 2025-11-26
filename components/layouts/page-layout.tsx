@@ -49,9 +49,10 @@ export function PageLayout({
                 <ChevronLeft size={28} color="#FFFFFF" strokeWidth={2} />
               </Pressable>
             )}
+            {title && !showBackButton && <Text style={styles.headerTitle}>{title}</Text>}
           </View>
           <View style={styles.headerCenter}>
-            {title && <Text style={styles.headerTitle}>{title}</Text>}
+            {title && showBackButton && <Text style={styles.headerTitle}>{title}</Text>}
           </View>
           <View style={styles.headerRight}>{rightAction}</View>
         </View>
@@ -124,7 +125,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
   },
   headerLeft: {
-    width: 44,
+    minWidth: 44,
     alignItems: 'flex-start',
   },
   headerCenter: {
@@ -132,7 +133,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerRight: {
-    width: 44,
+    minWidth: 44,
     alignItems: 'flex-end',
   },
   headerTitle: {

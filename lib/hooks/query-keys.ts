@@ -4,6 +4,13 @@ export const queryKeys = {
     detail: () => [...queryKeys.accounts.all, 'detail'] as const,
     subscription: () => [...queryKeys.accounts.all, 'subscription'] as const,
   },
+  debts: {
+    all: ['debts'] as const,
+    list: (search?: string) => [...queryKeys.debts.all, 'list', search] as const,
+    detail: (id: string) => [...queryKeys.debts.all, 'detail', id] as const,
+    summary: () => [...queryKeys.debts.all, 'summary'] as const,
+    payments: (debtId: string) => [...queryKeys.debts.all, 'payments', debtId] as const,
+  },
   subscription: {
     all: ['subscription'] as const,
     info: (userId?: string) => [...queryKeys.subscription.all, 'info', userId] as const,
