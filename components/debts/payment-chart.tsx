@@ -123,22 +123,31 @@ export function PaymentChart({ debt }: PaymentChartProps) {
         </View>
 
         {/* Chart - Side by side bars */}
-        <View className="flex-row items-end justify-between h-32 mb-2">
+        <View className="flex-row items-end justify-between mb-2" style={{ height: 128 }}>
           {displaySchedule.map((month, index) => {
-            const principalHeight = maxValue > 0 ? (month.principal / maxValue) * 100 : 0;
-            const interestHeight = maxValue > 0 ? (month.interest / maxValue) * 100 : 0;
+            const chartHeight = 128;
+            const principalHeight = maxValue > 0 ? (month.principal / maxValue) * chartHeight : 0;
+            const interestHeight = maxValue > 0 ? (month.interest / maxValue) * chartHeight : 0;
 
             return (
               <View key={index} className="flex-1 mx-0.5 flex-row items-end justify-center">
                 {/* Principal bar */}
                 <View
-                  className="w-[45%] bg-emerald-500 rounded-t-sm mr-px"
-                  style={{ height: `${principalHeight}%`, minHeight: principalHeight > 0 ? 2 : 0 }}
+                  className="rounded-t-sm mr-px"
+                  style={{
+                    width: '45%',
+                    height: Math.max(principalHeight, principalHeight > 0 ? 2 : 0),
+                    backgroundColor: '#10B981',
+                  }}
                 />
                 {/* Interest bar */}
                 <View
-                  className="w-[45%] bg-red-500 rounded-t-sm"
-                  style={{ height: `${interestHeight}%`, minHeight: interestHeight > 0 ? 2 : 0 }}
+                  className="rounded-t-sm"
+                  style={{
+                    width: '45%',
+                    height: Math.max(interestHeight, interestHeight > 0 ? 2 : 0),
+                    backgroundColor: '#EF4444',
+                  }}
                 />
               </View>
             );

@@ -1,6 +1,5 @@
 import { Component, ReactNode } from 'react';
-import { View, Text } from 'react-native';
-import { useThemedColors } from '@/lib/utils/theme';
+import { View, Text, Pressable } from 'react-native';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -26,6 +25,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     console.error('ErrorBoundary caught an error:', error, errorInfo);
   }
 
+  handleRetry = () => {
+    this.setState({ hasError: false, error: undefined });
+  };
+
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
@@ -33,11 +36,22 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       }
 
       return (
-        <View className="flex-1 justify-center items-center p-6">
-          <Text className="text-lg font-bold text-red-600 text-center mb-4">
+        <View className="flex-1 bg-[#0F0F0F] justify-center items-center p-6">
+          <Text className="text-lg font-bold text-red-500 text-center mb-4">
             Something went wrong
           </Text>
-          <Text className="text-gray-600 text-center">Please restart the app and try again.</Text>
+          <Text className="text-gray-400 text-center mb-2">
+            {this.state.error?.message || 'An unexpected error occurred'}
+          </Text>
+          <Text className="text-gray-500 text-center text-sm mb-6">
+            Please rebuild the app or restart.
+          </Text>
+          <Pressable
+            onPress={this.handleRetry}
+            className="bg-emerald-500 px-6 py-3 rounded-xl"
+          >
+            <Text className="text-white font-semibold">Try Again</Text>
+          </Pressable>
         </View>
       );
     }

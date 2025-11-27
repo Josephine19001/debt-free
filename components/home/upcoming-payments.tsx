@@ -1,16 +1,20 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Clock } from 'lucide-react-native';
+import { Clock, Check } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
 import { Debt } from '@/lib/types/debt';
 import { formatCurrency } from '@/lib/utils/debt-calculator';
+import { useRecordPayment } from '@/lib/hooks/use-debts';
 
 interface UpcomingPaymentsProps {
   debts: Debt[];
+  paidDebtIds?: Set<string>;
 }
 
-export function UpcomingPayments({ debts }: UpcomingPaymentsProps) {
+export function UpcomingPayments({ debts, paidDebtIds = new Set() }: UpcomingPaymentsProps) {
   const router = useRouter();
+  const { mutate: recordPayment, isPending } = useRecordPayment();
   const today = new Date();
   const currentDay = today.getDate();
 
@@ -19,12 +23,20 @@ export function UpcomingPayments({ debts }: UpcomingPaymentsProps) {
     return (30 - currentDay) + dueDate;
   };
 
+  const handleMarkPaid = (debt: Debt) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    recordPayment({
+      debt_id: debt.id,
+      amount: debt.minimum_payment,
+    });
+  };
+
   const upcomingPayments = debts
-    .filter(d => d.status === 'active')
+    .filter(d => d.status === 'active' && !paidDebtIds.has(d.id))
     .map(d => ({ ...d, daysUntil: getDaysUntilDue(d.due_date) }))
     .filter(d => d.daysUntil <= 7)
     .sort((a, b) => a.daysUntil - b.daysUntil)
-    .slice(0, 3);
+    .slice(0, 5);
 
   if (upcomingPayments.length === 0) return null;
 
@@ -41,30 +53,47 @@ export function UpcomingPayments({ debts }: UpcomingPaymentsProps) {
       <View className="p-4">
         {upcomingPayments.map((debt, index) => {
           const isUrgent = debt.daysUntil <= 2;
-          const dueText = debt.daysUntil === 0 ? 'Today' :
+          const isDueToday = debt.daysUntil === 0;
+          const dueText = isDueToday ? 'Due Today' :
                           debt.daysUntil === 1 ? 'Tomorrow' :
-                          `${debt.daysUntil} days`;
+                          `In ${debt.daysUntil} days`;
 
           return (
-            <Pressable key={debt.id} onPress={() => router.push(`/debt/${debt.id}`)}>
-              <View className={`flex-row items-center justify-between py-3 ${index < upcomingPayments.length - 1 ? 'border-b border-white/[0.06]' : ''}`}>
-                <View className="flex-row items-center flex-1">
-                  <View
-                    className="w-8 h-8 rounded-lg items-center justify-center mr-3"
-                    style={{ backgroundColor: isUrgent ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)' }}
-                  >
-                    <Clock size={14} color={isUrgent ? '#EF4444' : '#F59E0B'} />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-white font-medium" numberOfLines={1}>{debt.name}</Text>
-                    <Text className={`text-xs ${isUrgent ? 'text-red-400' : 'text-amber-400'}`}>
-                      {dueText}
-                    </Text>
-                  </View>
+            <View
+              key={debt.id}
+              className={`py-3 ${index < upcomingPayments.length - 1 ? 'border-b border-white/[0.06]' : ''}`}
+            >
+              <Pressable
+                onPress={() => router.push(`/debt/${debt.id}`)}
+                className="flex-row items-center"
+              >
+                <View
+                  className="w-8 h-8 rounded-lg items-center justify-center mr-3"
+                  style={{ backgroundColor: isUrgent ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)' }}
+                >
+                  <Clock size={14} color={isUrgent ? '#EF4444' : '#F59E0B'} />
                 </View>
-                <Text className="text-white font-bold">{formatCurrency(debt.minimum_payment)}</Text>
-              </View>
-            </Pressable>
+                <View className="flex-1">
+                  <Text className="text-white font-medium" numberOfLines={1}>{debt.name}</Text>
+                  <Text className={`text-xs ${isUrgent ? 'text-red-400' : 'text-amber-400'}`}>
+                    {dueText}
+                  </Text>
+                </View>
+                <Text className="text-white font-bold mr-3">{formatCurrency(debt.minimum_payment)}</Text>
+              </Pressable>
+
+              {/* Mark Paid Button - show for debts due within 2 days */}
+              {isUrgent && (
+                <Pressable
+                  onPress={() => handleMarkPaid(debt)}
+                  disabled={isPending}
+                  className="flex-row items-center justify-center mt-3 py-2.5 rounded-xl bg-emerald-500/15"
+                >
+                  <Check size={16} color="#10B981" />
+                  <Text className="text-emerald-400 font-semibold ml-2 text-sm">Mark as Paid</Text>
+                </Pressable>
+              )}
+            </View>
           );
         })}
       </View>

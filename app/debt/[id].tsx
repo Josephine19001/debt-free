@@ -308,16 +308,14 @@ export default function DebtDetailScreen() {
                 );
               })}
 
-              {payments.length > 5 && (
-                <Pressable
-                  onPress={() => historySheetRef.current?.expand()}
-                  className="p-3 border-t border-white/10"
-                >
-                  <Text className="text-emerald-400 text-center text-sm font-medium">
-                    See all {payments.length} payments
-                  </Text>
-                </Pressable>
-              )}
+              <Pressable
+                onPress={() => historySheetRef.current?.expand()}
+                className="p-3 border-t border-white/10"
+              >
+                <Text className="text-emerald-400 text-center text-sm font-medium">
+                  See all {payments.length} payment{payments.length !== 1 ? 's' : ''}
+                </Text>
+              </Pressable>
             </View>
           </>
         )}

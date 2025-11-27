@@ -271,6 +271,30 @@ export function usePaymentsDue() {
   });
 }
 
+/**
+ * Get Set of debt IDs that have been paid today
+ */
+export function useTodaysPaidDebtIds() {
+  const today = new Date();
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+  const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
+
+  return useQuery({
+    queryKey: queryKeys.debts.paidToday(),
+    queryFn: async () => {
+      const { data: payments, error } = await supabase
+        .from('debt_payments')
+        .select('debt_id')
+        .gte('payment_date', todayStart)
+        .lt('payment_date', todayEnd);
+
+      if (error) throw new Error(error.message);
+
+      return new Set(payments?.map((p) => p.debt_id) || []);
+    },
+  });
+}
+
 interface RecordPaymentPayload {
   debt_id: string;
   amount: number;

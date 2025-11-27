@@ -1,16 +1,14 @@
+import { useState, useEffect } from 'react';
 import { View, Text } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { GlassCard } from '@/components/layouts';
 import { Debt } from '@/lib/types/debt';
 import {
   formatCurrency,
-  formatPercentage,
   formatDate,
-  formatDuration,
   calculateExtraPaymentScenario,
   calculateRefinanceScenario,
   calculateTotalInterest,
-  calculatePayoffMonths,
 } from '@/lib/utils/debt-calculator';
 import { TrendingDown, Calendar, DollarSign, Percent } from 'lucide-react-native';
 
@@ -25,8 +23,15 @@ export function ExtraPaymentSlider({
   extraPayment,
   onExtraPaymentChange,
 }: ExtraPaymentSliderProps) {
-  // extraPayment is the total monthly payment, starting at minimum_payment
-  const extraAboveMinimum = Math.max(0, extraPayment - debt.minimum_payment);
+  // Local state for smooth slider movement
+  const [localValue, setLocalValue] = useState(extraPayment);
+
+  // Sync local value when prop changes (e.g., initial load)
+  useEffect(() => {
+    setLocalValue(extraPayment);
+  }, [extraPayment]);
+
+  const extraAboveMinimum = Math.max(0, localValue - debt.minimum_payment);
   const scenario = calculateExtraPaymentScenario(debt, extraAboveMinimum);
   const maxExtra = Math.min(500, debt.current_balance / 2);
   const maxPayment = debt.minimum_payment + maxExtra;
@@ -48,12 +53,13 @@ export function ExtraPaymentSlider({
         <View className="flex-row justify-between mb-2">
           <Text className="text-gray-400 text-sm">Payment Amount</Text>
           <Text className="text-emerald-400 font-bold text-lg">
-            {formatCurrency(extraPayment)}/mo
+            {formatCurrency(localValue)}/mo
           </Text>
         </View>
         <Slider
-          value={extraPayment}
-          onValueChange={onExtraPaymentChange}
+          value={localValue}
+          onValueChange={setLocalValue}
+          onSlidingComplete={onExtraPaymentChange}
           minimumValue={debt.minimum_payment}
           maximumValue={maxPayment}
           step={10}
@@ -120,11 +126,19 @@ export function RefinanceSlider({
   newRate,
   onNewRateChange,
 }: RefinanceSliderProps) {
-  const scenario = calculateRefinanceScenario(debt, newRate);
   const currentRatePercent = debt.interest_rate * 100;
   const minRate = Math.max(0.01, currentRatePercent - 15);
-  const newRatePercent = newRate * 100;
-  const isLowerRate = newRate < debt.interest_rate;
+
+  // Local state for smooth slider movement
+  const [localRatePercent, setLocalRatePercent] = useState(newRate * 100);
+
+  // Sync local value when prop changes
+  useEffect(() => {
+    setLocalRatePercent(newRate * 100);
+  }, [newRate]);
+
+  const scenario = calculateRefinanceScenario(debt, localRatePercent / 100);
+  const isLowerRate = localRatePercent / 100 < debt.interest_rate;
 
   return (
     <GlassCard>
@@ -143,12 +157,13 @@ export function RefinanceSlider({
         <View className="flex-row justify-between mb-2">
           <Text className="text-gray-400 text-sm">New Interest Rate</Text>
           <Text className={`font-bold text-lg ${isLowerRate ? 'text-cyan-400' : 'text-gray-400'}`}>
-            {newRatePercent.toFixed(2)}%
+            {localRatePercent.toFixed(2)}%
           </Text>
         </View>
         <Slider
-          value={newRatePercent}
-          onValueChange={(val) => onNewRateChange(val / 100)}
+          value={localRatePercent}
+          onValueChange={setLocalRatePercent}
+          onSlidingComplete={(val) => onNewRateChange(val / 100)}
           minimumValue={minRate}
           maximumValue={currentRatePercent}
           step={0.25}
@@ -166,7 +181,7 @@ export function RefinanceSlider({
       {isLowerRate && (
         <View className="bg-cyan-500/10 rounded-xl p-4 border border-cyan-500/20">
           <Text className="text-cyan-400 font-semibold mb-3">
-            Refinance at {newRatePercent.toFixed(2)}% and save:
+            Refinance at {localRatePercent.toFixed(2)}% and save:
           </Text>
 
           <View className="flex-row justify-between mb-3">
