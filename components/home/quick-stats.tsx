@@ -2,6 +2,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Target, Trophy, TrendingUp, PiggyBank } from 'lucide-react-native';
 import { useCurrency } from '@/context/currency-provider';
+import { useColors } from '@/lib/hooks/use-colors';
 
 interface QuickStatsProps {
   activeCount: number;
@@ -19,6 +20,7 @@ export function QuickStats({
   isLoading,
 }: QuickStatsProps) {
   const { formatCurrency } = useCurrency();
+  const colors = useColors();
   const stats = [
     { icon: Target, color: '#3B82F6', label: 'Active', value: String(activeCount) },
     { icon: Trophy, color: '#A855F7', label: 'Paid Off', value: String(paidOffCount) },
@@ -32,12 +34,12 @@ export function QuickStats({
         <View key={stat.label} className="w-1/2 p-1">
           <View className="rounded-2xl overflow-hidden">
             <LinearGradient
-              colors={['#1a1a1f', '#141418']}
+              colors={[colors.cardGradientStart, colors.cardGradientEnd]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={StyleSheet.absoluteFill}
             />
-            <View className="absolute inset-0 rounded-2xl border border-white/[0.08]" />
+            <View className="absolute inset-0 rounded-2xl border" style={{ borderColor: colors.border }} />
 
             <View className="p-4 flex-row items-center">
               <View
@@ -47,8 +49,8 @@ export function QuickStats({
                 <stat.icon size={18} color={stat.color} />
               </View>
               <View>
-                <Text className="text-gray-600 text-xs uppercase tracking-wider">{stat.label}</Text>
-                <Text className="text-white font-bold text-base">
+                <Text style={{ color: colors.textMuted }} className="text-xs uppercase tracking-wider">{stat.label}</Text>
+                <Text style={{ color: colors.text }} className="font-bold text-base">
                   {isLoading ? '...' : stat.value}
                 </Text>
               </View>

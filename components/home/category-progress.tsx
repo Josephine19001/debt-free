@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle } from 'react-native-svg';
 import { Debt, DebtCategory, DEBT_CATEGORY_CONFIG } from '@/lib/types/debt';
 import { useCurrency } from '@/context/currency-provider';
+import { useColors } from '@/lib/hooks/use-colors';
 
 interface CategoryProgressProps {
   debts: Debt[];
@@ -63,6 +64,7 @@ function CircularProgress({
 
 export function CategoryProgress({ debts, isLoading }: CategoryProgressProps) {
   const { formatCurrency } = useCurrency();
+  const colors = useColors();
 
   // Group debts by category and calculate progress
   const categoryData: CategoryData[] = Object.entries(
@@ -105,18 +107,18 @@ export function CategoryProgress({ debts, isLoading }: CategoryProgressProps) {
         <View key={item.category} className="w-1/2 p-1">
           <View className="rounded-2xl overflow-hidden">
             <LinearGradient
-              colors={['#1a1a1f', '#141418']}
+              colors={[colors.cardGradientStart, colors.cardGradientEnd]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={StyleSheet.absoluteFill}
             />
-            <View className="absolute inset-0 rounded-2xl border border-white/[0.08]" />
+            <View className="absolute inset-0 rounded-2xl border" style={{ borderColor: colors.border }} />
 
             <View className="p-4 items-center">
               <View className="relative items-center justify-center">
                 <CircularProgress progress={item.progress} color={item.color} />
                 <View className="absolute items-center justify-center">
-                  <Text className="text-white text-xs font-bold">{item.progress}%</Text>
+                  <Text style={{ color: colors.text }} className="text-xs font-bold">{item.progress}%</Text>
                 </View>
               </View>
               <Text
@@ -126,7 +128,7 @@ export function CategoryProgress({ debts, isLoading }: CategoryProgressProps) {
               >
                 {item.label}
               </Text>
-              <Text className="text-white text-xs font-medium">
+              <Text style={{ color: colors.text }} className="text-xs font-medium">
                 {isLoading ? '...' : formatCurrency(item.currentBalance)}
               </Text>
             </View>

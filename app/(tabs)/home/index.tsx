@@ -13,12 +13,14 @@ import {
   calculatePayoffDate,
 } from '@/lib/utils/debt-calculator';
 import { MOCK_DATA, DEMO_MODE } from '@/lib/config/mock-data';
+import { useColors } from '@/lib/hooks/use-colors';
 
 const currentYear = new Date().getFullYear();
 const yearOptions = [currentYear, currentYear - 1, currentYear - 2];
 
 export default function HomeScreen() {
   const router = useRouter();
+  const colors = useColors();
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const bottomSheetRef = useRef<GlassBottomSheetRef>(null);
 
@@ -85,10 +87,10 @@ export default function HomeScreen() {
       onPress={() => bottomSheetRef.current?.expand()}
       className="flex-row items-center px-3 py-2 rounded-xl overflow-hidden"
     >
-      <LinearGradient colors={['#1a1a1f', '#141418']} style={StyleSheet.absoluteFill} />
-      <View className="absolute inset-0 rounded-xl border border-white/[0.08]" />
-      <Text className="text-white font-semibold mr-1">{selectedYear}</Text>
-      <ChevronDown size={16} color="#6B7280" />
+      <LinearGradient colors={[colors.cardGradientStart, colors.cardGradientEnd]} style={StyleSheet.absoluteFill} />
+      <View className="absolute inset-0 rounded-xl border" style={{ borderColor: colors.border }} />
+      <Text style={{ color: colors.text }} className="font-semibold mr-1">{selectedYear}</Text>
+      <ChevronDown size={16} color={colors.icon} />
     </Pressable>
   );
 
@@ -153,23 +155,23 @@ export default function HomeScreen() {
         {!isLoading && !hasDebts && (
           <Pressable onPress={() => router.push('/debt/add')} className="mx-4 mt-6">
             <View className="rounded-2xl overflow-hidden">
-              <LinearGradient colors={['#1a1a1f', '#141418']} style={StyleSheet.absoluteFill} />
-              <View className="absolute inset-0 rounded-2xl border border-white/[0.08]" />
+              <LinearGradient colors={[colors.cardGradientStart, colors.cardGradientEnd]} style={StyleSheet.absoluteFill} />
+              <View className="absolute inset-0 rounded-2xl border" style={{ borderColor: colors.border }} />
               <View className="p-5 flex-row items-center">
                 <View className="w-12 h-12 rounded-2xl bg-emerald-500/15 items-center justify-center mr-4">
                   <Target size={24} color="#10B981" />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-white font-semibold">
+                  <Text style={{ color: colors.text }} className="font-semibold">
                     {paidOffDebts.length > 0 ? 'Add another debt' : 'Add your first debt'}
                   </Text>
-                  <Text className="text-gray-600 text-sm">
+                  <Text style={{ color: colors.textMuted }} className="text-sm">
                     {paidOffDebts.length > 0
                       ? 'Keep the momentum going!'
                       : 'Start your debt-free journey'}
                   </Text>
                 </View>
-                <ChevronRight size={20} color="#4B5563" />
+                <ChevronRight size={20} color={colors.icon} />
               </View>
             </View>
           </Pressable>
@@ -179,17 +181,17 @@ export default function HomeScreen() {
       {/* Year Picker Bottom Sheet */}
       <GlassBottomSheet ref={bottomSheetRef} snapPoints={['30%']}>
         <View className="px-5 pt-2">
-          <Text className="text-white text-lg font-semibold mb-4">Select Year</Text>
+          <Text style={{ color: colors.text }} className="text-lg font-semibold mb-4">Select Year</Text>
           {yearOptions.map((year) => (
             <Pressable
               key={year}
               onPress={() => handleYearSelect(year)}
-              className="flex-row items-center justify-between py-4 border-b border-white/[0.06]"
+              className="flex-row items-center justify-between py-4 border-b"
+              style={{ borderColor: colors.borderLight }}
             >
               <Text
-                className={`text-lg ${
-                  selectedYear === year ? 'text-emerald-400 font-semibold' : 'text-white'
-                }`}
+                style={{ color: selectedYear === year ? '#10B981' : colors.text }}
+                className={`text-lg ${selectedYear === year ? 'font-semibold' : ''}`}
               >
                 {year}
               </Text>

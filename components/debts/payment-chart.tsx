@@ -7,6 +7,8 @@ import {
   calculateTotalInterest,
 } from '@/lib/utils/debt-calculator';
 import { useCurrency } from '@/context/currency-provider';
+import { useColors } from '@/lib/hooks/use-colors';
+import { useTheme } from '@/context/theme-provider';
 
 interface PaymentChartProps {
   debt: Debt;
@@ -45,6 +47,8 @@ type DurationOption = 6 | 12 | 24 | 'all';
 
 export function PaymentChart({ debt }: PaymentChartProps) {
   const { formatCurrency } = useCurrency();
+  const colors = useColors();
+  const { isDark } = useTheme();
   const [duration, setDuration] = useState<DurationOption>(12);
 
   const totalMonths = calculatePayoffMonths(
@@ -93,16 +97,16 @@ export function PaymentChart({ debt }: PaymentChartProps) {
 
   return (
     <View className="mx-4 my-2 rounded-2xl overflow-hidden">
-      <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill}>
-        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255,255,255,0.05)' }} />
+      <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill}>
+        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }} />
       </BlurView>
-      <View className="absolute inset-0 rounded-2xl border border-white/10" />
+      <View className="absolute inset-0 rounded-2xl" style={{ borderWidth: 1, borderColor: colors.border }} />
 
       <View className="p-5">
         {/* Header with duration selector */}
         <View className="flex-row items-center justify-between mb-4">
-          <Text className="text-white font-semibold text-base">Payment Breakdown</Text>
-          <View className="flex-row bg-white/5 rounded-full p-0.5">
+          <Text style={{ color: colors.text }} className="font-semibold text-base">Payment Breakdown</Text>
+          <View className="flex-row rounded-full p-0.5" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}>
             {durationOptions.map((option) => (
               <Pressable
                 key={option.value}
@@ -112,9 +116,8 @@ export function PaymentChart({ debt }: PaymentChartProps) {
                 }`}
               >
                 <Text
-                  className={`text-xs font-medium ${
-                    duration === option.value ? 'text-white' : 'text-gray-400'
-                  }`}
+                  className="text-xs font-medium"
+                  style={{ color: duration === option.value ? '#FFFFFF' : colors.textSecondary }}
                 >
                   {option.label}
                 </Text>
@@ -157,50 +160,50 @@ export function PaymentChart({ debt }: PaymentChartProps) {
 
         {/* X-axis labels */}
         <View className="flex-row justify-between mb-4">
-          <Text className="text-gray-500 text-xs">Month 1</Text>
-          <Text className="text-gray-500 text-xs">Month {displayMonths}</Text>
+          <Text style={{ color: colors.textMuted }} className="text-xs">Month 1</Text>
+          <Text style={{ color: colors.textMuted }} className="text-xs">Month {displayMonths}</Text>
         </View>
 
         {/* Legend */}
         <View className="flex-row justify-center gap-6 mb-4">
           <View className="flex-row items-center">
             <View className="w-3 h-3 rounded-sm bg-emerald-500 mr-2" />
-            <Text className="text-gray-400 text-xs">Principal</Text>
+            <Text style={{ color: colors.textSecondary }} className="text-xs">Principal</Text>
           </View>
           <View className="flex-row items-center">
             <View className="w-3 h-3 rounded-sm bg-red-500 mr-2" />
-            <Text className="text-gray-400 text-xs">Interest</Text>
+            <Text style={{ color: colors.textSecondary }} className="text-xs">Interest</Text>
           </View>
         </View>
 
         {/* Summary stats */}
-        <View className="pt-4 border-t border-white/10">
+        <View className="pt-4" style={{ borderTopWidth: 1, borderTopColor: colors.borderLight }}>
           <View className="flex-row justify-between mb-3">
             <View className="flex-1">
-              <Text className="text-gray-500 text-xs mb-1">Principal ({displayMonths}mo)</Text>
+              <Text style={{ color: colors.textMuted }} className="text-xs mb-1">Principal ({displayMonths}mo)</Text>
               <Text className="text-emerald-400 font-bold text-lg">
                 {formatCurrency(totalPrincipalInPeriod)}
               </Text>
             </View>
             <View className="flex-1 items-center">
-              <Text className="text-gray-500 text-xs mb-1">Interest ({displayMonths}mo)</Text>
+              <Text style={{ color: colors.textMuted }} className="text-xs mb-1">Interest ({displayMonths}mo)</Text>
               <Text className="text-red-400 font-bold text-lg">
                 {formatCurrency(totalInterestInPeriod)}
               </Text>
             </View>
             <View className="flex-1 items-end">
-              <Text className="text-gray-500 text-xs mb-1">Total ({displayMonths}mo)</Text>
-              <Text className="text-white font-bold text-lg">
+              <Text style={{ color: colors.textMuted }} className="text-xs mb-1">Total ({displayMonths}mo)</Text>
+              <Text style={{ color: colors.text }} className="font-bold text-lg">
                 {formatCurrency(totalPrincipalInPeriod + totalInterestInPeriod)}
               </Text>
             </View>
           </View>
 
           {/* Total lifetime cost */}
-          <View className="bg-white/5 rounded-xl p-3 flex-row justify-between items-center">
-            <Text className="text-gray-400 text-sm">Total cost to payoff</Text>
+          <View className="rounded-xl p-3 flex-row justify-between items-center" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}>
+            <Text style={{ color: colors.textSecondary }} className="text-sm">Total cost to payoff</Text>
             <View className="items-end">
-              <Text className="text-white font-bold text-lg">
+              <Text style={{ color: colors.text }} className="font-bold text-lg">
                 {formatCurrency(debt.current_balance + totalInterest)}
               </Text>
               <Text className="text-red-400 text-xs">
@@ -220,6 +223,8 @@ interface AmortizationProgressProps {
 
 export function AmortizationProgress({ debt }: AmortizationProgressProps) {
   const { formatCurrency } = useCurrency();
+  const colors = useColors();
+  const { isDark } = useTheme();
   const totalMonths = calculatePayoffMonths(
     debt.current_balance,
     debt.interest_rate,
@@ -233,16 +238,16 @@ export function AmortizationProgress({ debt }: AmortizationProgressProps) {
 
   return (
     <View className="mx-4 my-2 rounded-2xl overflow-hidden">
-      <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill}>
-        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255,255,255,0.05)' }} />
+      <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill}>
+        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }} />
       </BlurView>
-      <View className="absolute inset-0 rounded-2xl border border-white/10" />
+      <View className="absolute inset-0 rounded-2xl" style={{ borderWidth: 1, borderColor: colors.border }} />
 
       <View className="p-5">
-        <Text className="text-white font-semibold text-base mb-4">Payoff Progress</Text>
+        <Text style={{ color: colors.text }} className="font-semibold text-base mb-4">Payoff Progress</Text>
 
         <View className="mb-4">
-          <View className="h-2 bg-white/10 rounded-full overflow-hidden">
+          <View className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
             <View
               className="h-full bg-emerald-500 rounded-full"
               style={{ width: `${Math.min(percentPaid, 100)}%` }}
@@ -252,27 +257,27 @@ export function AmortizationProgress({ debt }: AmortizationProgressProps) {
           <View className="flex-row justify-between mt-2">
             <View className="items-start">
               <Text className="text-emerald-400 font-bold text-lg">{percentPaid.toFixed(1)}%</Text>
-              <Text className="text-gray-500 text-xs">Completed</Text>
+              <Text style={{ color: colors.textMuted }} className="text-xs">Completed</Text>
             </View>
             <View className="items-end">
-              <Text className="text-gray-400 font-bold text-lg">{(100 - percentPaid).toFixed(1)}%</Text>
-              <Text className="text-gray-500 text-xs">Remaining</Text>
+              <Text style={{ color: colors.textSecondary }} className="font-bold text-lg">{(100 - percentPaid).toFixed(1)}%</Text>
+              <Text style={{ color: colors.textMuted }} className="text-xs">Remaining</Text>
             </View>
           </View>
         </View>
 
-        <View className="flex-row justify-between pt-4 border-t border-white/10">
+        <View className="flex-row justify-between pt-4" style={{ borderTopWidth: 1, borderTopColor: colors.borderLight }}>
           <View>
-            <Text className="text-gray-500 text-xs">Paid Off</Text>
+            <Text style={{ color: colors.textMuted }} className="text-xs">Paid Off</Text>
             <Text className="text-emerald-400 font-semibold">{formatCurrency(totalPaidOff)}</Text>
           </View>
           <View className="items-center">
-            <Text className="text-gray-500 text-xs">Remaining</Text>
-            <Text className="text-white font-semibold">{formatCurrency(debt.current_balance)}</Text>
+            <Text style={{ color: colors.textMuted }} className="text-xs">Remaining</Text>
+            <Text style={{ color: colors.text }} className="font-semibold">{formatCurrency(debt.current_balance)}</Text>
           </View>
           <View className="items-end">
-            <Text className="text-gray-500 text-xs">Months Left</Text>
-            <Text className="text-gray-400 font-semibold">
+            <Text style={{ color: colors.textMuted }} className="text-xs">Months Left</Text>
+            <Text style={{ color: colors.textSecondary }} className="font-semibold">
               {isFinite(totalMonths) ? totalMonths : '∞'}
             </Text>
           </View>

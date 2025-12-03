@@ -11,6 +11,8 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/auth-provider';
+import { useColors } from '@/lib/hooks/use-colors';
+import { useTheme } from '@/context/theme-provider';
 import * as Haptics from 'expo-haptics';
 import { AppleIcon, GoogleIcon } from '@/components/icons/tab-icons';
 import { APP_URLS } from '@/lib/config/urls';
@@ -19,6 +21,8 @@ export default function AuthScreen() {
   const router = useRouter();
   const { mode } = useLocalSearchParams<{ mode?: 'signin' | 'signup' }>();
   const { signInWithApple, signInWithGoogle, loading: authLoading } = useAuth();
+  const colors = useColors();
+  const { isDark } = useTheme();
   const [appleLoading, setAppleLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
@@ -52,17 +56,17 @@ export default function AuthScreen() {
   };
 
   return (
-    <View className="flex-1 bg-[#0F0F0F]">
-      <StatusBar barStyle="light-content" />
+    <View className="flex-1" style={{ backgroundColor: colors.background }}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <SafeAreaView className="flex-1">
         <View className="flex-1 px-6 justify-between pb-8">
           <View className="flex-1 justify-center">
             {/* Title */}
             <View className="mb-10">
-              <Text className="text-white text-3xl font-bold text-center mb-2">
+              <Text className="text-3xl font-bold text-center mb-2" style={{ color: colors.text }}>
                 {isSignUp ? 'Create Account' : 'Welcome Back'}
               </Text>
-              <Text className="text-gray-400 text-center">
+              <Text className="text-center" style={{ color: colors.textSecondary }}>
                 {isSignUp
                   ? 'Sign up to start your debt-free journey'
                   : 'Sign in to continue your progress'}
@@ -78,13 +82,19 @@ export default function AuthScreen() {
                   disabled={isLoading}
                   className={`rounded-2xl overflow-hidden mb-3 ${isLoading ? 'opacity-70' : ''}`}
                 >
-                  <View className="bg-white py-4 px-6 flex-row items-center justify-center">
+                  <View
+                    className="py-4 px-6 flex-row items-center justify-center"
+                    style={{ backgroundColor: isDark ? '#FFFFFF' : '#000000' }}
+                  >
                     {appleLoading ? (
-                      <ActivityIndicator color="#000" />
+                      <ActivityIndicator color={isDark ? '#000' : '#FFF'} />
                     ) : (
                       <>
-                        <AppleIcon size={20} color="#000" />
-                        <Text className="text-black font-semibold text-lg ml-3">
+                        <AppleIcon size={20} color={isDark ? '#000' : '#FFF'} />
+                        <Text
+                          className="font-semibold text-lg ml-3"
+                          style={{ color: isDark ? '#000000' : '#FFFFFF' }}
+                        >
                           Continue with Apple
                         </Text>
                       </>
@@ -127,7 +137,7 @@ export default function AuthScreen() {
               }}
               className="py-3"
             >
-              <Text className="text-gray-400 text-center">
+              <Text className="text-center" style={{ color: colors.textSecondary }}>
                 {isSignUp ? (
                   <>
                     Already have an account?{' '}
@@ -144,17 +154,19 @@ export default function AuthScreen() {
           </View>
 
           {/* Terms */}
-          <Text className="text-gray-600 text-xs text-center">
+          <Text className="text-xs text-center" style={{ color: colors.textMuted }}>
             By continuing, you agree to our{' '}
             <Text
-              className="text-gray-500 underline"
+              className="underline"
+              style={{ color: colors.textSecondary }}
               onPress={() => Linking.openURL(APP_URLS.terms)}
             >
               Terms
             </Text>
             {' & '}
             <Text
-              className="text-gray-500 underline"
+              className="underline"
+              style={{ color: colors.textSecondary }}
               onPress={() => Linking.openURL(APP_URLS.privacy)}
             >
               Privacy Policy

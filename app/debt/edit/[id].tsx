@@ -8,6 +8,8 @@ import { DebtCategory, DEBT_CATEGORY_CONFIG } from '@/lib/types/debt';
 import { Check } from 'lucide-react-native';
 import { DebtDetailSkeleton } from '@/components/debts';
 import { useCurrency } from '@/context/currency-provider';
+import { useColors } from '@/lib/hooks/use-colors';
+import { useTheme } from '@/context/theme-provider';
 
 const CATEGORIES: DebtCategory[] = [
   'credit_card',
@@ -23,6 +25,8 @@ const DUE_DATE_OPTIONS = Array.from({ length: 31 }, (_, i) => i + 1);
 
 export default function EditDebtScreen() {
   const { currency } = useCurrency();
+  const colors = useColors();
+  const { isDark } = useTheme();
   const params = useLocalSearchParams();
   const id = typeof params.id === 'string' ? params.id : params.id?.[0] ?? '';
   const router = useRouter();
@@ -82,7 +86,7 @@ export default function EditDebtScreen() {
     return (
       <PageLayout title="Not Found" showBackButton>
         <View className="flex-1 items-center justify-center px-4">
-          <Text className="text-gray-400 text-center">
+          <Text style={{ color: colors.textSecondary }} className="text-center">
             Debt not found. It may have been deleted.
           </Text>
         </View>
@@ -127,7 +131,7 @@ export default function EditDebtScreen() {
 
           {/* Category */}
           <View className="gap-2">
-            <Text className="text-sm font-medium text-gray-400 ml-1">Category</Text>
+            <Text style={{ color: colors.textSecondary }} className="text-sm font-medium ml-1">Category</Text>
             <View className="flex-row flex-wrap gap-2">
               {CATEGORIES.map((cat) => {
                 const config = DEBT_CATEGORY_CONFIG[cat];
@@ -139,17 +143,18 @@ export default function EditDebtScreen() {
                     className="rounded-full overflow-hidden"
                   >
                     <View
-                      className={`px-4 py-2 rounded-full flex-row items-center ${
-                        isSelected ? '' : 'bg-white/[0.03] border border-white/10'
-                      }`}
-                      style={isSelected ? { backgroundColor: config.color + '30' } : undefined}
+                      className="px-4 py-2 rounded-full flex-row items-center"
+                      style={isSelected
+                        ? { backgroundColor: config.color + '30' }
+                        : { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)', borderWidth: 1, borderColor: colors.border }
+                      }
                     >
                       {isSelected && (
                         <Check size={14} color={config.color} style={{ marginRight: 4 }} />
                       )}
                       <Text
                         className="text-sm"
-                        style={{ color: isSelected ? config.color : '#9CA3AF' }}
+                        style={{ color: isSelected ? config.color : colors.textSecondary }}
                       >
                         {config.label}
                       </Text>
@@ -189,7 +194,7 @@ export default function EditDebtScreen() {
 
           {/* Due Date */}
           <View className="gap-2">
-            <Text className="text-sm font-medium text-gray-400 ml-1">Due Date (Day of Month)</Text>
+            <Text style={{ color: colors.textSecondary }} className="text-sm font-medium ml-1">Due Date (Day of Month)</Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -204,16 +209,15 @@ export default function EditDebtScreen() {
                     className="rounded-full overflow-hidden"
                   >
                     <View
-                      className={`w-12 h-12 rounded-full items-center justify-center ${
-                        isSelected
-                          ? 'bg-emerald-500'
-                          : 'bg-white/[0.03] border border-white/10'
-                      }`}
+                      className="w-12 h-12 rounded-full items-center justify-center"
+                      style={isSelected
+                        ? { backgroundColor: '#10B981' }
+                        : { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)', borderWidth: 1, borderColor: colors.border }
+                      }
                     >
                       <Text
-                        className={`text-sm font-medium ${
-                          isSelected ? 'text-white' : 'text-gray-400'
-                        }`}
+                        className="text-sm font-medium"
+                        style={{ color: isSelected ? '#FFFFFF' : colors.textSecondary }}
                       >
                         {day}{getDueDateSuffix(day)}
                       </Text>

@@ -178,8 +178,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await ensureAccountExists(data.user.id, data.user.email, options.data?.full_name);
       }
 
-      // Navigate to paywall after successful sign-in
-      router.replace('/paywall');
+      // Navigate to index which will check subscription status and route appropriately
+      router.replace('/');
       return true;
     } catch (error: any) {
       if (error.code === 'ERR_REQUEST_CANCELED') {

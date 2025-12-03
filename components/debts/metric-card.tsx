@@ -1,6 +1,8 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LucideIcon } from 'lucide-react-native';
+import { useColors } from '@/lib/hooks/use-colors';
+import { useTheme } from '@/context/theme-provider';
 
 interface MetricCardProps {
   icon: LucideIcon;
@@ -19,24 +21,26 @@ export function MetricCard({
   label,
   value,
   subValue,
-  valueColor = 'text-white',
 }: MetricCardProps) {
+  const colors = useColors();
+  const { isDark } = useTheme();
+
   return (
     <View className="flex-1 mx-1 rounded-2xl overflow-hidden min-h-[100px]">
-      <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill}>
-        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255,255,255,0.05)' }} />
+      <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill}>
+        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }} />
       </BlurView>
-      <View className="absolute inset-0 rounded-2xl border border-white/10" />
+      <View className="absolute inset-0 rounded-2xl" style={{ borderWidth: 1, borderColor: colors.border }} />
 
       <View className="p-4">
         <View className={`w-9 h-9 rounded-full ${iconBgColor} items-center justify-center mb-3`}>
           <Icon size={18} color={iconColor} />
         </View>
 
-        <Text className="text-gray-400 text-xs mb-1">{label}</Text>
-        <Text className={`${valueColor} font-bold text-lg`}>{value}</Text>
+        <Text style={{ color: colors.textSecondary }} className="text-xs mb-1">{label}</Text>
+        <Text style={{ color: colors.text }} className="font-bold text-lg">{value}</Text>
         {subValue && (
-          <Text className="text-gray-500 text-xs mt-0.5">{subValue}</Text>
+          <Text style={{ color: colors.textMuted }} className="text-xs mt-0.5">{subValue}</Text>
         )}
       </View>
     </View>
@@ -61,15 +65,17 @@ export function LargeMetricCard({
   label,
   value,
   description,
-  valueColor = 'text-white',
-  borderColor = 'border-white/10',
+  borderColor,
 }: LargeMetricCardProps) {
+  const colors = useColors();
+  const { isDark } = useTheme();
+
   return (
-    <View className={`mx-4 my-2 rounded-2xl overflow-hidden`}>
-      <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill}>
-        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255,255,255,0.05)' }} />
+    <View className="mx-4 my-2 rounded-2xl overflow-hidden">
+      <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill}>
+        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }} />
       </BlurView>
-      <View className={`absolute inset-0 rounded-2xl border ${borderColor}`} />
+      <View className="absolute inset-0 rounded-2xl" style={{ borderWidth: 1, borderColor: borderColor || colors.border }} />
 
       <View className="p-5 flex-row items-center">
         <View className={`w-12 h-12 rounded-full ${iconBgColor} items-center justify-center mr-4`}>
@@ -77,10 +83,10 @@ export function LargeMetricCard({
         </View>
 
         <View className="flex-1">
-          <Text className="text-gray-400 text-xs mb-1">{label}</Text>
-          <Text className={`${valueColor} font-bold text-2xl`}>{value}</Text>
+          <Text style={{ color: colors.textSecondary }} className="text-xs mb-1">{label}</Text>
+          <Text style={{ color: colors.text }} className="font-bold text-2xl">{value}</Text>
           {description && (
-            <Text className="text-gray-500 text-xs mt-1">{description}</Text>
+            <Text style={{ color: colors.textMuted }} className="text-xs mt-1">{description}</Text>
           )}
         </View>
       </View>
@@ -97,21 +103,25 @@ interface StatRowProps {
 }
 
 export function StatRow({ items }: StatRowProps) {
+  const colors = useColors();
+  const { isDark } = useTheme();
+
   return (
     <View className="mx-4 my-2 rounded-2xl overflow-hidden">
-      <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill}>
-        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255,255,255,0.05)' }} />
+      <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill}>
+        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }} />
       </BlurView>
-      <View className="absolute inset-0 rounded-2xl border border-white/10" />
+      <View className="absolute inset-0 rounded-2xl" style={{ borderWidth: 1, borderColor: colors.border }} />
 
       <View className="p-4 flex-row">
         {items.map((item, index) => (
           <View
             key={index}
-            className={`flex-1 ${index < items.length - 1 ? 'border-r border-white/10 pr-4' : ''} ${index > 0 ? 'pl-4' : ''}`}
+            className={`flex-1 ${index > 0 ? 'pl-4' : ''}`}
+            style={index < items.length - 1 ? { borderRightWidth: 1, borderRightColor: colors.borderLight, paddingRight: 16 } : undefined}
           >
-            <Text className="text-gray-400 text-xs mb-1">{item.label}</Text>
-            <Text className={`${item.valueColor || 'text-white'} font-bold text-base`}>
+            <Text style={{ color: colors.textSecondary }} className="text-xs mb-1">{item.label}</Text>
+            <Text style={{ color: colors.text }} className="font-bold text-base">
               {item.value}
             </Text>
           </View>

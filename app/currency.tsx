@@ -6,10 +6,14 @@ import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { PageLayout } from '@/components/layouts';
 import { useCurrency, CURRENCIES, CurrencyConfig } from '@/context/currency-provider';
+import { useColors } from '@/lib/hooks/use-colors';
+import { useTheme } from '@/context/theme-provider';
 
 export default function CurrencyScreen() {
   const router = useRouter();
   const { currency, setCurrency } = useCurrency();
+  const colors = useColors();
+  const { isDark } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredCurrencies = CURRENCIES.filter((curr) => {
@@ -30,24 +34,25 @@ export default function CurrencyScreen() {
     <PageLayout title="Currency" showBackButton>
       <View className="flex-1">
         {/* Search Bar */}
-        <View className="mx-4 mt-2 mb-4 rounded-2xl overflow-hidden bg-white/[0.03]">
-          <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />
-          <View className="absolute inset-0 rounded-2xl border border-white/10" />
+        <View className="mx-4 mt-2 mb-4 rounded-2xl overflow-hidden" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)' }}>
+          <BlurView intensity={30} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+          <View className="absolute inset-0 rounded-2xl" style={{ borderWidth: 1, borderColor: colors.border }} />
           <View className="flex-row items-center px-4 py-3">
-            <Search size={18} color="#6B7280" />
+            <Search size={18} color={colors.textMuted} />
             <TextInput
               value={searchQuery}
               onChangeText={setSearchQuery}
               placeholder="Search currencies..."
-              placeholderTextColor="#6B7280"
+              placeholderTextColor={colors.inputPlaceholder}
               autoCapitalize="none"
               autoCorrect={false}
-              keyboardAppearance="dark"
-              className="flex-1 ml-3 text-white text-base"
+              keyboardAppearance={isDark ? 'dark' : 'light'}
+              className="flex-1 ml-3 text-base"
+              style={{ color: colors.text }}
             />
             {searchQuery.length > 0 && (
               <Pressable onPress={() => setSearchQuery('')}>
-                <X size={18} color="#6B7280" />
+                <X size={18} color={colors.textMuted} />
               </Pressable>
             )}
           </View>
@@ -62,7 +67,7 @@ export default function CurrencyScreen() {
         >
           {filteredCurrencies.length === 0 ? (
             <View className="items-center py-8">
-              <Text className="text-gray-400 text-center">
+              <Text className="text-center" style={{ color: colors.textSecondary }}>
                 No currencies found matching "{searchQuery}"
               </Text>
             </View>
@@ -73,16 +78,19 @@ export default function CurrencyScreen() {
                 <Pressable
                   key={curr.code}
                   onPress={() => handleCurrencySelect(curr)}
-                  className={`flex-row items-center py-4 px-4 rounded-2xl mb-2 ${
-                    isSelected ? 'bg-emerald-500/20 border border-emerald-500/30' : 'bg-white/[0.03] border border-white/10'
-                  }`}
+                  className="flex-row items-center py-4 px-4 rounded-2xl mb-2"
+                  style={{
+                    backgroundColor: isSelected ? 'rgba(16, 185, 129, 0.2)' : isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
+                    borderWidth: 1,
+                    borderColor: isSelected ? 'rgba(16, 185, 129, 0.3)' : colors.border,
+                  }}
                 >
                   <Text className="text-3xl mr-4">{curr.flag}</Text>
                   <View className="flex-1">
-                    <Text className={`font-semibold ${isSelected ? 'text-emerald-400' : 'text-white'}`}>
+                    <Text className="font-semibold" style={{ color: isSelected ? '#10B981' : colors.text }}>
                       {curr.name}
                     </Text>
-                    <Text className="text-gray-400 text-sm mt-0.5">
+                    <Text className="text-sm mt-0.5" style={{ color: colors.textSecondary }}>
                       {curr.code} • {curr.symbol}
                     </Text>
                   </View>

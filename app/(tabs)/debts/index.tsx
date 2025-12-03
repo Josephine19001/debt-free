@@ -12,6 +12,8 @@ import { useDebts, usePaymentsDue } from '@/lib/hooks/use-debts';
 import { useDebouncedValue } from '@/lib/hooks/utils';
 import { DebtCategory, DebtStatus, DEBT_CATEGORY_CONFIG } from '@/lib/types/debt';
 import { MOCK_DATA, DEMO_MODE } from '@/lib/config/mock-data';
+import { useColors } from '@/lib/hooks/use-colors';
+import { useTheme } from '@/context/theme-provider';
 
 type Strategy = 'avalanche' | 'snowball';
 type SortOption = 'interest_rate' | 'balance' | 'name';
@@ -32,6 +34,8 @@ const STRATEGIES: { value: Strategy; label: string; description: string }[] = [
 
 export default function DebtsScreen() {
   const router = useRouter();
+  const colors = useColors();
+  const { isDark } = useTheme();
   const filterSheetRef = useRef<GlassBottomSheetRef>(null);
   const strategySheetRef = useRef<GlassBottomSheetRef>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -127,10 +131,11 @@ export default function DebtsScreen() {
 
   const titleWithStrategy = (
     <View className="flex-row items-center">
-      <Text className="text-white text-2xl font-bold mr-2">Debts</Text>
+      <Text style={{ color: colors.text }} className="text-2xl font-bold mr-2">Debts</Text>
       <Pressable
         onPress={() => strategySheetRef.current?.expand()}
-        className="flex-row items-center px-3 py-1.5 rounded-full bg-white/5 border border-white/10"
+        className="flex-row items-center px-3 py-1.5 rounded-full"
+        style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', borderWidth: 1, borderColor: colors.border }}
       >
         <Text className="text-emerald-400 text-sm font-medium mr-1">{currentStrategy.label}</Text>
         <ChevronDown size={14} color="#10B981" />
@@ -147,30 +152,30 @@ export default function DebtsScreen() {
         }}
         className="w-9 h-9 rounded-full overflow-hidden items-center justify-center mr-2"
       >
-        <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
-        <View className="absolute inset-0 rounded-full border border-white/10 bg-white/[0.03]" />
-        {showSearch ? <X size={18} color="#9CA3AF" /> : <Search size={18} color="#9CA3AF" />}
+        <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+        <View className="absolute inset-0 rounded-full" style={{ borderWidth: 1, borderColor: colors.border, backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)' }} />
+        {showSearch ? <X size={18} color={colors.icon} /> : <Search size={18} color={colors.icon} />}
       </Pressable>
       <Pressable
         onPress={handleOpenFilters}
         className="w-9 h-9 rounded-full overflow-hidden items-center justify-center mr-2"
       >
-        <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
+        <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
         <View
-          className={`absolute inset-0 rounded-full border ${
-            hasActiveFilters
-              ? 'border-emerald-500/30 bg-emerald-500/10'
-              : 'border-white/10 bg-white/[0.03]'
-          }`}
+          className="absolute inset-0 rounded-full"
+          style={{
+            borderWidth: 1,
+            borderColor: hasActiveFilters ? 'rgba(16, 185, 129, 0.3)' : colors.border,
+            backgroundColor: hasActiveFilters ? 'rgba(16, 185, 129, 0.1)' : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'),
+          }}
         />
-        <SlidersHorizontal size={18} color={hasActiveFilters ? '#10B981' : '#9CA3AF'} />
+        <SlidersHorizontal size={18} color={hasActiveFilters ? '#10B981' : colors.icon} />
       </Pressable>
       <Pressable
         onPress={handleAddDebt}
-        className="w-9 h-9 rounded-full overflow-hidden items-center justify-center"
+        className="w-9 h-9 rounded-full items-center justify-center"
+        style={{ backgroundColor: '#10B981', borderWidth: 1, borderColor: 'rgba(16, 185, 129, 0.3)' }}
       >
-        <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
-        <View className="absolute inset-0 rounded-full border border-emerald-500/30 bg-emerald-500/80" />
         <Plus size={18} color="#FFFFFF" />
       </Pressable>
     </View>
@@ -191,23 +196,24 @@ export default function DebtsScreen() {
 
         {/* Search Bar (expandable) */}
         {showSearch && (
-          <View className="mx-4 mt-2 mb-4 rounded-2xl overflow-hidden bg-white/[0.03]">
-            <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />
-            <View className="absolute inset-0 rounded-2xl border border-white/10" />
+          <View className="mx-4 mt-2 mb-4 rounded-2xl overflow-hidden" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)' }}>
+            <BlurView intensity={30} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+            <View className="absolute inset-0 rounded-2xl" style={{ borderWidth: 1, borderColor: colors.border }} />
             <View className="flex-row items-center px-4 py-3">
-              <Search size={18} color="#6B7280" />
+              <Search size={18} color={colors.textMuted} />
               <TextInput
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 placeholder="Search debts..."
-                placeholderTextColor="#6B7280"
+                placeholderTextColor={colors.textMuted}
                 autoFocus
-                keyboardAppearance="dark"
-                className="flex-1 ml-3 text-white text-base"
+                keyboardAppearance={isDark ? 'dark' : 'light'}
+                className="flex-1 ml-3 text-base"
+                style={{ color: colors.text }}
               />
               {searchQuery.length > 0 && (
                 <Pressable onPress={() => setSearchQuery('')}>
-                  <X size={18} color="#6B7280" />
+                  <X size={18} color={colors.textMuted} />
                 </Pressable>
               )}
             </View>
@@ -218,7 +224,7 @@ export default function DebtsScreen() {
         {!isLoading && hasDebts && !debouncedSearch && (sortBy === 'interest_rate' || sortBy === 'balance') && (
           <View className="mx-4 mb-4 bg-emerald-500/10 rounded-2xl p-4 border border-emerald-500/20">
             <Text className="text-emerald-400 font-semibold mb-1">{currentStrategy.label} Strategy</Text>
-            <Text className="text-gray-400 text-sm">
+            <Text style={{ color: colors.textSecondary }} className="text-sm">
               {currentStrategy.description}
             </Text>
           </View>
@@ -239,7 +245,7 @@ export default function DebtsScreen() {
           !hasDebts &&
           (debouncedSearch || categoryFilter || statusFilter !== 'active') && (
             <View className="items-center py-8 px-4">
-              <Text className="text-gray-400 text-center">
+              <Text style={{ color: colors.textSecondary }} className="text-center">
                 No{' '}
                 {statusFilter === 'paid_off' ? 'paid off' : statusFilter === 'all' ? '' : 'active '}
                 debts found
@@ -270,7 +276,7 @@ export default function DebtsScreen() {
         <View className="px-5 pt-2 pb-4">
           {/* Header */}
           <View className="flex-row items-center justify-between mb-6">
-            <Text className="text-white text-xl font-semibold">Filter & Sort</Text>
+            <Text style={{ color: colors.text }} className="text-xl font-semibold">Filter & Sort</Text>
             {hasActiveFilters && (
               <Pressable onPress={handleResetFilters}>
                 <Text className="text-emerald-400 text-sm font-medium">Reset</Text>
@@ -279,23 +285,21 @@ export default function DebtsScreen() {
           </View>
 
           {/* Status Filter */}
-          <Text className="text-gray-400 text-sm mb-3">Status</Text>
+          <Text style={{ color: colors.textSecondary }} className="text-sm mb-3">Status</Text>
           <View className="flex-row flex-wrap mb-5">
             {statusOptions.map((option) => (
               <Pressable
                 key={option.value}
                 onPress={() => setStatusFilter(option.value)}
-                className={`flex-row items-center px-4 py-2 rounded-full mr-2 mb-2 ${
-                  statusFilter === option.value ? 'bg-emerald-500' : 'bg-white/10'
-                }`}
+                className="flex-row items-center px-4 py-2 rounded-full mr-2 mb-2"
+                style={{ backgroundColor: statusFilter === option.value ? '#10B981' : (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)') }}
               >
                 {statusFilter === option.value && (
                   <Check size={14} color="#FFFFFF" style={{ marginRight: 6 }} />
                 )}
                 <Text
-                  className={`text-sm ${
-                    statusFilter === option.value ? 'text-white font-semibold' : 'text-gray-400'
-                  }`}
+                  className="text-sm"
+                  style={{ color: statusFilter === option.value ? '#FFFFFF' : colors.textSecondary, fontWeight: statusFilter === option.value ? '600' : '400' }}
                 >
                   {option.label}
                 </Text>
@@ -304,23 +308,21 @@ export default function DebtsScreen() {
           </View>
 
           {/* Sort Options */}
-          <Text className="text-gray-400 text-sm mb-3">Sort by</Text>
+          <Text style={{ color: colors.textSecondary }} className="text-sm mb-3">Sort by</Text>
           <View className="flex-row flex-wrap mb-5">
             {sortOptions.map((option) => (
               <Pressable
                 key={option.value}
                 onPress={() => setSortBy(option.value)}
-                className={`flex-row items-center px-4 py-2 rounded-full mr-2 mb-2 ${
-                  sortBy === option.value ? 'bg-emerald-500' : 'bg-white/10'
-                }`}
+                className="flex-row items-center px-4 py-2 rounded-full mr-2 mb-2"
+                style={{ backgroundColor: sortBy === option.value ? '#10B981' : (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)') }}
               >
                 {sortBy === option.value && (
                   <Check size={14} color="#FFFFFF" style={{ marginRight: 6 }} />
                 )}
                 <Text
-                  className={`text-sm ${
-                    sortBy === option.value ? 'text-white font-semibold' : 'text-gray-400'
-                  }`}
+                  className="text-sm"
+                  style={{ color: sortBy === option.value ? '#FFFFFF' : colors.textSecondary, fontWeight: sortBy === option.value ? '600' : '400' }}
                 >
                   {option.label}
                 </Text>
@@ -329,21 +331,19 @@ export default function DebtsScreen() {
           </View>
 
           {/* Category Filter */}
-          <Text className="text-gray-400 text-sm mb-3">Category</Text>
+          <Text style={{ color: colors.textSecondary }} className="text-sm mb-3">Category</Text>
           <View className="flex-row flex-wrap">
             <Pressable
               onPress={() => setCategoryFilter(null)}
-              className={`flex-row items-center px-4 py-2 rounded-full mr-2 mb-2 ${
-                categoryFilter === null ? 'bg-emerald-500' : 'bg-white/10'
-              }`}
+              className="flex-row items-center px-4 py-2 rounded-full mr-2 mb-2"
+              style={{ backgroundColor: categoryFilter === null ? '#10B981' : (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)') }}
             >
               {categoryFilter === null && (
                 <Check size={14} color="#FFFFFF" style={{ marginRight: 6 }} />
               )}
               <Text
-                className={`text-sm ${
-                  categoryFilter === null ? 'text-white font-semibold' : 'text-gray-400'
-                }`}
+                className="text-sm"
+                style={{ color: categoryFilter === null ? '#FFFFFF' : colors.textSecondary, fontWeight: categoryFilter === null ? '600' : '400' }}
               >
                 All
               </Text>
@@ -352,17 +352,15 @@ export default function DebtsScreen() {
               <Pressable
                 key={cat.value}
                 onPress={() => setCategoryFilter(cat.value)}
-                className={`flex-row items-center px-4 py-2 rounded-full mr-2 mb-2 ${
-                  categoryFilter === cat.value ? 'bg-emerald-500' : 'bg-white/10'
-                }`}
+                className="flex-row items-center px-4 py-2 rounded-full mr-2 mb-2"
+                style={{ backgroundColor: categoryFilter === cat.value ? '#10B981' : (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)') }}
               >
                 {categoryFilter === cat.value && (
                   <Check size={14} color="#FFFFFF" style={{ marginRight: 6 }} />
                 )}
                 <Text
-                  className={`text-sm ${
-                    categoryFilter === cat.value ? 'text-white font-semibold' : 'text-gray-400'
-                  }`}
+                  className="text-sm"
+                  style={{ color: categoryFilter === cat.value ? '#FFFFFF' : colors.textSecondary, fontWeight: categoryFilter === cat.value ? '600' : '400' }}
                 >
                   {cat.label}
                 </Text>
@@ -375,8 +373,8 @@ export default function DebtsScreen() {
       {/* Strategy Selection Bottom Sheet */}
       <GlassBottomSheet ref={strategySheetRef} snapPoints={['35%']}>
         <View className="px-5 pt-2 pb-4">
-          <Text className="text-white text-xl font-semibold mb-2">Payment Strategy</Text>
-          <Text className="text-gray-400 text-sm mb-6">
+          <Text style={{ color: colors.text }} className="text-xl font-semibold mb-2">Payment Strategy</Text>
+          <Text style={{ color: colors.textSecondary }} className="text-sm mb-6">
             Choose how to prioritize your debt payments
           </Text>
 
@@ -384,21 +382,21 @@ export default function DebtsScreen() {
             <Pressable
               key={strat.value}
               onPress={() => handleStrategySelect(strat.value)}
-              className={`flex-row items-center p-4 rounded-2xl mb-3 ${
-                strategy === strat.value
-                  ? 'bg-emerald-500/20 border border-emerald-500/30'
-                  : 'bg-white/5 border border-white/10'
-              }`}
+              className="flex-row items-center p-4 rounded-2xl mb-3"
+              style={{
+                backgroundColor: strategy === strat.value ? 'rgba(16, 185, 129, 0.2)' : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'),
+                borderWidth: 1,
+                borderColor: strategy === strat.value ? 'rgba(16, 185, 129, 0.3)' : colors.border,
+              }}
             >
               <View className="flex-1">
                 <Text
-                  className={`font-semibold mb-1 ${
-                    strategy === strat.value ? 'text-emerald-400' : 'text-white'
-                  }`}
+                  className="font-semibold mb-1"
+                  style={{ color: strategy === strat.value ? '#10B981' : colors.text }}
                 >
                   {strat.label}
                 </Text>
-                <Text className="text-gray-400 text-sm">{strat.description}</Text>
+                <Text style={{ color: colors.textSecondary }} className="text-sm">{strat.description}</Text>
               </View>
               {strategy === strat.value && <Check size={20} color="#10B981" />}
             </Pressable>

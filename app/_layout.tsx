@@ -15,11 +15,13 @@ import { Stack } from 'expo-router';
 
 import { RootProvider } from '@/context/root-provider';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
+import { SystemThemeUpdater } from '@/components/ui/system-theme-updater';
 
 export default function Layout() {
   return (
     <ErrorBoundary>
       <RootProvider>
+        <SystemThemeUpdater />
         <Stack
           screenOptions={{
             headerShown: false,

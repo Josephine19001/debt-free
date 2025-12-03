@@ -18,6 +18,8 @@ import { PageLayout, GlassCard } from '@/components/layouts';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { useAuth } from '@/context/auth-provider';
 import { useCurrency } from '@/context/currency-provider';
+import { useTheme } from '@/context/theme-provider';
+import { useColors } from '@/lib/hooks/use-colors';
 import { APP_URLS } from '@/lib/config/urls';
 import {
   User,
@@ -31,6 +33,9 @@ import {
   ChevronRight,
   Gift,
   Coins,
+  Sun,
+  Moon,
+  Smartphone,
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 
@@ -40,6 +45,8 @@ interface SettingsItemProps {
   onPress?: () => void;
   showChevron?: boolean;
   danger?: boolean;
+  colors: ReturnType<typeof useColors>;
+  isDark: boolean;
 }
 
 function SettingsItem({
@@ -48,27 +55,49 @@ function SettingsItem({
   onPress,
   showChevron = true,
   danger = false,
+  colors,
+  isDark,
 }: SettingsItemProps) {
   return (
     <Pressable onPress={onPress} className="flex-row items-center py-4 px-1">
       <View
-        className={`w-9 h-9 rounded-full items-center justify-center mr-3 ${
-          danger ? 'bg-red-500/20' : 'bg-white/5'
-        }`}
+        className="w-9 h-9 rounded-full items-center justify-center mr-3"
+        style={{
+          backgroundColor: danger
+            ? 'rgba(239, 68, 68, 0.2)'
+            : isDark
+            ? 'rgba(255,255,255,0.05)'
+            : 'rgba(0,0,0,0.05)',
+        }}
       >
-        <Icon size={18} color={danger ? '#EF4444' : '#9CA3AF'} />
+        <Icon size={18} color={danger ? '#EF4444' : colors.textSecondary} />
       </View>
-      <Text className={`flex-1 text-base ${danger ? 'text-red-400' : 'text-white'}`}>{label}</Text>
-      {showChevron && <ChevronRight size={20} color="#6B7280" />}
+      <Text className="flex-1 text-base" style={{ color: danger ? '#EF4444' : colors.text }}>
+        {label}
+      </Text>
+      {showChevron && <ChevronRight size={20} color={colors.textMuted} />}
     </Pressable>
   );
 }
 
-function SettingsGroup({ children, title }: { children: React.ReactNode; title?: string }) {
+function SettingsGroup({
+  children,
+  title,
+  colors,
+}: {
+  children: React.ReactNode;
+  title?: string;
+  colors: ReturnType<typeof useColors>;
+}) {
   return (
     <View className="mb-4">
       {title && (
-        <Text className="text-gray-500 text-xs uppercase tracking-wider px-5 mb-2">{title}</Text>
+        <Text
+          className="text-xs uppercase tracking-wider px-5 mb-2"
+          style={{ color: colors.textMuted }}
+        >
+          {title}
+        </Text>
       )}
       <GlassCard>
         <View className="-my-1">{children}</View>
@@ -89,6 +118,8 @@ export default function SettingsScreen() {
   const router = useRouter();
   const { deleteAccount, signOut } = useAuth();
   const { currency } = useCurrency();
+  const { theme, setTheme, isDark } = useTheme();
+  const colors = useColors();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteReason, setDeleteReason] = useState('');
@@ -174,77 +205,180 @@ export default function SettingsScreen() {
         </Pressable>
 
         {/* Account Section */}
-        <SettingsGroup title="Account">
-          <SettingsItem icon={User} label="Profile" onPress={() => router.push('/profile')} />
-          <View className="h-px bg-white/10 mx-1" />
+        <SettingsGroup title="Account" colors={colors}>
+          <SettingsItem
+            icon={User}
+            label="Profile"
+            onPress={() => router.push('/profile')}
+            colors={colors}
+            isDark={isDark}
+          />
+          <View className="h-px mx-1" style={{ backgroundColor: colors.borderLight }} />
           <SettingsItem
             icon={Bell}
             label="Notifications"
             onPress={() => router.push('/notifications')}
+            colors={colors}
+            isDark={isDark}
           />
-          <View className="h-px bg-white/10 mx-1" />
+          <View className="h-px mx-1" style={{ backgroundColor: colors.borderLight }} />
           <Pressable
             onPress={() => router.push('/currency')}
             className="flex-row items-center py-4 px-1"
           >
-            <View className="w-9 h-9 rounded-full items-center justify-center mr-3 bg-white/5">
-              <Coins size={18} color="#9CA3AF" />
+            <View
+              className="w-9 h-9 rounded-full items-center justify-center mr-3"
+              style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}
+            >
+              <Coins size={18} color={colors.textSecondary} />
             </View>
-            <Text className="flex-1 text-base text-white">Currency</Text>
-            <Text className="text-gray-400 mr-2">
+            <Text className="flex-1 text-base" style={{ color: colors.text }}>
+              Currency
+            </Text>
+            <Text className="mr-2" style={{ color: colors.textSecondary }}>
               {currency.flag} {currency.code}
             </Text>
-            <ChevronRight size={20} color="#6B7280" />
+            <ChevronRight size={20} color={colors.textMuted} />
+          </Pressable>
+        </SettingsGroup>
+
+        {/* Appearance Section */}
+        <SettingsGroup title="Appearance" colors={colors}>
+          <Pressable onPress={() => setTheme('system')} className="flex-row items-center py-4 px-1">
+            <View
+              className="w-9 h-9 rounded-full items-center justify-center mr-3"
+              style={{
+                backgroundColor:
+                  theme === 'system'
+                    ? 'rgba(16, 185, 129, 0.2)'
+                    : isDark
+                    ? 'rgba(255,255,255,0.05)'
+                    : 'rgba(0,0,0,0.05)',
+              }}
+            >
+              <Smartphone size={18} color={theme === 'system' ? '#10B981' : colors.textSecondary} />
+            </View>
+            <Text
+              className="flex-1 text-base"
+              style={{ color: theme === 'system' ? '#10B981' : colors.text }}
+            >
+              System
+            </Text>
+            {theme === 'system' && <View className="w-2 h-2 rounded-full bg-emerald-500 mr-2" />}
+          </Pressable>
+          <View className="h-px mx-1" style={{ backgroundColor: colors.borderLight }} />
+          <Pressable onPress={() => setTheme('light')} className="flex-row items-center py-4 px-1">
+            <View
+              className="w-9 h-9 rounded-full items-center justify-center mr-3"
+              style={{
+                backgroundColor:
+                  theme === 'light'
+                    ? 'rgba(16, 185, 129, 0.2)'
+                    : isDark
+                    ? 'rgba(255,255,255,0.05)'
+                    : 'rgba(0,0,0,0.05)',
+              }}
+            >
+              <Sun size={18} color={theme === 'light' ? '#10B981' : colors.textSecondary} />
+            </View>
+            <Text
+              className="flex-1 text-base"
+              style={{ color: theme === 'light' ? '#10B981' : colors.text }}
+            >
+              Light
+            </Text>
+            {theme === 'light' && <View className="w-2 h-2 rounded-full bg-emerald-500 mr-2" />}
+          </Pressable>
+          <View className="h-px mx-1" style={{ backgroundColor: colors.borderLight }} />
+          <Pressable onPress={() => setTheme('dark')} className="flex-row items-center py-4 px-1">
+            <View
+              className="w-9 h-9 rounded-full items-center justify-center mr-3"
+              style={{
+                backgroundColor:
+                  theme === 'dark'
+                    ? 'rgba(16, 185, 129, 0.2)'
+                    : isDark
+                    ? 'rgba(255,255,255,0.05)'
+                    : 'rgba(0,0,0,0.05)',
+              }}
+            >
+              <Moon size={18} color={theme === 'dark' ? '#10B981' : colors.textSecondary} />
+            </View>
+            <Text
+              className="flex-1 text-base"
+              style={{ color: theme === 'dark' ? '#10B981' : colors.text }}
+            >
+              Dark
+            </Text>
+            {theme === 'dark' && <View className="w-2 h-2 rounded-full bg-emerald-500 mr-2" />}
           </Pressable>
         </SettingsGroup>
 
         {/* Support Section */}
-        <SettingsGroup title="Support">
+        <SettingsGroup title="Support" colors={colors}>
           <SettingsItem
             icon={MessageCircle}
             label="Give Feedback"
             onPress={() => router.push('/feedback')}
+            colors={colors}
+            isDark={isDark}
           />
-          <View className="h-px bg-white/10 mx-1" />
-          <SettingsItem icon={Star} label="Rate the App" onPress={handleRateApp} />
+          <View className="h-px mx-1" style={{ backgroundColor: colors.borderLight }} />
+          <SettingsItem
+            icon={Star}
+            label="Rate the App"
+            onPress={handleRateApp}
+            colors={colors}
+            isDark={isDark}
+          />
         </SettingsGroup>
 
         {/* Legal Section */}
-        <SettingsGroup title="Legal">
+        <SettingsGroup title="Legal" colors={colors}>
           <SettingsItem
             icon={FileText}
             label="Terms of Service"
             onPress={() => Linking.openURL(APP_URLS.terms)}
+            colors={colors}
+            isDark={isDark}
           />
-          <View className="h-px bg-white/10 mx-1" />
+          <View className="h-px mx-1" style={{ backgroundColor: colors.borderLight }} />
           <SettingsItem
             icon={Shield}
             label="Privacy Policy"
             onPress={() => Linking.openURL(APP_URLS.privacy)}
+            colors={colors}
+            isDark={isDark}
           />
         </SettingsGroup>
 
         {/* Account Actions */}
-        <SettingsGroup>
+        <SettingsGroup colors={colors}>
           <SettingsItem
             icon={LogOut}
             label="Log Out"
             onPress={() => setShowLogoutModal(true)}
             showChevron={false}
+            colors={colors}
+            isDark={isDark}
           />
-          <View className="h-px bg-white/10 mx-1" />
+          <View className="h-px mx-1" style={{ backgroundColor: colors.borderLight }} />
           <SettingsItem
             icon={Trash2}
             label="Delete Account"
             onPress={showDeleteAlert}
             showChevron={false}
             danger
+            colors={colors}
+            isDark={isDark}
           />
         </SettingsGroup>
 
         {/* App Version */}
         <View className="items-center mt-4">
-          <Text className="text-gray-600 text-sm">Debt Free v1.0.0</Text>
+          <Text className="text-sm" style={{ color: colors.textMuted }}>
+            Debt Free v1.0.3
+          </Text>
         </View>
       </ScrollView>
 
@@ -263,18 +397,22 @@ export default function SettingsScreen() {
       <Modal visible={showDeleteModal} transparent animationType="fade">
         <Pressable
           className="flex-1 justify-center items-center px-6"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
+          style={{ backgroundColor: isDark ? 'rgba(0, 0, 0, 0.6)' : 'rgba(0, 0, 0, 0.4)' }}
           onPress={() => !isDeleting && setShowDeleteModal(false)}
         >
           <Pressable
             className="w-full rounded-3xl overflow-hidden"
             onPress={(e) => e.stopPropagation()}
           >
-            <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFill}>
+            <BlurView
+              intensity={isDark ? 60 : 80}
+              tint={isDark ? 'dark' : 'light'}
+              style={StyleSheet.absoluteFill}
+            >
               <View
                 style={{
                   ...StyleSheet.absoluteFillObject,
-                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.7)',
                 }}
               />
             </BlurView>
@@ -283,56 +421,72 @@ export default function SettingsScreen() {
                 ...StyleSheet.absoluteFillObject,
                 borderRadius: 24,
                 borderWidth: 1,
-                borderColor: 'rgba(255, 255, 255, 0.1)',
+                borderColor: colors.border,
               }}
             />
             <View className="p-6">
-              <Text className="text-xl font-semibold text-center mb-2 text-white">
+              <Text
+                className="text-xl font-semibold text-center mb-2"
+                style={{ color: colors.text }}
+              >
                 Delete Account
               </Text>
-              <Text className="text-gray-400 text-center mb-4">
+              <Text className="text-center mb-4" style={{ color: colors.textSecondary }}>
                 This action cannot be undone. All your data will be permanently deleted.
               </Text>
 
-              <Text className="text-white font-medium mb-2">
+              <Text className="font-medium mb-2" style={{ color: colors.text }}>
                 Please tell us why you're leaving:
               </Text>
               {DELETE_REASONS.map((reason) => (
                 <Pressable
                   key={reason}
                   onPress={() => setDeleteReason(reason)}
-                  className={`flex-row items-center py-3 px-3 rounded-lg mb-2 ${
-                    deleteReason === reason ? 'bg-red-500/20' : 'bg-white/5'
-                  }`}
+                  className="flex-row items-center py-3 px-3 rounded-lg mb-2"
+                  style={{
+                    backgroundColor:
+                      deleteReason === reason
+                        ? 'rgba(239, 68, 68, 0.2)'
+                        : isDark
+                        ? 'rgba(255,255,255,0.05)'
+                        : 'rgba(0,0,0,0.05)',
+                  }}
                 >
                   <View
-                    className={`w-5 h-5 rounded-full border-2 mr-3 items-center justify-center ${
-                      deleteReason === reason ? 'border-red-500' : 'border-gray-500'
-                    }`}
+                    className="w-5 h-5 rounded-full border-2 mr-3 items-center justify-center"
+                    style={{ borderColor: deleteReason === reason ? '#EF4444' : colors.textMuted }}
                   >
                     {deleteReason === reason && (
                       <View className="w-2.5 h-2.5 rounded-full bg-red-500" />
                     )}
                   </View>
-                  <Text className="text-white">{reason}</Text>
+                  <Text style={{ color: colors.text }}>{reason}</Text>
                 </Pressable>
               ))}
 
               <TextInput
                 placeholder="Additional comments (optional)"
-                placeholderTextColor="#6B7280"
+                placeholderTextColor={colors.inputPlaceholder}
                 value={additionalComments}
                 onChangeText={setAdditionalComments}
                 multiline
                 numberOfLines={3}
-                className="bg-white/5 rounded-lg p-3 text-white mt-2 mb-4"
-                style={{ textAlignVertical: 'top', minHeight: 80 }}
+                keyboardAppearance={isDark ? 'dark' : 'light'}
+                className="rounded-lg p-3 mt-2 mb-4"
+                style={{
+                  textAlignVertical: 'top',
+                  minHeight: 80,
+                  color: colors.text,
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                }}
               />
 
               {isDeleting && (
                 <View className="flex-row items-center justify-center mb-4">
                   <ActivityIndicator size="small" color="#EF4444" />
-                  <Text className="text-gray-400 ml-2">Deleting your account...</Text>
+                  <Text className="ml-2" style={{ color: colors.textSecondary }}>
+                    Deleting your account...
+                  </Text>
                 </View>
               )}
 
@@ -340,9 +494,13 @@ export default function SettingsScreen() {
                 <Pressable
                   onPress={handleDeleteAccount}
                   disabled={!deleteReason || isDeleting}
-                  className={`py-4 rounded-2xl ${
-                    !deleteReason || isDeleting ? 'bg-red-500/40' : 'bg-red-500/80'
-                  }`}
+                  className="py-4 rounded-2xl"
+                  style={{
+                    backgroundColor:
+                      !deleteReason || isDeleting
+                        ? 'rgba(239, 68, 68, 0.4)'
+                        : 'rgba(239, 68, 68, 0.8)',
+                  }}
                 >
                   <Text className="text-white text-center font-semibold">
                     {isDeleting ? 'Deleting...' : 'Delete Account'}
@@ -353,9 +511,13 @@ export default function SettingsScreen() {
                   onPress={() => setShowDeleteModal(false)}
                   disabled={isDeleting}
                   className="py-4 rounded-2xl"
-                  style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+                  style={{
+                    backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)',
+                  }}
                 >
-                  <Text className="text-white text-center font-medium">Cancel</Text>
+                  <Text className="text-center font-medium" style={{ color: colors.text }}>
+                    Cancel
+                  </Text>
                 </Pressable>
               </View>
             </View>

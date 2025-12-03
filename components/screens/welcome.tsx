@@ -5,9 +5,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { ChevronRight } from 'lucide-react-native';
 import LogoIcon from '@/assets/svg/logo-icon';
+import { useColors } from '@/lib/hooks/use-colors';
+import { useTheme } from '@/context/theme-provider';
 
 export function WelcomeScreen() {
   const router = useRouter();
+  const colors = useColors();
+  const { isDark } = useTheme();
 
   const handleGetStarted = () => {
     router.push('/onboarding');
@@ -18,8 +22,8 @@ export function WelcomeScreen() {
   };
 
   return (
-    <View className="flex-1 bg-[#0F0F0F]">
-      <StatusBar barStyle="light-content" />
+    <View className="flex-1" style={{ backgroundColor: colors.background }}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <SafeAreaView className="flex-1">
         <View className="flex-1 px-6">
           {/* Top Section with Logo/Brand */}
@@ -35,7 +39,8 @@ export function WelcomeScreen() {
             {/* App Name */}
             <Animated.Text
               entering={FadeInUp.delay(400).duration(600)}
-              className="text-white text-4xl font-bold text-center mb-3"
+              className="text-4xl font-bold text-center mb-3"
+              style={{ color: colors.text }}
             >
               Debt Free
             </Animated.Text>
@@ -43,7 +48,8 @@ export function WelcomeScreen() {
             {/* Tagline */}
             <Animated.Text
               entering={FadeInUp.delay(500).duration(600)}
-              className="text-gray-400 text-lg text-center px-4"
+              className="text-lg text-center px-4"
+              style={{ color: colors.textSecondary }}
             >
               Your journey to financial freedom starts here
             </Animated.Text>
@@ -75,7 +81,7 @@ export function WelcomeScreen() {
 
             {/* Sign In Link */}
             <Pressable onPress={handleSignIn} className="py-3">
-              <Text className="text-gray-400 text-center">
+              <Text className="text-center" style={{ color: colors.textSecondary }}>
                 Already have an account?{' '}
                 <Text className="text-emerald-400 font-semibold">Sign In</Text>
               </Text>

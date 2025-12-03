@@ -1,6 +1,8 @@
 import { useRef, useEffect } from 'react';
 import { View, Text, TextInput, Pressable } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { useColors } from '@/lib/hooks/use-colors';
+import { useTheme } from '@/context/theme-provider';
 
 interface CurrencyInputProps {
   value: string;
@@ -24,6 +26,8 @@ export function CurrencyInput({
   animationDelay = 300,
 }: CurrencyInputProps) {
   const inputRef = useRef<TextInput>(null);
+  const colors = useColors();
+  const { isDark } = useTheme();
 
   useEffect(() => {
     if (autoFocus) {
@@ -45,7 +49,7 @@ export function CurrencyInput({
         className="flex-row items-center justify-center"
       >
         {prefix && (
-          <Text className="text-white font-black" style={{ fontSize: 48, lineHeight: 60 }}>
+          <Text className="font-black" style={{ fontSize: 48, lineHeight: 60, color: colors.text }}>
             {prefix}
           </Text>
         )}
@@ -54,19 +58,19 @@ export function CurrencyInput({
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor="#4B5563"
+          placeholderTextColor={colors.textMuted}
           keyboardType="number-pad"
-          keyboardAppearance="dark"
-          className="text-white font-black text-center"
-          style={{ fontSize: 48, lineHeight: 60, minWidth: 120 }}
+          keyboardAppearance={isDark ? 'dark' : 'light'}
+          className="font-black text-center"
+          style={{ fontSize: 48, lineHeight: 60, minWidth: 120, color: colors.text }}
         />
         {suffix && (
-          <Text className="text-white font-black" style={{ fontSize: 48, lineHeight: 60 }}>
+          <Text className="font-black" style={{ fontSize: 48, lineHeight: 60, color: colors.text }}>
             {suffix}
           </Text>
         )}
       </Pressable>
-      {hint && <Text className="text-gray-500 text-sm mt-2">{hint}</Text>}
+      {hint && <Text className="text-sm mt-2" style={{ color: colors.textMuted }}>{hint}</Text>}
     </Animated.View>
   );
 }
@@ -89,6 +93,8 @@ export function PercentInput({
   animationDelay = 300,
 }: PercentInputProps) {
   const inputRef = useRef<TextInput>(null);
+  const colors = useColors();
+  const { isDark } = useTheme();
 
   useEffect(() => {
     if (autoFocus) {
@@ -114,17 +120,17 @@ export function PercentInput({
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor="#4B5563"
+          placeholderTextColor={colors.textMuted}
           keyboardType="decimal-pad"
-          keyboardAppearance="dark"
-          className="text-white font-black text-center"
-          style={{ fontSize: 48, lineHeight: 60, minWidth: 80 }}
+          keyboardAppearance={isDark ? 'dark' : 'light'}
+          className="font-black text-center"
+          style={{ fontSize: 48, lineHeight: 60, minWidth: 80, color: colors.text }}
         />
-        <Text className="text-white font-black" style={{ fontSize: 48, lineHeight: 60 }}>
+        <Text className="font-black" style={{ fontSize: 48, lineHeight: 60, color: colors.text }}>
           %
         </Text>
       </Pressable>
-      {hint && <Text className="text-gray-500 text-sm mt-4">{hint}</Text>}
+      {hint && <Text className="text-sm mt-4" style={{ color: colors.textMuted }}>{hint}</Text>}
     </Animated.View>
   );
 }

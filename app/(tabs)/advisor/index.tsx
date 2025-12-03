@@ -24,6 +24,8 @@ import { useDebts, useDebtSummary } from '@/lib/hooks/use-debts';
 import { useTabBar } from '@/context/tab-bar-provider';
 import { AdvisorIcon } from '@/components/icons/tab-icons';
 import { useCurrency } from '@/context/currency-provider';
+import { useColors } from '@/lib/hooks/use-colors';
+import { useTheme } from '@/context/theme-provider';
 import * as Haptics from 'expo-haptics';
 import { MOCK_DATA, DEMO_MODE } from '@/lib/config/mock-data';
 
@@ -34,7 +36,7 @@ const QUICK_PROMPTS = [
   'What is the avalanche method?',
 ];
 
-function MessageBubble({ message }: { message: ChatMessage }) {
+function MessageBubble({ message, isDark }: { message: ChatMessage; isDark: boolean }) {
   const isUser = message.role === 'user';
 
   return (
@@ -44,14 +46,26 @@ function MessageBubble({ message }: { message: ChatMessage }) {
           <AdvisorIcon size={16} color="#10B981" />
         </View>
       )}
-      <View style={[styles.messageContent, isUser ? styles.userContent : styles.assistantContent]}>
-        <Text style={[styles.messageText, isUser && styles.userText]}>{message.content}</Text>
+      <View style={[
+        styles.messageContent,
+        isUser ? styles.userContent : {
+          backgroundColor: isDark ? '#1a1a1f' : '#F3F4F6',
+          borderWidth: 1,
+          borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+        }
+      ]}>
+        <Text style={[
+          styles.messageText,
+          isUser ? styles.userText : { color: isDark ? '#E5E7EB' : '#1F2937' }
+        ]}>
+          {message.content}
+        </Text>
       </View>
     </View>
   );
 }
 
-function TypingIndicator() {
+function TypingIndicator({ isDark }: { isDark: boolean }) {
   const [activeDot, setActiveDot] = useState(0);
 
   useEffect(() => {
@@ -66,7 +80,15 @@ function TypingIndicator() {
       <View style={styles.assistantIcon}>
         <AdvisorIcon size={16} color="#10B981" />
       </View>
-      <View style={[styles.messageContent, styles.assistantContent, styles.typingContent]}>
+      <View style={[
+        styles.messageContent,
+        styles.typingContent,
+        {
+          backgroundColor: isDark ? '#1a1a1f' : '#F3F4F6',
+          borderWidth: 1,
+          borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+        }
+      ]}>
         <View style={styles.dotsContainer}>
           {[0, 1, 2].map((i) => (
             <View key={i} style={[styles.dot, { opacity: activeDot === i ? 1 : 0.3 }]} />
@@ -77,20 +99,30 @@ function TypingIndicator() {
   );
 }
 
-function EmptyState({ onPromptPress }: { onPromptPress: (prompt: string) => void }) {
+function EmptyState({ onPromptPress, isDark, colors }: { onPromptPress: (prompt: string) => void; isDark: boolean; colors: ReturnType<typeof useColors> }) {
   return (
     <View style={styles.emptyState}>
       <View style={styles.emptyIconContainer}>
         <AdvisorIcon size={32} color="#10B981" />
       </View>
-      <Text style={styles.emptyTitle}>Debt Advisor</Text>
-      <Text style={styles.emptySubtitle}>
+      <Text style={[styles.emptyTitle, { color: colors.text }]}>Debt Advisor</Text>
+      <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
         Ask me anything about your debts, payment strategies, or financial decisions.
       </Text>
       <View style={styles.promptsContainer}>
         {QUICK_PROMPTS.map((prompt) => (
-          <Pressable key={prompt} style={styles.promptButton} onPress={() => onPromptPress(prompt)}>
-            <Text style={styles.promptText}>{prompt}</Text>
+          <Pressable
+            key={prompt}
+            style={[
+              styles.promptButton,
+              {
+                backgroundColor: isDark ? '#1a1a1f' : '#F3F4F6',
+                borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+              }
+            ]}
+            onPress={() => onPromptPress(prompt)}
+          >
+            <Text style={[styles.promptText, { color: isDark ? '#E5E7EB' : '#1F2937' }]}>{prompt}</Text>
           </Pressable>
         ))}
       </View>
@@ -100,6 +132,8 @@ function EmptyState({ onPromptPress }: { onPromptPress: (prompt: string) => void
 
 export default function AdvisorScreen() {
   const { formatCurrency } = useCurrency();
+  const colors = useColors();
+  const { isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const flatListRef = useRef<FlatList>(null);
@@ -224,16 +258,16 @@ export default function AdvisorScreen() {
     await clearChat();
   };
 
-  const renderMessage = ({ item }: { item: ChatMessage }) => <MessageBubble message={item} />;
+  const renderMessage = ({ item }: { item: ChatMessage }) => <MessageBubble message={item} isDark={isDark} />;
 
   const hasMessages = messages.length > 0;
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={handleBack} style={styles.backButton}>
-          <ChevronLeft size={28} color="#FFFFFF" strokeWidth={2} />
+          <ChevronLeft size={28} color={colors.text} strokeWidth={2} />
         </Pressable>
         <Pressable
           style={styles.headerCenter}
@@ -243,11 +277,11 @@ export default function AdvisorScreen() {
           }}
         >
           <View style={styles.debtSelector}>
-            <Text style={styles.headerTitle}>Advisor</Text>
-            <ChevronDown size={16} color="#6B7280" style={{ marginLeft: 4 }} />
+            <Text style={[styles.headerTitle, { color: colors.text }]}>Advisor</Text>
+            <ChevronDown size={16} color={colors.textSecondary} style={{ marginLeft: 4 }} />
           </View>
           {displayAmount && (
-            <Text style={styles.headerSubtitle}>
+            <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
               {displayLabel} · {displayAmount}
             </Text>
           )}
@@ -256,9 +290,9 @@ export default function AdvisorScreen() {
           {hasMessages && (
             <Pressable onPress={handleClearChat} disabled={isClearing} style={styles.clearButton}>
               {isClearing ? (
-                <ActivityIndicator size="small" color="#6B7280" />
+                <ActivityIndicator size="small" color={colors.textSecondary} />
               ) : (
-                <Trash2 size={20} color="#6B7280" />
+                <Trash2 size={20} color={colors.textSecondary} />
               )}
             </Pressable>
           )}
@@ -272,13 +306,19 @@ export default function AdvisorScreen() {
         animationType="fade"
         onRequestClose={() => setShowDebtPicker(false)}
       >
-        <Pressable style={styles.modalOverlay} onPress={() => setShowDebtPicker(false)}>
-          <View style={[styles.modalContent, { paddingBottom: insets.bottom + 16 }]}>
-            <Text style={styles.modalTitle}>Focus on</Text>
+        <Pressable
+          style={[styles.modalOverlay, { backgroundColor: isDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.4)' }]}
+          onPress={() => setShowDebtPicker(false)}
+        >
+          <View style={[
+            styles.modalContent,
+            { paddingBottom: insets.bottom + 16, backgroundColor: isDark ? '#1a1a1f' : '#FFFFFF' }
+          ]}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Focus on</Text>
 
             {/* All Debts Option */}
             <Pressable
-              style={styles.debtOption}
+              style={[styles.debtOption, { backgroundColor: isDark ? '#141418' : '#F3F4F6' }]}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 setSelectedDebtId(null);
@@ -286,9 +326,9 @@ export default function AdvisorScreen() {
               }}
             >
               <View style={styles.debtOptionInfo}>
-                <Text style={styles.debtOptionName}>All Debts</Text>
+                <Text style={[styles.debtOptionName, { color: colors.text }]}>All Debts</Text>
                 {summary && (
-                  <Text style={styles.debtOptionAmount}>
+                  <Text style={[styles.debtOptionAmount, { color: colors.textSecondary }]}>
                     {formatCurrency(summary.total_balance)}
                   </Text>
                 )}
@@ -301,7 +341,7 @@ export default function AdvisorScreen() {
               {debts?.map((debt) => (
                 <Pressable
                   key={debt.id}
-                  style={styles.debtOption}
+                  style={[styles.debtOption, { backgroundColor: isDark ? '#141418' : '#F3F4F6' }]}
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     setSelectedDebtId(debt.id);
@@ -309,8 +349,8 @@ export default function AdvisorScreen() {
                   }}
                 >
                   <View style={styles.debtOptionInfo}>
-                    <Text style={styles.debtOptionName}>{debt.name}</Text>
-                    <Text style={styles.debtOptionAmount}>
+                    <Text style={[styles.debtOptionName, { color: colors.text }]}>{debt.name}</Text>
+                    <Text style={[styles.debtOptionAmount, { color: colors.textSecondary }]}>
                       {formatCurrency(debt.current_balance)}
                     </Text>
                   </View>
@@ -349,10 +389,10 @@ export default function AdvisorScreen() {
                 </View>
               ) : null
             }
-            ListFooterComponent={isSending ? <TypingIndicator /> : null}
+            ListFooterComponent={isSending ? <TypingIndicator isDark={isDark} /> : null}
           />
         ) : (
-          <EmptyState onPromptPress={handlePromptPress} />
+          <EmptyState onPromptPress={handlePromptPress} isDark={isDark} colors={colors} />
         )}
 
         {/* Input */}
@@ -363,12 +403,15 @@ export default function AdvisorScreen() {
           ]}
         >
           <View style={styles.inputWrapper}>
-            <LinearGradient colors={['#1a1a1f', '#141418']} style={StyleSheet.absoluteFill} />
-            <View style={styles.inputBorder} />
+            <LinearGradient
+              colors={isDark ? ['#1a1a1f', '#141418'] : ['#FFFFFF', '#F9FAFB']}
+              style={StyleSheet.absoluteFill}
+            />
+            <View style={[styles.inputBorder, { borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }]} />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colors.text }]}
               placeholder="Ask about your debt..."
-              placeholderTextColor="#6B7280"
+              placeholderTextColor={colors.textMuted}
               value={inputText}
               onChangeText={setInputText}
               multiline
@@ -376,14 +419,14 @@ export default function AdvisorScreen() {
               editable={!isSending}
               onSubmitEditing={handleSend}
               blurOnSubmit={false}
-              keyboardAppearance="dark"
+              keyboardAppearance={isDark ? 'dark' : 'light'}
             />
             <Pressable
               onPress={handleSend}
               disabled={!inputText.trim() || isSending}
               style={[
                 styles.sendButton,
-                (!inputText.trim() || isSending) && styles.sendButtonDisabled,
+                (!inputText.trim() || isSending) && { backgroundColor: isDark ? '#374151' : '#D1D5DB' },
               ]}
             >
               <Send size={20} color="#FFFFFF" />

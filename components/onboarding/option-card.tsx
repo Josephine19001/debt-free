@@ -1,6 +1,8 @@
 import { ReactNode } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { useColors } from '@/lib/hooks/use-colors';
+import { useTheme } from '@/context/theme-provider';
 
 interface OptionCardProps {
   selected: boolean;
@@ -21,34 +23,50 @@ export function OptionCard({
   animationDelay = 300,
   accentColor = 'emerald',
 }: OptionCardProps) {
-  const borderColor = selected
-    ? accentColor === 'emerald'
-      ? 'border-emerald-500'
-      : 'border-blue-500'
-    : 'border-white/10';
+  const colors = useColors();
+  const { isDark } = useTheme();
 
-  const bgColor = selected
-    ? accentColor === 'emerald'
-      ? 'bg-emerald-500/10'
-      : 'bg-blue-500/10'
-    : 'bg-white/5';
+  const getBorderColor = () => {
+    if (selected) {
+      return accentColor === 'emerald' ? '#10B981' : '#3B82F6';
+    }
+    return isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+  };
 
-  const iconBgColor = selected
-    ? accentColor === 'emerald'
-      ? 'bg-emerald-500/20'
-      : 'bg-blue-500/20'
-    : 'bg-white/10';
+  const getBgColor = () => {
+    if (selected) {
+      return accentColor === 'emerald' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(59, 130, 246, 0.1)';
+    }
+    return isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+  };
+
+  const getIconBgColor = () => {
+    if (selected) {
+      return accentColor === 'emerald' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(59, 130, 246, 0.2)';
+    }
+    return isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+  };
 
   return (
     <Pressable onPress={onSelect}>
-      <View className={`rounded-2xl p-5 border-2 ${borderColor} ${bgColor}`}>
+      <View
+        className="rounded-2xl p-5"
+        style={{
+          borderWidth: 2,
+          borderColor: getBorderColor(),
+          backgroundColor: getBgColor(),
+        }}
+      >
         <View className="flex-row items-center">
-          <View className={`w-12 h-12 rounded-full items-center justify-center mr-4 ${iconBgColor}`}>
+          <View
+            className="w-12 h-12 rounded-full items-center justify-center mr-4"
+            style={{ backgroundColor: getIconBgColor() }}
+          >
             {icon}
           </View>
           <View className="flex-1">
-            <Text className="text-white font-bold text-lg">{title}</Text>
-            <Text className="text-gray-500 text-sm">{subtitle}</Text>
+            <Text className="font-bold text-lg" style={{ color: colors.text }}>{title}</Text>
+            <Text className="text-sm" style={{ color: colors.textMuted }}>{subtitle}</Text>
           </View>
         </View>
       </View>
@@ -79,37 +97,52 @@ export function StrategyCard({
   badge,
   accentColor = 'emerald',
 }: StrategyCardProps) {
-  const borderColor = selected
-    ? accentColor === 'emerald'
-      ? 'border-emerald-500'
-      : 'border-blue-500'
-    : 'border-white/10';
+  const colors = useColors();
+  const { isDark } = useTheme();
 
-  const bgColor = selected
-    ? accentColor === 'emerald'
-      ? 'bg-emerald-500/10'
-      : 'bg-blue-500/10'
-    : 'bg-white/5';
+  const getBorderColor = () => {
+    if (selected) {
+      return accentColor === 'emerald' ? '#10B981' : '#3B82F6';
+    }
+    return isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+  };
 
-  const iconBgColor = selected
-    ? accentColor === 'emerald'
-      ? 'bg-emerald-500/20'
-      : 'bg-blue-500/20'
-    : 'bg-white/10';
+  const getBgColor = () => {
+    if (selected) {
+      return accentColor === 'emerald' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(59, 130, 246, 0.1)';
+    }
+    return isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+  };
 
-  const metricColor =
-    accentColor === 'emerald' ? 'text-emerald-400' : 'text-blue-400';
+  const getIconBgColor = () => {
+    if (selected) {
+      return accentColor === 'emerald' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(59, 130, 246, 0.2)';
+    }
+    return isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+  };
+
+  const metricColor = accentColor === 'emerald' ? '#34D399' : '#60A5FA';
 
   return (
     <Pressable onPress={onSelect}>
-      <View className={`rounded-2xl p-4 border-2 ${borderColor} ${bgColor}`}>
+      <View
+        className="rounded-2xl p-4"
+        style={{
+          borderWidth: 2,
+          borderColor: getBorderColor(),
+          backgroundColor: getBgColor(),
+        }}
+      >
         <View className="flex-row items-center mb-2">
-          <View className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${iconBgColor}`}>
+          <View
+            className="w-10 h-10 rounded-full items-center justify-center mr-3"
+            style={{ backgroundColor: getIconBgColor() }}
+          >
             {icon}
           </View>
           <View className="flex-1">
-            <Text className="text-white font-bold">{title}</Text>
-            <Text className="text-gray-500 text-xs">{subtitle}</Text>
+            <Text className="font-bold" style={{ color: colors.text }}>{title}</Text>
+            <Text className="text-xs" style={{ color: colors.textMuted }}>{subtitle}</Text>
           </View>
           {badge && selected && (
             <View className="bg-emerald-500 px-2 py-1 rounded">
@@ -118,8 +151,8 @@ export function StrategyCard({
           )}
         </View>
         <View className="flex-row justify-between">
-          <Text className="text-gray-400 text-sm">{metricLabel}</Text>
-          <Text className={`font-bold text-sm ${metricColor}`}>{metricValue}</Text>
+          <Text className="text-sm" style={{ color: colors.textSecondary }}>{metricLabel}</Text>
+          <Text className="font-bold text-sm" style={{ color: metricColor }}>{metricValue}</Text>
         </View>
       </View>
     </Pressable>

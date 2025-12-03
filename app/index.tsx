@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useAuth } from '@/context/auth-provider';
 import { useRevenueCat } from '@/context/revenuecat-provider';
+import { useColors } from '@/lib/hooks/use-colors';
 import { WelcomeScreen } from '@/components/screens';
 
 // Keep the splash screen visible while we fetch resources
@@ -19,6 +20,7 @@ export default function Index() {
   const [appIsReady, setAppIsReady] = useState(false);
   const { user, loading: authLoading } = useAuth();
   const { isSubscribed, loading: subscriptionLoading } = useRevenueCat();
+  const colors = useColors();
 
   useEffect(() => {
     async function prepare() {
@@ -73,7 +75,8 @@ export default function Index() {
   if (user && subscriptionLoading) {
     return (
       <View
-        className="flex-1 bg-[#0F0F0F] items-center justify-center"
+        className="flex-1 items-center justify-center"
+        style={{ backgroundColor: colors.background }}
         onLayout={onLayoutRootView}
       >
         <ActivityIndicator size="large" color="#10B981" />
@@ -93,7 +96,8 @@ export default function Index() {
   // User exists -> show loader while navigating
   return (
     <View
-      className="flex-1 bg-[#0F0F0F] items-center justify-center"
+      className="flex-1 items-center justify-center"
+      style={{ backgroundColor: colors.background }}
       onLayout={onLayoutRootView}
     >
       <ActivityIndicator size="large" color="#10B981" />

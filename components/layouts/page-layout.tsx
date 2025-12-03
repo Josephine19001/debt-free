@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, Platform, StatusBar, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronLeft } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { useColors } from '@/lib/hooks/use-colors';
 
 interface PageLayoutProps {
   children: React.ReactNode;
@@ -22,6 +23,7 @@ export function PageLayout({
 }: PageLayoutProps) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const colors = useColors();
 
   const renderHeader = () => {
     if (!title && !showBackButton && !rightAction) return null;
@@ -31,10 +33,10 @@ export function PageLayout({
         {headerStyle === 'glass' && (
           <>
             <LinearGradient
-              colors={['rgba(31, 41, 55, 0.9)', 'rgba(17, 24, 39, 0.85)']}
+              colors={[colors.headerGradientStart, colors.headerGradientEnd]}
               style={StyleSheet.absoluteFill}
             />
-            <View style={styles.headerGlassBorder} />
+            <View style={[styles.headerGlassBorder, { backgroundColor: colors.border }]} />
           </>
         )}
         <View style={styles.headerContent}>
@@ -45,19 +47,19 @@ export function PageLayout({
                 style={styles.backButton}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <ChevronLeft size={28} color="#FFFFFF" strokeWidth={2} />
+                <ChevronLeft size={28} color={colors.text} strokeWidth={2} />
               </Pressable>
             )}
             {title && !showBackButton && (
               typeof title === 'string'
-                ? <Text style={styles.headerTitle}>{title}</Text>
+                ? <Text style={[styles.headerTitle, { color: colors.text }]}>{title}</Text>
                 : title
             )}
           </View>
           <View style={styles.headerCenter}>
             {title && showBackButton && (
               typeof title === 'string'
-                ? <Text style={styles.headerTitle}>{title}</Text>
+                ? <Text style={[styles.headerTitle, { color: colors.text }]}>{title}</Text>
                 : title
             )}
           </View>
@@ -68,10 +70,8 @@ export function PageLayout({
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {renderHeader()}
-      {/* <View style={[styles.content, { paddingBottom: 100 }]}> */}
       <View style={[styles.content]}>{children}</View>
     </View>
   );
@@ -84,15 +84,16 @@ interface GlassCardProps {
 }
 
 export function GlassCard({ children, style }: GlassCardProps) {
+  const colors = useColors();
   return (
     <View style={[styles.glassCard, style]}>
       <LinearGradient
-        colors={['rgba(30, 30, 35, 0.95)', 'rgba(20, 20, 25, 0.98)']}
+        colors={[colors.cardGradientStart, colors.cardGradientEnd]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
-      <View style={styles.glassCardBorder} />
+      <View style={[styles.glassCardBorder, { borderColor: colors.glassBorder }]} />
       <View style={styles.glassCardContent}>{children}</View>
     </View>
   );
@@ -104,9 +105,10 @@ interface SectionHeaderProps {
 }
 
 export function SectionHeader({ title, action }: SectionHeaderProps) {
+  const colors = useColors();
   return (
     <View style={styles.sectionHeader}>
-      <Text style={styles.sectionTitle}>{title}</Text>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text>
       {action}
     </View>
   );
@@ -115,7 +117,6 @@ export function SectionHeader({ title, action }: SectionHeaderProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F0F0F',
   },
   header: {
     paddingHorizontal: 16,
@@ -144,7 +145,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#FFFFFF',
     letterSpacing: -0.3,
   },
   headerGlassBorder: {
@@ -153,7 +153,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
   },
   backButton: {
     padding: 4,
@@ -173,7 +172,6 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   glassCardContent: {
     padding: 20,
@@ -189,7 +187,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#FFFFFF',
     letterSpacing: -0.2,
   },
 });

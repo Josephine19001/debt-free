@@ -28,6 +28,8 @@ import Animated, {
 import { ChevronLeft, CreditCard, Layers, TrendingDown, Zap } from 'lucide-react-native';
 import { useAuth } from '@/context/auth-provider';
 import { useCurrency, CurrencyConfig } from '@/context/currency-provider';
+import { useColors } from '@/lib/hooks/use-colors';
+import { useTheme } from '@/context/theme-provider';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { AppleIcon, GoogleIcon } from '@/components/icons/tab-icons';
@@ -68,6 +70,8 @@ export default function OnboardingScreen() {
   const router = useRouter();
   const { signInWithApple, signInWithGoogle, loading: authLoading } = useAuth();
   const { currency, setCurrency, formatCurrency: formatMoney } = useCurrency();
+  const colors = useColors();
+  const { isDark } = useTheme();
 
   // Step state
   const [step, setStep] = useState<Step>('currency');
@@ -209,15 +213,15 @@ export default function OnboardingScreen() {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <View className="flex-1 bg-[#0F0F0F]">
-        <StatusBar barStyle="light-content" />
+      <View className="flex-1" style={{ backgroundColor: colors.background }}>
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
         <SafeAreaView className="flex-1">
           {/* Progress Bar with Back Button */}
           <View className="flex-row items-center py-4 px-6">
             <Pressable onPress={goBack} className="flex-row items-center mr-4">
-              <ChevronLeft size={24} color="#9CA3AF" />
+              <ChevronLeft size={24} color={colors.textSecondary} />
             </Pressable>
-            <View className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
+            <View className="flex-1 h-1 rounded-full overflow-hidden" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
               <View
                 className="h-full bg-emerald-500 rounded-full"
                 style={{ width: `${((progress + 1) / steps.length) * 100}%` }}
@@ -356,14 +360,16 @@ export default function OnboardingScreen() {
               <View className="flex-1 justify-center">
                 <Animated.Text
                   entering={FadeInUp.duration(400)}
-                  className="text-gray-400 text-center mb-1 mt-4"
+                  className="text-center mb-1 mt-4"
+                  style={{ color: colors.textSecondary }}
                 >
                   {formatMoney(debtInput.numericValue)} at {rate}% paying{' '}
                   {formatMoney(paymentInput.numericValue)}/mo
                 </Animated.Text>
                 <Animated.Text
                   entering={FadeInUp.delay(100).duration(400)}
-                  className="text-white text-xl font-semibold text-center mb-4"
+                  className="text-xl font-semibold text-center mb-4"
+                  style={{ color: colors.text }}
                 >
                   You'll pay in interest
                 </Animated.Text>
@@ -372,7 +378,7 @@ export default function OnboardingScreen() {
                   <Text className="text-red-500 text-5xl font-black text-center">
                     {formatMoney(totalInterest)}
                   </Text>
-                  <Text className="text-gray-500 text-sm mt-2">
+                  <Text className="text-sm mt-2" style={{ color: colors.textMuted }}>
                     {paymentCoversInterest
                       ? `Paid off in ${formatDuration(payoffMonths)}`
                       : "Payment doesn't cover interest!"}
@@ -382,7 +388,7 @@ export default function OnboardingScreen() {
                 {/* Strategy Selection - Only for multiple debts */}
                 {paymentCoversInterest && debtType === 'multiple' && (
                   <Animated.View entering={FadeInUp.delay(500).duration(500)}>
-                    <Text className="text-white font-semibold text-center mb-3">
+                    <Text className="font-semibold text-center mb-3" style={{ color: colors.text }}>
                       Choose your payoff strategy
                     </Text>
                     <View className="mb-3">
@@ -426,7 +432,7 @@ export default function OnboardingScreen() {
                   <Animated.View entering={FadeInUp.delay(500).duration(500)}>
                     <View className="rounded-2xl overflow-hidden">
                       <LinearGradient
-                        colors={['#0f1f1a', '#0a1512']}
+                        colors={isDark ? ['#0f1f1a', '#0a1512'] : ['#ecfdf5', '#d1fae5']}
                         style={StyleSheet.absoluteFill}
                       />
                       <View className="p-5 border border-emerald-500/30 rounded-2xl">
@@ -434,20 +440,20 @@ export default function OnboardingScreen() {
                           PAY 20% MORE MONTHLY
                         </Text>
                         <View className="flex-row justify-between mb-2">
-                          <Text className="text-gray-400">New payment</Text>
-                          <Text className="text-white font-bold">
+                          <Text style={{ color: colors.textSecondary }}>New payment</Text>
+                          <Text className="font-bold" style={{ color: colors.text }}>
                             {formatMoney(optimizedPayment)}/mo
                           </Text>
                         </View>
                         <View className="flex-row justify-between mb-2">
-                          <Text className="text-gray-400">Interest saved</Text>
+                          <Text style={{ color: colors.textSecondary }}>Interest saved</Text>
                           <Text className="text-emerald-400 font-bold">
                             {formatMoney(interestSaved)}
                           </Text>
                         </View>
                         <View className="flex-row justify-between">
-                          <Text className="text-gray-400">Time saved</Text>
-                          <Text className="text-white font-bold">
+                          <Text style={{ color: colors.textSecondary }}>Time saved</Text>
+                          <Text className="font-bold" style={{ color: colors.text }}>
                             {formatDuration(monthsSaved)}
                           </Text>
                         </View>
@@ -483,8 +489,8 @@ export default function OnboardingScreen() {
                   entering={FadeInUp.delay(100).duration(500)}
                   className="items-center mb-10"
                 >
-                  <Text className="text-gray-400 text-lg mb-2">Your goal</Text>
-                  <Text className="text-white text-3xl font-black text-center mb-1">
+                  <Text className="text-lg mb-2" style={{ color: colors.textSecondary }}>Your goal</Text>
+                  <Text className="text-3xl font-black text-center mb-1" style={{ color: colors.text }}>
                     Debt-free by
                   </Text>
                   <Text className="text-emerald-400 text-4xl font-black">
@@ -494,26 +500,27 @@ export default function OnboardingScreen() {
 
                 <Animated.View
                   entering={FadeInUp.delay(300).duration(500)}
-                  className="rounded-2xl bg-white/5 p-5 mb-8"
+                  className="rounded-2xl p-5 mb-8"
+                  style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}
                 >
                   <View className="flex-row justify-between mb-3">
-                    <Text className="text-gray-400">Total debt</Text>
-                    <Text className="text-white font-bold">
+                    <Text style={{ color: colors.textSecondary }}>Total debt</Text>
+                    <Text className="font-bold" style={{ color: colors.text }}>
                       {formatMoney(debtInput.numericValue)}
                     </Text>
                   </View>
                   <View className="flex-row justify-between mb-3">
-                    <Text className="text-gray-400">Interest rate</Text>
-                    <Text className="text-white font-bold">{rate}%</Text>
+                    <Text style={{ color: colors.textSecondary }}>Interest rate</Text>
+                    <Text className="font-bold" style={{ color: colors.text }}>{rate}%</Text>
                   </View>
                   <View className="flex-row justify-between mb-3">
-                    <Text className="text-gray-400">Your payment</Text>
-                    <Text className="text-white font-bold">
+                    <Text style={{ color: colors.textSecondary }}>Your payment</Text>
+                    <Text className="font-bold" style={{ color: colors.text }}>
                       {formatMoney(paymentInput.numericValue)}/mo
                     </Text>
                   </View>
                   <View className="flex-row justify-between">
-                    <Text className="text-gray-400">Interest you'll save</Text>
+                    <Text style={{ color: colors.textSecondary }}>Interest you'll save</Text>
                     <Text className="text-emerald-400 font-bold">{formatMoney(interestSaved)}</Text>
                   </View>
                 </Animated.View>
@@ -527,13 +534,19 @@ export default function OnboardingScreen() {
                         isLoading ? 'opacity-70' : ''
                       }`}
                     >
-                      <View className="bg-white py-4 flex-row items-center justify-center">
+                      <View
+                        className="py-4 flex-row items-center justify-center"
+                        style={{ backgroundColor: isDark ? '#FFFFFF' : '#000000' }}
+                      >
                         {appleLoading ? (
-                          <ActivityIndicator color="#000" />
+                          <ActivityIndicator color={isDark ? '#000' : '#FFF'} />
                         ) : (
                           <>
-                            <AppleIcon size={20} color="#000" />
-                            <Text className="text-black font-semibold text-lg ml-3">
+                            <AppleIcon size={20} color={isDark ? '#000' : '#FFF'} />
+                            <Text
+                              className="font-semibold text-lg ml-3"
+                              style={{ color: isDark ? '#000000' : '#FFFFFF' }}
+                            >
                               Continue with Apple
                             </Text>
                           </>
@@ -560,17 +573,19 @@ export default function OnboardingScreen() {
                 </Animated.View>
               </View>
 
-              <Text className="text-gray-600 text-xs text-center">
+              <Text className="text-xs text-center" style={{ color: colors.textMuted }}>
                 By continuing, you agree to our{' '}
                 <Text
-                  className="text-gray-500 underline"
+                  className="underline"
+                  style={{ color: colors.textSecondary }}
                   onPress={() => Linking.openURL(APP_URLS.terms)}
                 >
                   Terms
                 </Text>
                 {' & '}
                 <Text
-                  className="text-gray-500 underline"
+                  className="underline"
+                  style={{ color: colors.textSecondary }}
                   onPress={() => Linking.openURL(APP_URLS.privacy)}
                 >
                   Privacy Policy

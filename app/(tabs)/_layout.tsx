@@ -8,6 +8,8 @@ import { HomeIcon, DebtsIcon, AdvisorIcon, SettingsIcon } from '@/components/ico
 import { useTabBar } from '@/context/tab-bar-provider';
 import { useUnreadMessages, useUnreadRealtime } from '@/lib/hooks/use-chat';
 import { useRevenueCat } from '@/context/revenuecat-provider';
+import { useTheme } from '@/context/theme-provider';
+import { useColors } from '@/lib/hooks/use-colors';
 import * as Haptics from 'expo-haptics';
 
 function CustomTabBar({ state, navigation }: any) {
@@ -16,6 +18,8 @@ function CustomTabBar({ state, navigation }: any) {
   const { hideTabBar } = useTabBar();
   const { hasUnread } = useUnreadMessages();
   const { isSubscribed } = useRevenueCat();
+  const { isDark } = useTheme();
+  const colors = useColors();
 
   // Set up realtime subscription for unread notifications
   useUnreadRealtime();
@@ -41,12 +45,29 @@ function CustomTabBar({ state, navigation }: any) {
       style={{ paddingBottom: insets.bottom + 10 }}
     >
       {/* Main Tabs Container */}
-      <View className="flex-1 h-[60px] rounded-[30px] overflow-hidden">
-        <BlurView intensity={50} tint="dark" style={StyleSheet.absoluteFill} />
-        <View className="absolute inset-0 rounded-[30px] border border-white/10 bg-white/5" />
-        <View className="flex-1 flex-row items-center justify-around px-5">
+      <View
+        className="flex-1 h-[60px] rounded-[30px] overflow-hidden "
+        style={{
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: isDark ? 0.3 : 0.15,
+          shadowRadius: isDark ? 8 : 16,
+          elevation: isDark ? 4 : 8,
+        }}
+      >
+        <BlurView intensity={50} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+        <View
+          className="absolute inset-0 rounded-[30px]"
+          style={{
+            borderWidth: 1,
+            borderColor: isDark ? colors.border : 'rgba(0, 0, 0, 0.12)',
+            backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.8)',
+          }}
+        />
+        <View className="flex-1 flex-row items-center justify-around px-5 ">
           {mainTabs.map((route: any) => {
-            const isFocused = state.index === state.routes.findIndex((r: any) => r.key === route.key);
+            const isFocused =
+              state.index === state.routes.findIndex((r: any) => r.key === route.key);
 
             const onPress = () => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -61,7 +82,7 @@ function CustomTabBar({ state, navigation }: any) {
               }
             };
 
-            const color = isFocused ? '#10B981' : '#9BA1A6';
+            const color = isFocused ? '#10B981' : colors.icon;
 
             return (
               <Pressable
@@ -122,12 +143,13 @@ function CustomTabBar({ state, navigation }: any) {
 
 export default function TabLayout() {
   const { isTabBarVisible } = useTabBar();
+  const colors = useColors();
 
   return (
     <Tabs
       tabBar={(props) => (isTabBarVisible ? <CustomTabBar {...props} /> : null)}
       screenOptions={{
-        sceneStyle: { backgroundColor: '#0F0F0F' },
+        sceneStyle: { backgroundColor: colors.background },
         headerShown: false,
       }}
     >

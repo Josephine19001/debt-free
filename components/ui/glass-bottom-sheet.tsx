@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback, useImperativeHandle, useRef, useEffect } from 'react';
+import React, { forwardRef, useCallback, useImperativeHandle, useRef, useEffect, useMemo } from 'react';
 import { StyleSheet, ViewStyle, Keyboard, Platform } from 'react-native';
 import BottomSheet, {
   BottomSheetBackdrop,
@@ -8,6 +8,7 @@ import BottomSheet, {
 } from '@gorhom/bottom-sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTabBar } from '@/context/tab-bar-provider';
+import { useTheme } from '@/context/theme-provider';
 
 export interface GlassBottomSheetRef {
   expand: () => void;
@@ -43,6 +44,7 @@ export const GlassBottomSheet = forwardRef<GlassBottomSheetRef, GlassBottomSheet
     const insets = useSafeAreaInsets();
     const bottomSheetRef = useRef<BottomSheet>(null);
     const { hideTabBar, showTabBar } = useTabBar();
+    const { isDark } = useTheme();
     const isExpanded = useRef(false);
 
     // Auto-expand when keyboard shows (if there are multiple snap points)
@@ -103,6 +105,17 @@ export const GlassBottomSheet = forwardRef<GlassBottomSheetRef, GlassBottomSheet
       []
     );
 
+    const backgroundStyle = useMemo(() => ({
+      backgroundColor: isDark ? '#151515' : '#FFFFFF',
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+    }), [isDark]);
+
+    const handleIndicatorStyle = useMemo(() => ({
+      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.2)',
+      width: 40,
+    }), [isDark]);
+
     return (
       <BottomSheet
         ref={bottomSheetRef}
@@ -112,8 +125,8 @@ export const GlassBottomSheet = forwardRef<GlassBottomSheetRef, GlassBottomSheet
         enablePanDownToClose={enablePanDownToClose}
         backdropComponent={renderBackdrop}
         onChange={handleSheetChange}
-        backgroundStyle={styles.sheetBackground}
-        handleIndicatorStyle={styles.handleIndicator}
+        backgroundStyle={backgroundStyle}
+        handleIndicatorStyle={handleIndicatorStyle}
         style={styles.sheet}
         keyboardBehavior="interactive"
         keyboardBlurBehavior="restore"
@@ -140,15 +153,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 8,
-  },
-  sheetBackground: {
-    backgroundColor: '#151515',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-  },
-  handleIndicator: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    width: 40,
   },
   sheetContent: {
     flex: 1,

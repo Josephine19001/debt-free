@@ -10,6 +10,8 @@ import {
   calculateTotalInterest,
 } from '@/lib/utils/debt-calculator';
 import { useCurrency } from '@/context/currency-provider';
+import { useColors } from '@/lib/hooks/use-colors';
+import { useTheme } from '@/context/theme-provider';
 import { TrendingDown, Calendar, DollarSign, Percent } from 'lucide-react-native';
 
 interface ExtraPaymentSliderProps {
@@ -24,6 +26,8 @@ export function ExtraPaymentSlider({
   onExtraPaymentChange,
 }: ExtraPaymentSliderProps) {
   const { formatCurrency } = useCurrency();
+  const colors = useColors();
+  const { isDark } = useTheme();
   // Local state for smooth slider movement
   const [localValue, setLocalValue] = useState(extraPayment);
 
@@ -44,15 +48,15 @@ export function ExtraPaymentSlider({
           <DollarSign size={20} color="#10B981" />
         </View>
         <View>
-          <Text className="text-white font-semibold">Monthly Payment</Text>
-          <Text className="text-gray-400 text-xs">See how extra payments accelerate payoff</Text>
+          <Text style={{ color: colors.text }} className="font-semibold">Monthly Payment</Text>
+          <Text style={{ color: colors.textSecondary }} className="text-xs">See how extra payments accelerate payoff</Text>
         </View>
       </View>
 
       {/* Slider */}
       <View className="mb-4">
         <View className="flex-row justify-between mb-2">
-          <Text className="text-gray-400 text-sm">Payment Amount</Text>
+          <Text style={{ color: colors.textSecondary }} className="text-sm">Payment Amount</Text>
           <Text className="text-emerald-400 font-bold text-lg">
             {formatCurrency(localValue)}/mo
           </Text>
@@ -65,12 +69,12 @@ export function ExtraPaymentSlider({
           maximumValue={maxPayment}
           step={10}
           minimumTrackTintColor="#10B981"
-          maximumTrackTintColor="rgba(255,255,255,0.1)"
+          maximumTrackTintColor={isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}
           thumbTintColor="#10B981"
         />
         <View className="flex-row justify-between">
-          <Text className="text-gray-500 text-xs">{formatCurrency(debt.minimum_payment)} (min)</Text>
-          <Text className="text-gray-500 text-xs">{formatCurrency(maxPayment)}</Text>
+          <Text style={{ color: colors.textMuted }} className="text-xs">{formatCurrency(debt.minimum_payment)} (min)</Text>
+          <Text style={{ color: colors.textMuted }} className="text-xs">{formatCurrency(maxPayment)}</Text>
         </View>
       </View>
 
@@ -84,9 +88,9 @@ export function ExtraPaymentSlider({
           <View className="flex-row justify-between mb-3">
             <View className="flex-row items-center">
               <Calendar size={16} color="#10B981" />
-              <Text className="text-gray-400 text-sm ml-2">New Payoff Date</Text>
+              <Text style={{ color: colors.textSecondary }} className="text-sm ml-2">New Payoff Date</Text>
             </View>
-            <Text className="text-white font-semibold">
+            <Text style={{ color: colors.text }} className="font-semibold">
               {formatDate(scenario.new_payoff_date)}
             </Text>
           </View>
@@ -94,7 +98,7 @@ export function ExtraPaymentSlider({
           <View className="flex-row justify-between mb-3">
             <View className="flex-row items-center">
               <TrendingDown size={16} color="#10B981" />
-              <Text className="text-gray-400 text-sm ml-2">Time Saved</Text>
+              <Text style={{ color: colors.textSecondary }} className="text-sm ml-2">Time Saved</Text>
             </View>
             <Text className="text-emerald-400 font-bold">
               {scenario.months_saved} months
@@ -104,7 +108,7 @@ export function ExtraPaymentSlider({
           <View className="flex-row justify-between">
             <View className="flex-row items-center">
               <DollarSign size={16} color="#10B981" />
-              <Text className="text-gray-400 text-sm ml-2">Interest Saved</Text>
+              <Text style={{ color: colors.textSecondary }} className="text-sm ml-2">Interest Saved</Text>
             </View>
             <Text className="text-emerald-400 font-bold">
               {formatCurrency(scenario.total_interest_saved)}
@@ -128,6 +132,8 @@ export function RefinanceSlider({
   onNewRateChange,
 }: RefinanceSliderProps) {
   const { formatCurrency } = useCurrency();
+  const colors = useColors();
+  const { isDark } = useTheme();
   const currentRatePercent = debt.interest_rate * 100;
   const minRate = Math.max(0.01, currentRatePercent - 15);
 
@@ -149,16 +155,16 @@ export function RefinanceSlider({
           <Percent size={20} color="#06B6D4" />
         </View>
         <View>
-          <Text className="text-white font-semibold">Refinance Simulator</Text>
-          <Text className="text-gray-400 text-xs">See savings with a lower interest rate</Text>
+          <Text style={{ color: colors.text }} className="font-semibold">Refinance Simulator</Text>
+          <Text style={{ color: colors.textSecondary }} className="text-xs">See savings with a lower interest rate</Text>
         </View>
       </View>
 
       {/* Slider */}
       <View className="mb-4">
         <View className="flex-row justify-between mb-2">
-          <Text className="text-gray-400 text-sm">New Interest Rate</Text>
-          <Text className={`font-bold text-lg ${isLowerRate ? 'text-cyan-400' : 'text-gray-400'}`}>
+          <Text style={{ color: colors.textSecondary }} className="text-sm">New Interest Rate</Text>
+          <Text style={{ color: isLowerRate ? '#06B6D4' : colors.textSecondary }} className="font-bold text-lg">
             {localRatePercent.toFixed(2)}%
           </Text>
         </View>
@@ -170,12 +176,12 @@ export function RefinanceSlider({
           maximumValue={currentRatePercent}
           step={0.25}
           minimumTrackTintColor="#06B6D4"
-          maximumTrackTintColor="rgba(255,255,255,0.1)"
+          maximumTrackTintColor={isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}
           thumbTintColor="#06B6D4"
         />
         <View className="flex-row justify-between">
-          <Text className="text-gray-500 text-xs">{minRate.toFixed(1)}%</Text>
-          <Text className="text-gray-500 text-xs">{currentRatePercent.toFixed(2)}% (current)</Text>
+          <Text style={{ color: colors.textMuted }} className="text-xs">{minRate.toFixed(1)}%</Text>
+          <Text style={{ color: colors.textMuted }} className="text-xs">{currentRatePercent.toFixed(2)}% (current)</Text>
         </View>
       </View>
 
@@ -189,9 +195,9 @@ export function RefinanceSlider({
           <View className="flex-row justify-between mb-3">
             <View className="flex-row items-center">
               <Calendar size={16} color="#06B6D4" />
-              <Text className="text-gray-400 text-sm ml-2">New Payoff Date</Text>
+              <Text style={{ color: colors.textSecondary }} className="text-sm ml-2">New Payoff Date</Text>
             </View>
-            <Text className="text-white font-semibold">
+            <Text style={{ color: colors.text }} className="font-semibold">
               {formatDate(scenario.new_payoff_date)}
             </Text>
           </View>
@@ -199,7 +205,7 @@ export function RefinanceSlider({
           <View className="flex-row justify-between">
             <View className="flex-row items-center">
               <DollarSign size={16} color="#06B6D4" />
-              <Text className="text-gray-400 text-sm ml-2">Total Interest Saved</Text>
+              <Text style={{ color: colors.textSecondary }} className="text-sm ml-2">Total Interest Saved</Text>
             </View>
             <Text className="text-cyan-400 font-bold text-lg">
               {formatCurrency(scenario.total_interest_saved)}
@@ -217,6 +223,7 @@ interface PrincipalInterestChartProps {
 
 export function PrincipalInterestChart({ debt }: PrincipalInterestChartProps) {
   const { formatCurrency } = useCurrency();
+  const colors = useColors();
   const totalInterest = calculateTotalInterest(
     debt.current_balance,
     debt.interest_rate,
@@ -228,7 +235,7 @@ export function PrincipalInterestChart({ debt }: PrincipalInterestChartProps) {
 
   return (
     <GlassCard>
-      <Text className="text-white font-semibold mb-4">Total Cost Breakdown</Text>
+      <Text style={{ color: colors.text }} className="font-semibold mb-4">Total Cost Breakdown</Text>
 
       {/* Simple Bar Chart */}
       <View className="h-8 flex-row rounded-full overflow-hidden mb-4">
@@ -255,8 +262,8 @@ export function PrincipalInterestChart({ debt }: PrincipalInterestChartProps) {
         <View className="flex-row items-center">
           <View className="w-3 h-3 rounded-full bg-emerald-500 mr-2" />
           <View>
-            <Text className="text-gray-400 text-xs">Principal</Text>
-            <Text className="text-white font-semibold">
+            <Text style={{ color: colors.textSecondary }} className="text-xs">Principal</Text>
+            <Text style={{ color: colors.text }} className="font-semibold">
               {formatCurrency(debt.current_balance)}
             </Text>
           </View>
@@ -265,7 +272,7 @@ export function PrincipalInterestChart({ debt }: PrincipalInterestChartProps) {
         <View className="flex-row items-center">
           <View className="w-3 h-3 rounded-full bg-red-500 mr-2" />
           <View>
-            <Text className="text-gray-400 text-xs">Interest</Text>
+            <Text style={{ color: colors.textSecondary }} className="text-xs">Interest</Text>
             <Text className="text-red-400 font-semibold">
               {formatCurrency(totalInterest)}
             </Text>
@@ -273,8 +280,8 @@ export function PrincipalInterestChart({ debt }: PrincipalInterestChartProps) {
         </View>
 
         <View>
-          <Text className="text-gray-400 text-xs">Total</Text>
-          <Text className="text-white font-semibold">
+          <Text style={{ color: colors.textSecondary }} className="text-xs">Total</Text>
+          <Text style={{ color: colors.text }} className="font-semibold">
             {formatCurrency(totalPaid)}
           </Text>
         </View>

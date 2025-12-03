@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { PageLayout } from '@/components/layouts';
+import { useColors } from '@/lib/hooks/use-colors';
+import { useTheme } from '@/context/theme-provider';
 
 import type { KeyboardTypeOptions } from 'react-native';
 
@@ -36,29 +38,32 @@ export function FormField({
   numberOfLines = 1,
   keyboardType = 'default',
 }: FormFieldProps) {
+  const colors = useColors();
+  const { isDark } = useTheme();
   const height = multiline ? 56 * numberOfLines : 56;
 
   return (
     <View className="gap-2">
-      <Text className="text-sm font-medium text-gray-400 ml-1">{label}</Text>
+      <Text style={{ color: colors.textSecondary }} className="text-sm font-medium ml-1">{label}</Text>
       <View
-        className="rounded-2xl overflow-hidden bg-white/[0.03]"
-        style={{ height }}
+        className="rounded-2xl overflow-hidden"
+        style={{ height, backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)' }}
       >
-        <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />
-        <View className="absolute inset-0 rounded-2xl border border-white/10" />
+        <BlurView intensity={30} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+        <View className="absolute inset-0 rounded-2xl" style={{ borderWidth: 1, borderColor: colors.border }} />
         <TextInput
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor="#6B7280"
+          placeholderTextColor={colors.inputPlaceholder}
           editable={editable}
           multiline={multiline}
           numberOfLines={numberOfLines}
           keyboardType={keyboardType}
-          keyboardAppearance="dark"
+          keyboardAppearance={isDark ? 'dark' : 'light'}
           textAlignVertical={multiline ? 'top' : 'center'}
-          className={`flex-1 text-base px-4 ${multiline ? 'py-4' : ''} ${editable ? 'text-white' : 'text-gray-500'}`}
+          className={`flex-1 text-base px-4 ${multiline ? 'py-4' : ''}`}
+          style={{ color: editable ? colors.text : colors.textMuted }}
         />
       </View>
     </View>
@@ -78,21 +83,24 @@ export function ToggleField({
   value,
   onValueChange,
 }: ToggleFieldProps) {
+  const colors = useColors();
+  const { isDark } = useTheme();
+
   return (
-    <View className="rounded-2xl overflow-hidden bg-white/[0.03]">
-      <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />
-      <View className="absolute inset-0 rounded-2xl border border-white/10" />
+    <View className="rounded-2xl overflow-hidden" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)' }}>
+      <BlurView intensity={30} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+      <View className="absolute inset-0 rounded-2xl" style={{ borderWidth: 1, borderColor: colors.border }} />
       <View className="flex-row items-center justify-between px-4 py-4">
         <View className="flex-1 mr-4">
-          <Text className="text-base text-white">{label}</Text>
+          <Text style={{ color: colors.text }} className="text-base">{label}</Text>
           {description && (
-            <Text className="text-sm text-gray-500 mt-1">{description}</Text>
+            <Text style={{ color: colors.textMuted }} className="text-sm mt-1">{description}</Text>
           )}
         </View>
         <Switch
           value={value}
           onValueChange={onValueChange}
-          trackColor={{ false: '#3f3f46', true: '#10B981' }}
+          trackColor={{ false: isDark ? '#3f3f46' : '#D1D5DB', true: '#10B981' }}
           thumbColor="#FFFFFF"
         />
       </View>
