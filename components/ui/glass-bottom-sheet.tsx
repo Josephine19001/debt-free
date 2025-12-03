@@ -1,9 +1,10 @@
-import React, { forwardRef, useCallback, useImperativeHandle, useRef } from 'react';
-import { StyleSheet, ViewStyle } from 'react-native';
+import React, { forwardRef, useCallback, useImperativeHandle, useRef, useEffect } from 'react';
+import { StyleSheet, ViewStyle, Keyboard, Platform } from 'react-native';
 import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetView,
-  BottomSheetProps,
+  BottomSheetTextInput,
+  BottomSheetScrollView,
 } from '@gorhom/bottom-sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTabBar } from '@/context/tab-bar-provider';
@@ -16,12 +17,13 @@ export interface GlassBottomSheetRef {
 
 interface GlassBottomSheetProps {
   children: React.ReactNode;
-  snapPoints?: string[];
+  snapPoints?: (string | number)[];
   onClose?: () => void;
   onChange?: (index: number) => void;
   enablePanDownToClose?: boolean;
   hideTabBar?: boolean;
   contentStyle?: ViewStyle;
+  enableDynamicSizing?: boolean;
 }
 
 export const GlassBottomSheet = forwardRef<GlassBottomSheetRef, GlassBottomSheetProps>(
@@ -34,12 +36,36 @@ export const GlassBottomSheet = forwardRef<GlassBottomSheetRef, GlassBottomSheet
       enablePanDownToClose = true,
       hideTabBar: shouldHideTabBar = true,
       contentStyle,
+      enableDynamicSizing = false,
     },
     ref
   ) => {
     const insets = useSafeAreaInsets();
     const bottomSheetRef = useRef<BottomSheet>(null);
     const { hideTabBar, showTabBar } = useTabBar();
+    const isExpanded = useRef(false);
+
+    // Auto-expand when keyboard shows (if there are multiple snap points)
+    useEffect(() => {
+      const keyboardShowEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+      const keyboardHideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+      const showSubscription = Keyboard.addListener(keyboardShowEvent, () => {
+        if (snapPoints.length > 1 && !isExpanded.current) {
+          bottomSheetRef.current?.snapToIndex(snapPoints.length - 1);
+          isExpanded.current = true;
+        }
+      });
+
+      const hideSubscription = Keyboard.addListener(keyboardHideEvent, () => {
+        isExpanded.current = false;
+      });
+
+      return () => {
+        showSubscription.remove();
+        hideSubscription.remove();
+      };
+    }, [snapPoints]);
 
     useImperativeHandle(ref, () => ({
       expand: () => {
@@ -81,13 +107,17 @@ export const GlassBottomSheet = forwardRef<GlassBottomSheetRef, GlassBottomSheet
       <BottomSheet
         ref={bottomSheetRef}
         index={-1}
-        snapPoints={snapPoints}
+        snapPoints={enableDynamicSizing ? undefined : snapPoints}
+        enableDynamicSizing={enableDynamicSizing}
         enablePanDownToClose={enablePanDownToClose}
         backdropComponent={renderBackdrop}
         onChange={handleSheetChange}
         backgroundStyle={styles.sheetBackground}
         handleIndicatorStyle={styles.handleIndicator}
         style={styles.sheet}
+        keyboardBehavior="interactive"
+        keyboardBlurBehavior="restore"
+        android_keyboardInputMode="adjustResize"
       >
         <BottomSheetView
           style={[styles.sheetContent, { paddingBottom: insets.bottom }, contentStyle]}
@@ -100,6 +130,8 @@ export const GlassBottomSheet = forwardRef<GlassBottomSheetRef, GlassBottomSheet
 );
 
 GlassBottomSheet.displayName = 'GlassBottomSheet';
+
+export { BottomSheetTextInput, BottomSheetScrollView };
 
 const styles = StyleSheet.create({
   sheet: {

@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet, TextInput } from 'react-native';
+import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { Trash2, Edit3, Calendar, CreditCard, Check } from 'lucide-react-native';
 import { toast } from 'sonner-native';
 import { PageLayout, SectionHeader } from '@/components/layouts';
-import { GlassBottomSheet, GlassBottomSheetRef } from '@/components/ui/glass-bottom-sheet';
+import { GlassBottomSheet, GlassBottomSheetRef, BottomSheetTextInput, BottomSheetScrollView } from '@/components/ui/glass-bottom-sheet';
 import { useDebt, useDeleteDebt, useRecordPayment, useDebtPayments } from '@/lib/hooks/use-debts';
 import * as Haptics from 'expo-haptics';
 import { showConfirmAlert } from '@/lib/utils/alert';
@@ -48,6 +48,7 @@ export default function DebtDetailScreen() {
   const recordPayment = useRecordPayment();
   const paymentSheetRef = useRef<GlassBottomSheetRef>(null);
   const historySheetRef = useRef<GlassBottomSheetRef>(null);
+  const paymentInputRef = useRef<any>(null);
 
   const [extraPayment, setExtraPayment] = useState<number | null>(null);
   const [newRate, setNewRate] = useState<number | null>(null);
@@ -86,6 +87,10 @@ export default function DebtDetailScreen() {
     if (debt) {
       setPaymentAmount(debt.minimum_payment.toString());
       paymentSheetRef.current?.expand();
+      // Focus input after sheet animation completes
+      setTimeout(() => {
+        paymentInputRef.current?.focus();
+      }, 100);
     }
   };
 
@@ -386,8 +391,8 @@ export default function DebtDetailScreen() {
       )}
 
       {/* Payment Bottom Sheet */}
-      <GlassBottomSheet ref={paymentSheetRef} snapPoints={['45%']}>
-        <View className="px-5 pt-2 pb-4">
+      <GlassBottomSheet ref={paymentSheetRef} snapPoints={['50%', '90%']}>
+        <BottomSheetScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16 }}>
           <Text className="text-white text-xl font-semibold mb-2">Record Payment</Text>
           <Text className="text-gray-400 text-sm mb-6">
             Enter the amount you paid towards {debt.name}
@@ -398,14 +403,15 @@ export default function DebtDetailScreen() {
             <Text className="text-gray-400 text-sm mb-2">Payment Amount</Text>
             <View className="flex-row items-center">
               <Text className="text-white text-3xl font-bold mr-1">$</Text>
-              <TextInput
+              <BottomSheetTextInput
+                ref={paymentInputRef}
                 value={paymentAmount}
                 onChangeText={setPaymentAmount}
                 keyboardType="decimal-pad"
                 placeholder="0"
                 placeholderTextColor="#6B7280"
                 className="text-white text-3xl font-bold flex-1"
-                style={{ padding: 0 }}
+                style={{ padding: 0, color: '#FFFFFF', fontSize: 30, fontWeight: 'bold' }}
               />
             </View>
           </View>
@@ -460,7 +466,7 @@ export default function DebtDetailScreen() {
               {recordPayment.isPending ? 'Recording...' : 'Confirm Payment'}
             </Text>
           </Pressable>
-        </View>
+        </BottomSheetScrollView>
       </GlassBottomSheet>
 
       {/* Payment History Bottom Sheet */}

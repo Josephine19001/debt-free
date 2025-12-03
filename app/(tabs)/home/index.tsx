@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronDown, ChevronRight, Target, Check } from 'lucide-react-native';
 import { PageLayout, SectionHeader } from '@/components/layouts';
 import { GlassBottomSheet, GlassBottomSheetRef } from '@/components/ui/glass-bottom-sheet';
-import { OverviewCard, PriorityDebtCard, UpcomingPayments, QuickStats } from '@/components/home';
+import { OverviewCard, PriorityDebtCard, UpcomingPayments, QuickStats, CategoryProgress } from '@/components/home';
 import { useDebts, useDebtSummary, useTodaysPaidDebtIds } from '@/lib/hooks/use-debts';
 import {
   formatDate,
@@ -124,6 +124,14 @@ export default function HomeScreen() {
           interestSaved={interestSaved}
           isLoading={isLoading}
         />
+
+        {/* Category Progress */}
+        {hasDebts && (
+          <>
+            <SectionHeader title="By Category" />
+            <CategoryProgress debts={activeDebts} isLoading={isLoading} />
+          </>
+        )}
 
         {/* Priority */}
         {priorityDebt && (

@@ -11,6 +11,7 @@ import {
   Modal,
   Share,
 } from 'react-native';
+import * as StoreReview from 'expo-store-review';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { PageLayout, GlassCard } from '@/components/layouts';
@@ -109,6 +110,17 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleRateApp = async () => {
+    const isAvailable = await StoreReview.isAvailableAsync();
+    console.log('--clicked');
+    if (isAvailable) {
+      await StoreReview.requestReview();
+    } else {
+      // Fallback to App Store URL if in-app review not available
+      Linking.openURL(APP_URLS.appStore);
+    }
+  };
+
   const handleDeleteAccount = async () => {
     if (!deleteReason) return;
 
@@ -179,7 +191,9 @@ export default function SettingsScreen() {
               <Coins size={18} color="#9CA3AF" />
             </View>
             <Text className="flex-1 text-base text-white">Currency</Text>
-            <Text className="text-gray-400 mr-2">{currency.flag} {currency.code}</Text>
+            <Text className="text-gray-400 mr-2">
+              {currency.flag} {currency.code}
+            </Text>
             <ChevronRight size={20} color="#6B7280" />
           </Pressable>
         </SettingsGroup>
@@ -192,7 +206,7 @@ export default function SettingsScreen() {
             onPress={() => router.push('/feedback')}
           />
           <View className="h-px bg-white/10 mx-1" />
-          <SettingsItem icon={Star} label="Rate the App" onPress={() => {}} />
+          <SettingsItem icon={Star} label="Rate the App" onPress={handleRateApp} />
         </SettingsGroup>
 
         {/* Legal Section */}

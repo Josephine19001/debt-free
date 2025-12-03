@@ -11,6 +11,7 @@ import {
   Linking,
   TouchableWithoutFeedback,
 } from 'react-native';
+import * as StoreReview from 'expo-store-review';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -30,11 +31,7 @@ import { useCurrency, CurrencyConfig } from '@/context/currency-provider';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { AppleIcon, GoogleIcon } from '@/components/icons/tab-icons';
-import {
-  useOptimizedDebtCalculations,
-  useCurrencyInput,
-  formatDuration,
-} from '@/lib/hooks';
+import { useOptimizedDebtCalculations, useCurrencyInput, formatDuration } from '@/lib/hooks';
 import {
   OnboardingStep,
   CurrencyInput,
@@ -302,7 +299,9 @@ export default function OnboardingScreen() {
                 prefix={selectedCurrency.symbol}
                 hint={
                   debtInput.numericValue > 0 && rate > 0
-                    ? `Minimum to cover interest: ${formatMoney(Math.ceil(minPaymentRequired + 1), { decimals: false })}`
+                    ? `Minimum to cover interest: ${formatMoney(Math.ceil(minPaymentRequired + 1), {
+                        decimals: false,
+                      })}`
                     : 'per month'
                 }
               />
@@ -459,7 +458,14 @@ export default function OnboardingScreen() {
               </View>
 
               <GradientButton
-                onPress={() => goToStep('signup')}
+                onPress={async () => {
+                  // Request review before going to signup
+                  const isAvailable = await StoreReview.isAvailableAsync();
+                  if (isAvailable) {
+                    await StoreReview.requestReview();
+                  }
+                  goToStep('signup');
+                }}
                 label="Get My Plan"
                 animated={false}
               />
