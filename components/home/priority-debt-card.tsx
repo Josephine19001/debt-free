@@ -26,14 +26,32 @@ export function PriorityDebtCard({ debt }: PriorityDebtCardProps) {
 
   return (
     <Pressable onPress={() => router.push(`/debt/${debt.id}`)}>
-      <View className="mx-4 my-2 rounded-2xl overflow-hidden">
-        <LinearGradient
-          colors={priorityGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={StyleSheet.absoluteFill}
+      <View
+        className="mx-4 my-2 rounded-2xl overflow-hidden"
+        style={{
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: isDark ? 0.3 : 0.06,
+          shadowRadius: isDark ? 4 : 6,
+          elevation: isDark ? 3 : 2,
+          backgroundColor: isDark ? colors.card : '#FFFFFF',
+        }}
+      >
+        {isDark && (
+          <LinearGradient
+            colors={priorityGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
+        )}
+        <View
+          className="absolute inset-0 rounded-2xl"
+          style={{
+            borderWidth: 1,
+            borderColor: isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.3)',
+          }}
         />
-        <View className="absolute inset-0 rounded-2xl border border-red-500/20" />
 
         <View className="p-4">
           <View className="flex-row items-center justify-between">

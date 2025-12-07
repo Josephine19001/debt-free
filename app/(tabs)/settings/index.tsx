@@ -477,7 +477,9 @@ export default function SettingsScreen() {
                   textAlignVertical: 'top',
                   minHeight: 80,
                   color: colors.text,
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#FFFFFF',
+                  borderWidth: 1,
+                  borderColor: isDark ? colors.border : 'rgba(0, 0, 0, 0.08)',
                 }}
               />
 

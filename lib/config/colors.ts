@@ -2,8 +2,7 @@
 
 export const lightColors = {
   // Backgrounds - slate tones
-  // background: '#F8FAFC', // slate-50
-  background: '#F8FAFC', // slate-50
+  background: '#EAEEF4', // slate-200
   backgroundSecondary: '#F1F5F9', // slate-100
   card: '#F1F5F9', // slate-100
   cardGradientStart: 'rgba(241, 245, 249, 0.95)', // slate-100

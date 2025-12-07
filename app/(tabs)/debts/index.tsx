@@ -196,9 +196,22 @@ export default function DebtsScreen() {
 
         {/* Search Bar (expandable) */}
         {showSearch && (
-          <View className="mx-4 mt-2 mb-4 rounded-2xl overflow-hidden" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)' }}>
-            <BlurView intensity={30} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-            <View className="absolute inset-0 rounded-2xl" style={{ borderWidth: 1, borderColor: colors.border }} />
+          <View
+            className="mx-4 mt-2 mb-4 rounded-2xl overflow-hidden"
+            style={{
+              backgroundColor: isDark ? colors.card : '#FFFFFF',
+              shadowColor: '#000000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: isDark ? 0.3 : 0.06,
+              shadowRadius: isDark ? 4 : 6,
+              elevation: isDark ? 3 : 2,
+            }}
+          >
+            {isDark && <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />}
+            <View
+              className="absolute inset-0 rounded-2xl"
+              style={{ borderWidth: 1, borderColor: isDark ? colors.border : 'rgba(0, 0, 0, 0.08)' }}
+            />
             <View className="flex-row items-center px-4 py-3">
               <Search size={18} color={colors.textMuted} />
               <TextInput
@@ -222,8 +235,15 @@ export default function DebtsScreen() {
 
         {/* Strategy Info Banner */}
         {!isLoading && hasDebts && !debouncedSearch && (sortBy === 'interest_rate' || sortBy === 'balance') && (
-          <View className="mx-4 mb-4 bg-emerald-500/10 rounded-2xl p-4 border border-emerald-500/20">
-            <Text className="text-emerald-400 font-semibold mb-1">{currentStrategy.label} Strategy</Text>
+          <View
+            className="mx-4 mb-4 rounded-2xl p-4"
+            style={{
+              backgroundColor: isDark ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.08)',
+              borderWidth: 1,
+              borderColor: isDark ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.25)',
+            }}
+          >
+            <Text className="text-emerald-500 font-semibold mb-1">{currentStrategy.label} Strategy</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm">
               {currentStrategy.description}
             </Text>
@@ -378,29 +398,41 @@ export default function DebtsScreen() {
             Choose how to prioritize your debt payments
           </Text>
 
-          {STRATEGIES.map((strat) => (
-            <Pressable
-              key={strat.value}
-              onPress={() => handleStrategySelect(strat.value)}
-              className="flex-row items-center p-4 rounded-2xl mb-3"
-              style={{
-                backgroundColor: strategy === strat.value ? 'rgba(16, 185, 129, 0.2)' : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'),
-                borderWidth: 1,
-                borderColor: strategy === strat.value ? 'rgba(16, 185, 129, 0.3)' : colors.border,
-              }}
-            >
-              <View className="flex-1">
-                <Text
-                  className="font-semibold mb-1"
-                  style={{ color: strategy === strat.value ? '#10B981' : colors.text }}
-                >
-                  {strat.label}
-                </Text>
-                <Text style={{ color: colors.textSecondary }} className="text-sm">{strat.description}</Text>
-              </View>
-              {strategy === strat.value && <Check size={20} color="#10B981" />}
-            </Pressable>
-          ))}
+          {STRATEGIES.map((strat) => {
+            const isSelected = strategy === strat.value;
+            return (
+              <Pressable
+                key={strat.value}
+                onPress={() => handleStrategySelect(strat.value)}
+                className="flex-row items-center p-4 rounded-2xl mb-3"
+                style={{
+                  backgroundColor: isSelected
+                    ? 'rgba(16, 185, 129, 0.15)'
+                    : isDark ? 'rgba(255,255,255,0.05)' : '#FFFFFF',
+                  borderWidth: 1,
+                  borderColor: isSelected
+                    ? 'rgba(16, 185, 129, 0.3)'
+                    : isDark ? colors.border : 'rgba(0, 0, 0, 0.08)',
+                  shadowColor: isDark ? undefined : '#000000',
+                  shadowOffset: isDark ? undefined : { width: 0, height: 1 },
+                  shadowOpacity: isDark ? undefined : 0.04,
+                  shadowRadius: isDark ? undefined : 4,
+                  elevation: isDark ? undefined : 1,
+                }}
+              >
+                <View className="flex-1">
+                  <Text
+                    className="font-semibold mb-1"
+                    style={{ color: isSelected ? '#10B981' : colors.text }}
+                  >
+                    {strat.label}
+                  </Text>
+                  <Text style={{ color: colors.textSecondary }} className="text-sm">{strat.description}</Text>
+                </View>
+                {isSelected && <Check size={20} color="#10B981" />}
+              </Pressable>
+            );
+          })}
         </View>
       </GlassBottomSheet>
     </PageLayout>

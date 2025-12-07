@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronLeft } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useColors } from '@/lib/hooks/use-colors';
+import { useTheme } from '@/context/theme-provider';
 
 interface PageLayoutProps {
   children: React.ReactNode;
@@ -85,15 +86,36 @@ interface GlassCardProps {
 
 export function GlassCard({ children, style }: GlassCardProps) {
   const colors = useColors();
+  const { isDark } = useTheme();
   return (
-    <View style={[styles.glassCard, style]}>
-      <LinearGradient
-        colors={[colors.cardGradientStart, colors.cardGradientEnd]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFill}
+    <View
+      style={[
+        styles.glassCard,
+        {
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: isDark ? 0.3 : 0.06,
+          shadowRadius: isDark ? 4 : 6,
+          elevation: isDark ? 3 : 2,
+          backgroundColor: isDark ? colors.card : '#FFFFFF',
+        },
+        style,
+      ]}
+    >
+      {isDark && (
+        <LinearGradient
+          colors={[colors.cardGradientStart, colors.cardGradientEnd]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+      )}
+      <View
+        style={[
+          styles.glassCardBorder,
+          { borderColor: isDark ? colors.glassBorder : 'rgba(0, 0, 0, 0.08)' },
+        ]}
       />
-      <View style={[styles.glassCardBorder, { borderColor: colors.glassBorder }]} />
       <View style={styles.glassCardContent}>{children}</View>
     </View>
   );

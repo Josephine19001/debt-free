@@ -4,9 +4,11 @@ import { useRouter } from 'expo-router';
 import { toast } from 'sonner-native';
 import { FormPage, FormField, SaveButton } from '@/components/ui/form-page';
 import { supabase } from '@/lib/supabase/client';
+import { useColors } from '@/lib/hooks/use-colors';
 
 export default function FeedbackScreen() {
   const router = useRouter();
+  const colors = useColors();
   const [feedback, setFeedback] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -51,7 +53,7 @@ export default function FeedbackScreen() {
         />
       }
     >
-      <Text className="text-gray-400 text-base -mt-2 mb-2">
+      <Text className="text-base -mt-2 mb-2" style={{ color: colors.textSecondary }}>
         We'd love to hear your thoughts on how we can improve.
       </Text>
 

@@ -50,18 +50,22 @@ function CustomTabBar({ state, navigation }: any) {
         style={{
           shadowColor: '#000000',
           shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: isDark ? 0.3 : 0.15,
-          shadowRadius: isDark ? 8 : 16,
-          elevation: isDark ? 4 : 8,
+          shadowOpacity: isDark ? 0.3 : 0.12,
+          shadowRadius: isDark ? 8 : 12,
+          elevation: isDark ? 4 : 6,
         }}
       >
-        <BlurView intensity={50} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+        <BlurView
+          intensity={isDark ? 50 : 80}
+          tint={isDark ? 'dark' : 'light'}
+          style={StyleSheet.absoluteFill}
+        />
         <View
           className="absolute inset-0 rounded-[30px]"
           style={{
             borderWidth: 1,
-            borderColor: isDark ? colors.border : 'rgba(0, 0, 0, 0.12)',
-            backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.8)',
+            borderColor: isDark ? colors.border : 'rgba(0, 0, 0, 0.08)',
+            backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(248, 250, 252, 0.9)',
           }}
         />
         <View className="flex-1 flex-row items-center justify-around px-5 ">

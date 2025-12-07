@@ -186,16 +186,28 @@ export default function DebtDetailScreen() {
         contentContainerStyle={{ paddingBottom: 120 }}
       >
         {/* Hero Card - Balance & Progress */}
-        <View className="mx-4 mt-2 rounded-2xl overflow-hidden">
-          <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill}>
-            <View
-              style={{
-                ...StyleSheet.absoluteFillObject,
-                backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
-              }}
-            />
-          </BlurView>
-          <View className="absolute inset-0 rounded-2xl" style={{ borderWidth: 1, borderColor: colors.border }} />
+        <View
+          className="mx-4 mt-2 rounded-2xl overflow-hidden"
+          style={{
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: isDark ? 0.3 : 0.06,
+            shadowRadius: isDark ? 4 : 6,
+            elevation: isDark ? 3 : 2,
+            backgroundColor: isDark ? colors.card : '#FFFFFF',
+          }}
+        >
+          {isDark && (
+            <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill}>
+              <View
+                style={{
+                  ...StyleSheet.absoluteFillObject,
+                  backgroundColor: 'rgba(255,255,255,0.05)',
+                }}
+              />
+            </BlurView>
+          )}
+          <View className="absolute inset-0 rounded-2xl" style={{ borderWidth: 1, borderColor: isDark ? colors.border : 'rgba(0, 0, 0, 0.08)' }} />
 
           <View className="p-5">
             {/* Category & Rate */}
@@ -301,16 +313,28 @@ export default function DebtDetailScreen() {
         {payments && payments.length > 0 && (
           <>
             <SectionHeader title="Payment History" />
-            <View className="mx-4 rounded-2xl overflow-hidden">
-              <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill}>
-                <View
-                  style={{
-                    ...StyleSheet.absoluteFillObject,
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
-                  }}
-                />
-              </BlurView>
-              <View className="absolute inset-0 rounded-2xl" style={{ borderWidth: 1, borderColor: colors.border }} />
+            <View
+              className="mx-4 rounded-2xl overflow-hidden"
+              style={{
+                shadowColor: '#000000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: isDark ? 0.3 : 0.06,
+                shadowRadius: isDark ? 4 : 6,
+                elevation: isDark ? 3 : 2,
+                backgroundColor: isDark ? colors.card : '#FFFFFF',
+              }}
+            >
+              {isDark && (
+                <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill}>
+                  <View
+                    style={{
+                      ...StyleSheet.absoluteFillObject,
+                      backgroundColor: 'rgba(255,255,255,0.05)',
+                    }}
+                  />
+                </BlurView>
+              )}
+              <View className="absolute inset-0 rounded-2xl" style={{ borderWidth: 1, borderColor: isDark ? colors.border : 'rgba(0, 0, 0, 0.08)' }} />
 
               {payments.slice(0, 5).map((payment, index) => {
                 const paymentDate = new Date(payment.payment_date);

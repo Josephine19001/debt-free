@@ -4,6 +4,7 @@ import Svg, { Circle } from 'react-native-svg';
 import { Debt, DebtCategory, DEBT_CATEGORY_CONFIG } from '@/lib/types/debt';
 import { useCurrency } from '@/context/currency-provider';
 import { useColors } from '@/lib/hooks/use-colors';
+import { useTheme } from '@/context/theme-provider';
 
 interface CategoryProgressProps {
   debts: Debt[];
@@ -65,6 +66,7 @@ function CircularProgress({
 export function CategoryProgress({ debts, isLoading }: CategoryProgressProps) {
   const { formatCurrency } = useCurrency();
   const colors = useColors();
+  const { isDark } = useTheme();
 
   // Group debts by category and calculate progress
   const categoryData: CategoryData[] = Object.entries(
@@ -105,14 +107,32 @@ export function CategoryProgress({ debts, isLoading }: CategoryProgressProps) {
     <View className="flex-row flex-wrap mx-3">
       {categoryData.map((item) => (
         <View key={item.category} className="w-1/2 p-1">
-          <View className="rounded-2xl overflow-hidden">
-            <LinearGradient
-              colors={[colors.cardGradientStart, colors.cardGradientEnd]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={StyleSheet.absoluteFill}
+          <View
+            className="rounded-2xl overflow-hidden"
+            style={{
+              shadowColor: '#000000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: isDark ? 0.3 : 0.06,
+              shadowRadius: isDark ? 4 : 6,
+              elevation: isDark ? 3 : 2,
+              backgroundColor: isDark ? colors.card : '#FFFFFF',
+            }}
+          >
+            {isDark && (
+              <LinearGradient
+                colors={[colors.cardGradientStart, colors.cardGradientEnd]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={StyleSheet.absoluteFill}
+              />
+            )}
+            <View
+              className="absolute inset-0 rounded-2xl"
+              style={{
+                borderWidth: 1,
+                borderColor: isDark ? colors.border : 'rgba(0, 0, 0, 0.08)',
+              }}
             />
-            <View className="absolute inset-0 rounded-2xl border" style={{ borderColor: colors.border }} />
 
             <View className="p-4 items-center">
               <View className="relative items-center justify-center">

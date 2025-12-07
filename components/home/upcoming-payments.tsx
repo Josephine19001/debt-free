@@ -7,6 +7,7 @@ import { Debt } from '@/lib/types/debt';
 import { useRecordPayment } from '@/lib/hooks/use-debts';
 import { useCurrency } from '@/context/currency-provider';
 import { useColors } from '@/lib/hooks/use-colors';
+import { useTheme } from '@/context/theme-provider';
 
 interface UpcomingPaymentsProps {
   debts: Debt[];
@@ -17,6 +18,7 @@ export function UpcomingPayments({ debts, paidDebtIds = new Set() }: UpcomingPay
   const router = useRouter();
   const { formatCurrency } = useCurrency();
   const colors = useColors();
+  const { isDark } = useTheme();
   const { mutate: recordPayment, isPending } = useRecordPayment();
   const today = new Date();
   const currentDay = today.getDate();
@@ -44,14 +46,32 @@ export function UpcomingPayments({ debts, paidDebtIds = new Set() }: UpcomingPay
   if (upcomingPayments.length === 0) return null;
 
   return (
-    <View className="mx-4 my-2 rounded-2xl overflow-hidden">
-      <LinearGradient
-        colors={[colors.cardGradientStart, colors.cardGradientEnd]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFill}
+    <View
+      className="mx-4 my-2 rounded-2xl overflow-hidden"
+      style={{
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: isDark ? 0.3 : 0.06,
+        shadowRadius: isDark ? 4 : 6,
+        elevation: isDark ? 3 : 2,
+        backgroundColor: isDark ? colors.card : '#FFFFFF',
+      }}
+    >
+      {isDark && (
+        <LinearGradient
+          colors={[colors.cardGradientStart, colors.cardGradientEnd]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+      )}
+      <View
+        className="absolute inset-0 rounded-2xl"
+        style={{
+          borderWidth: 1,
+          borderColor: isDark ? colors.border : 'rgba(0, 0, 0, 0.08)',
+        }}
       />
-      <View className="absolute inset-0 rounded-2xl border" style={{ borderColor: colors.border }} />
 
       <View className="p-4">
         {upcomingPayments.map((debt, index) => {

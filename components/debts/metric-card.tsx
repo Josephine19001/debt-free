@@ -26,11 +26,26 @@ export function MetricCard({
   const { isDark } = useTheme();
 
   return (
-    <View className="flex-1 mx-1 rounded-2xl overflow-hidden min-h-[100px]">
-      <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill}>
-        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }} />
-      </BlurView>
-      <View className="absolute inset-0 rounded-2xl" style={{ borderWidth: 1, borderColor: colors.border }} />
+    <View
+      className="flex-1 mx-1 rounded-2xl overflow-hidden min-h-[100px]"
+      style={{
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: isDark ? 0.3 : 0.06,
+        shadowRadius: isDark ? 4 : 6,
+        elevation: isDark ? 3 : 2,
+        backgroundColor: isDark ? colors.card : '#FFFFFF',
+      }}
+    >
+      {isDark && (
+        <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill}>
+          <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255,255,255,0.05)' }} />
+        </BlurView>
+      )}
+      <View
+        className="absolute inset-0 rounded-2xl"
+        style={{ borderWidth: 1, borderColor: isDark ? colors.border : 'rgba(0, 0, 0, 0.08)' }}
+      />
 
       <View className="p-4">
         <View className={`w-9 h-9 rounded-full ${iconBgColor} items-center justify-center mb-3`}>
@@ -71,11 +86,26 @@ export function LargeMetricCard({
   const { isDark } = useTheme();
 
   return (
-    <View className="mx-4 my-2 rounded-2xl overflow-hidden">
-      <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill}>
-        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }} />
-      </BlurView>
-      <View className="absolute inset-0 rounded-2xl" style={{ borderWidth: 1, borderColor: borderColor || colors.border }} />
+    <View
+      className="mx-4 my-2 rounded-2xl overflow-hidden"
+      style={{
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: isDark ? 0.3 : 0.06,
+        shadowRadius: isDark ? 4 : 6,
+        elevation: isDark ? 3 : 2,
+        backgroundColor: isDark ? colors.card : '#FFFFFF',
+      }}
+    >
+      {isDark && (
+        <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill}>
+          <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255,255,255,0.05)' }} />
+        </BlurView>
+      )}
+      <View
+        className="absolute inset-0 rounded-2xl"
+        style={{ borderWidth: 1, borderColor: borderColor || (isDark ? colors.border : 'rgba(0, 0, 0, 0.08)') }}
+      />
 
       <View className="p-5 flex-row items-center">
         <View className={`w-12 h-12 rounded-full ${iconBgColor} items-center justify-center mr-4`}>
@@ -107,18 +137,33 @@ export function StatRow({ items }: StatRowProps) {
   const { isDark } = useTheme();
 
   return (
-    <View className="mx-4 my-2 rounded-2xl overflow-hidden">
-      <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill}>
-        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }} />
-      </BlurView>
-      <View className="absolute inset-0 rounded-2xl" style={{ borderWidth: 1, borderColor: colors.border }} />
+    <View
+      className="mx-4 my-2 rounded-2xl overflow-hidden"
+      style={{
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: isDark ? 0.3 : 0.06,
+        shadowRadius: isDark ? 4 : 6,
+        elevation: isDark ? 3 : 2,
+        backgroundColor: isDark ? colors.card : '#FFFFFF',
+      }}
+    >
+      {isDark && (
+        <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill}>
+          <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255,255,255,0.05)' }} />
+        </BlurView>
+      )}
+      <View
+        className="absolute inset-0 rounded-2xl"
+        style={{ borderWidth: 1, borderColor: isDark ? colors.border : 'rgba(0, 0, 0, 0.08)' }}
+      />
 
       <View className="p-4 flex-row">
         {items.map((item, index) => (
           <View
             key={index}
             className={`flex-1 ${index > 0 ? 'pl-4' : ''}`}
-            style={index < items.length - 1 ? { borderRightWidth: 1, borderRightColor: colors.borderLight, paddingRight: 16 } : undefined}
+            style={index < items.length - 1 ? { borderRightWidth: 1, borderRightColor: isDark ? colors.borderLight : 'rgba(0, 0, 0, 0.1)', paddingRight: 16 } : undefined}
           >
             <Text style={{ color: colors.textSecondary }} className="text-xs mb-1">{item.label}</Text>
             <Text style={{ color: colors.text }} className="font-bold text-base">

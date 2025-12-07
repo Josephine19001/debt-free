@@ -47,10 +47,22 @@ export function FormField({
       <Text style={{ color: colors.textSecondary }} className="text-sm font-medium ml-1">{label}</Text>
       <View
         className="rounded-2xl overflow-hidden"
-        style={{ height, backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)' }}
+        style={{
+          height,
+          backgroundColor: isDark ? colors.card : '#FFFFFF',
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: isDark ? 0.3 : 0.06,
+          shadowRadius: isDark ? 4 : 6,
+          elevation: isDark ? 3 : 2,
+        }}
       >
-        <BlurView intensity={30} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-        <View className="absolute inset-0 rounded-2xl" style={{ borderWidth: 1, borderColor: colors.border }} />
+        {isDark && (
+          <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill}>
+            <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255,255,255,0.05)' }} />
+          </BlurView>
+        )}
+        <View className="absolute inset-0 rounded-2xl" style={{ borderWidth: 1, borderColor: isDark ? colors.border : 'rgba(0, 0, 0, 0.08)' }} />
         <TextInput
           value={value}
           onChangeText={onChangeText}
@@ -87,9 +99,23 @@ export function ToggleField({
   const { isDark } = useTheme();
 
   return (
-    <View className="rounded-2xl overflow-hidden" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)' }}>
-      <BlurView intensity={30} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-      <View className="absolute inset-0 rounded-2xl" style={{ borderWidth: 1, borderColor: colors.border }} />
+    <View
+      className="rounded-2xl overflow-hidden"
+      style={{
+        backgroundColor: isDark ? colors.card : '#FFFFFF',
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: isDark ? 0.3 : 0.06,
+        shadowRadius: isDark ? 4 : 6,
+        elevation: isDark ? 3 : 2,
+      }}
+    >
+      {isDark && (
+        <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill}>
+          <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255,255,255,0.05)' }} />
+        </BlurView>
+      )}
+      <View className="absolute inset-0 rounded-2xl" style={{ borderWidth: 1, borderColor: isDark ? colors.border : 'rgba(0, 0, 0, 0.08)' }} />
       <View className="flex-row items-center justify-between px-4 py-4">
         <View className="flex-1 mr-4">
           <Text style={{ color: colors.text }} className="text-base">{label}</Text>
