@@ -3,7 +3,7 @@ import { View, Text, Pressable, StyleSheet, Linking, ScrollView, StatusBar } fro
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Bot, MessageCircle, Sparkles, Check } from 'lucide-react-native';
+import { Bot, MessageCircle, Sparkles, Check, TrendingDown, Percent } from 'lucide-react-native';
 import { useRevenueCat } from '@/context/revenuecat-provider';
 import { useColors } from '@/lib/hooks/use-colors';
 import { useTheme } from '@/context/theme-provider';
@@ -24,9 +24,14 @@ const features = [
     description: 'Get personalized advice for your situation',
   },
   {
-    icon: MessageCircle,
-    title: 'Unlimited Conversations',
-    description: 'Ask anything about your debt strategy',
+    icon: TrendingDown,
+    title: 'Extra Payment Calculator',
+    description: 'See how extra payments save you money',
+  },
+  {
+    icon: Percent,
+    title: 'Refinance Simulator',
+    description: 'Find out how much lower rates could save',
   },
   {
     icon: Sparkles,
@@ -114,7 +119,9 @@ export default function PaywallScreen() {
               <Text className="text-2xl font-bold text-center mb-2" style={{ color: colors.text }}>
                 Unlock AI Advisor
               </Text>
-              <Text className="text-center" style={{ color: colors.textSecondary }}>Your personal debt-free coach</Text>
+              <Text className="text-center" style={{ color: colors.textSecondary }}>
+                Your personal debt-free coach
+              </Text>
             </View>
 
             {/* Features */}
@@ -125,7 +132,10 @@ export default function PaywallScreen() {
               />
               <View
                 className="absolute inset-0 rounded-2xl"
-                style={{ borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }}
+                style={{
+                  borderWidth: 1,
+                  borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                }}
               />
               <View className="p-5">
                 {features.map((feature, index) => (
@@ -134,14 +144,25 @@ export default function PaywallScreen() {
                     className={`flex-row items-center ${
                       index < features.length - 1 ? 'pb-4 mb-4' : ''
                     }`}
-                    style={index < features.length - 1 ? { borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' } : {}}
+                    style={
+                      index < features.length - 1
+                        ? {
+                            borderBottomWidth: 1,
+                            borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                          }
+                        : {}
+                    }
                   >
                     <View className="w-12 h-12 rounded-xl bg-emerald-500/15 items-center justify-center mr-4">
                       <feature.icon size={24} color="#10B981" />
                     </View>
                     <View className="flex-1">
-                      <Text className="font-semibold text-base" style={{ color: colors.text }}>{feature.title}</Text>
-                      <Text className="text-sm" style={{ color: colors.textMuted }}>{feature.description}</Text>
+                      <Text className="font-semibold text-base" style={{ color: colors.text }}>
+                        {feature.title}
+                      </Text>
+                      <Text className="text-sm" style={{ color: colors.textMuted }}>
+                        {feature.description}
+                      </Text>
                     </View>
                     <Check size={20} color="#10B981" />
                   </View>
@@ -157,8 +178,12 @@ export default function PaywallScreen() {
                   <LinearGradient
                     colors={
                       selectedPlan === 'yearly'
-                        ? isDark ? ['#0f1f1a', '#0a1512'] : ['#ecfdf5', '#d1fae5']
-                        : isDark ? ['#1a1a1f', '#141418'] : ['#F8FAFC', '#F1F5F9']
+                        ? isDark
+                          ? ['#0f1f1a', '#0a1512']
+                          : ['#ecfdf5', '#d1fae5']
+                        : isDark
+                        ? ['#1a1a1f', '#141418']
+                        : ['#F8FAFC', '#F1F5F9']
                     }
                     style={StyleSheet.absoluteFill}
                   />
@@ -166,7 +191,12 @@ export default function PaywallScreen() {
                     className="absolute inset-0 rounded-2xl"
                     style={{
                       borderWidth: 2,
-                      borderColor: selectedPlan === 'yearly' ? '#10B981' : isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                      borderColor:
+                        selectedPlan === 'yearly'
+                          ? '#10B981'
+                          : isDark
+                          ? 'rgba(255,255,255,0.1)'
+                          : 'rgba(0,0,0,0.1)',
                     }}
                   />
                   {/* Save Badge */}
@@ -183,9 +213,15 @@ export default function PaywallScreen() {
                     >
                       {selectedPlan === 'yearly' && <Check size={12} color="#fff" />}
                     </View>
-                    <Text className="font-bold text-lg mb-1" style={{ color: colors.text }}>Yearly</Text>
-                    <Text className="font-bold text-2xl" style={{ color: colors.text }}>{yearlyPriceString}</Text>
-                    <Text className="text-sm" style={{ color: colors.textMuted }}>{yearlyPerMonthString}/mo</Text>
+                    <Text className="font-bold text-lg mb-1" style={{ color: colors.text }}>
+                      Yearly
+                    </Text>
+                    <Text className="font-bold text-2xl" style={{ color: colors.text }}>
+                      {yearlyPriceString}
+                    </Text>
+                    <Text className="text-sm" style={{ color: colors.textMuted }}>
+                      {yearlyPerMonthString}/mo
+                    </Text>
                   </View>
                 </View>
               </Pressable>
@@ -196,8 +232,12 @@ export default function PaywallScreen() {
                   <LinearGradient
                     colors={
                       selectedPlan === 'monthly'
-                        ? isDark ? ['#0f1f1a', '#0a1512'] : ['#ecfdf5', '#d1fae5']
-                        : isDark ? ['#1a1a1f', '#141418'] : ['#F8FAFC', '#F1F5F9']
+                        ? isDark
+                          ? ['#0f1f1a', '#0a1512']
+                          : ['#ecfdf5', '#d1fae5']
+                        : isDark
+                        ? ['#1a1a1f', '#141418']
+                        : ['#F8FAFC', '#F1F5F9']
                     }
                     style={StyleSheet.absoluteFill}
                   />
@@ -205,7 +245,12 @@ export default function PaywallScreen() {
                     className="absolute inset-0 rounded-2xl"
                     style={{
                       borderWidth: 2,
-                      borderColor: selectedPlan === 'monthly' ? '#10B981' : isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                      borderColor:
+                        selectedPlan === 'monthly'
+                          ? '#10B981'
+                          : isDark
+                          ? 'rgba(255,255,255,0.1)'
+                          : 'rgba(0,0,0,0.1)',
                     }}
                   />
                   <View className="p-4 items-center">
@@ -218,16 +263,22 @@ export default function PaywallScreen() {
                     >
                       {selectedPlan === 'monthly' && <Check size={12} color="#fff" />}
                     </View>
-                    <Text className="font-bold text-lg mb-1" style={{ color: colors.text }}>Monthly</Text>
-                    <Text className="font-bold text-2xl" style={{ color: colors.text }}>{monthlyPriceString}</Text>
-                    <Text className="text-sm" style={{ color: colors.textMuted }}>/month</Text>
+                    <Text className="font-bold text-lg mb-1" style={{ color: colors.text }}>
+                      Monthly
+                    </Text>
+                    <Text className="font-bold text-2xl" style={{ color: colors.text }}>
+                      {monthlyPriceString}
+                    </Text>
+                    <Text className="text-sm" style={{ color: colors.textMuted }}>
+                      /month
+                    </Text>
                   </View>
                 </View>
               </Pressable>
             </View>
 
             {/* Trial Info - Only for Yearly */}
-            {selectedPlan === 'yearly' && (
+            {/* {selectedPlan === 'yearly' && (
               <View
                 className="rounded-xl p-4 mb-6"
                 style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}
@@ -242,7 +293,7 @@ export default function PaywallScreen() {
                   </View>
                 </View>
               </View>
-            )}
+            )} */}
           </View>
         </ScrollView>
 
@@ -280,7 +331,10 @@ export default function PaywallScreen() {
 
           {/* Continue for Free */}
           <Pressable onPress={() => router.replace('/(tabs)/home')} className="mb-4">
-            <Text className="text-center text-base font-medium" style={{ color: colors.textSecondary }}>
+            <Text
+              className="text-center text-base font-medium"
+              style={{ color: colors.textSecondary }}
+            >
               Continue for Free
             </Text>
           </Pressable>
@@ -289,17 +343,25 @@ export default function PaywallScreen() {
           <View className="items-center">
             <View className="flex-row items-center">
               <Pressable onPress={() => Linking.openURL(APP_URLS.terms)}>
-                <Text className="text-xs underline" style={{ color: colors.textMuted }}>Terms</Text>
+                <Text className="text-xs underline" style={{ color: colors.textMuted }}>
+                  Terms
+                </Text>
               </Pressable>
-              <Text className="mx-2" style={{ color: colors.textMuted }}>|</Text>
-              <Pressable
-                onPress={() => Linking.openURL(APP_URLS.privacy)}
-              >
-                <Text className="text-xs underline" style={{ color: colors.textMuted }}>Privacy</Text>
+              <Text className="mx-2" style={{ color: colors.textMuted }}>
+                |
+              </Text>
+              <Pressable onPress={() => Linking.openURL(APP_URLS.privacy)}>
+                <Text className="text-xs underline" style={{ color: colors.textMuted }}>
+                  Privacy
+                </Text>
               </Pressable>
-              <Text className="mx-2" style={{ color: colors.textMuted }}>|</Text>
+              <Text className="mx-2" style={{ color: colors.textMuted }}>
+                |
+              </Text>
               <Pressable onPress={handleRestorePurchases} disabled={isLoading}>
-                <Text className="text-xs underline" style={{ color: colors.textMuted }}>Restore Purchases</Text>
+                <Text className="text-xs underline" style={{ color: colors.textMuted }}>
+                  Restore Purchases
+                </Text>
               </Pressable>
             </View>
           </View>

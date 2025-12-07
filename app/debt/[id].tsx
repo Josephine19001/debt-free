@@ -5,7 +5,12 @@ import { BlurView } from 'expo-blur';
 import { Trash2, Edit3, Calendar, CreditCard, Check } from 'lucide-react-native';
 import { toast } from 'sonner-native';
 import { PageLayout, SectionHeader } from '@/components/layouts';
-import { GlassBottomSheet, GlassBottomSheetRef, BottomSheetTextInput, BottomSheetScrollView } from '@/components/ui/glass-bottom-sheet';
+import {
+  GlassBottomSheet,
+  GlassBottomSheetRef,
+  BottomSheetTextInput,
+  BottomSheetScrollView,
+} from '@/components/ui/glass-bottom-sheet';
 import { useDebt, useDeleteDebt, useRecordPayment, useDebtPayments } from '@/lib/hooks/use-debts';
 import * as Haptics from 'expo-haptics';
 import { showConfirmAlert } from '@/lib/utils/alert';
@@ -30,12 +35,15 @@ import {
   MetricCard,
   StatRow,
 } from '@/components/debts';
+import { PremiumFeatureOverlay } from '@/components/ui/premium-feature-overlay';
+import { useRevenueCat } from '@/context/revenuecat-provider';
 import { MOCK_DATA, MOCK_PAYMENTS, DEMO_MODE } from '@/lib/config/mock-data';
 
 export default function DebtDetailScreen() {
   const { formatCurrency } = useCurrency();
   const colors = useColors();
   const { isDark } = useTheme();
+  const { isSubscribed } = useRevenueCat();
   const params = useLocalSearchParams();
   const id = typeof params.id === 'string' ? params.id : params.id?.[0] ?? '';
   const router = useRouter();
@@ -164,7 +172,14 @@ export default function DebtDetailScreen() {
         className="w-9 h-9 rounded-full overflow-hidden items-center justify-center mr-2"
       >
         <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-        <View className="absolute inset-0 rounded-full" style={{ borderWidth: 1, borderColor: colors.border, backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)' }} />
+        <View
+          className="absolute inset-0 rounded-full"
+          style={{
+            borderWidth: 1,
+            borderColor: colors.border,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
+          }}
+        />
         <Edit3 size={18} color={colors.icon} />
       </Pressable>
       <Pressable
@@ -207,7 +222,10 @@ export default function DebtDetailScreen() {
               />
             </BlurView>
           )}
-          <View className="absolute inset-0 rounded-2xl" style={{ borderWidth: 1, borderColor: isDark ? colors.border : 'rgba(0, 0, 0, 0.08)' }} />
+          <View
+            className="absolute inset-0 rounded-2xl"
+            style={{ borderWidth: 1, borderColor: isDark ? colors.border : 'rgba(0, 0, 0, 0.08)' }}
+          />
 
           <View className="p-5">
             {/* Category & Rate */}
@@ -226,7 +244,9 @@ export default function DebtDetailScreen() {
 
             {/* Balance */}
             <View className="items-center mb-4">
-              <Text style={{ color: colors.textSecondary }} className="text-sm mb-1">Current Balance</Text>
+              <Text style={{ color: colors.textSecondary }} className="text-sm mb-1">
+                Current Balance
+              </Text>
               <Text style={{ color: colors.text }} className="font-bold text-4xl">
                 {formatCurrency(debt.current_balance)}
               </Text>
@@ -238,10 +258,15 @@ export default function DebtDetailScreen() {
             {/* Progress Bar */}
             <View>
               <View className="flex-row justify-between mb-2">
-                <Text style={{ color: colors.textSecondary }} className="text-sm">Progress</Text>
+                <Text style={{ color: colors.textSecondary }} className="text-sm">
+                  Progress
+                </Text>
                 <Text className="text-emerald-400 font-semibold">{progress}%</Text>
               </View>
-              <View className="h-3 rounded-full overflow-hidden" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
+              <View
+                className="h-3 rounded-full overflow-hidden"
+                style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
+              >
                 <View
                   className="h-full rounded-full"
                   style={{
@@ -334,7 +359,13 @@ export default function DebtDetailScreen() {
                   />
                 </BlurView>
               )}
-              <View className="absolute inset-0 rounded-2xl" style={{ borderWidth: 1, borderColor: isDark ? colors.border : 'rgba(0, 0, 0, 0.08)' }} />
+              <View
+                className="absolute inset-0 rounded-2xl"
+                style={{
+                  borderWidth: 1,
+                  borderColor: isDark ? colors.border : 'rgba(0, 0, 0, 0.08)',
+                }}
+              />
 
               {payments.slice(0, 5).map((payment, index) => {
                 const paymentDate = new Date(payment.payment_date);
@@ -348,7 +379,11 @@ export default function DebtDetailScreen() {
                   <View
                     key={payment.id}
                     className="flex-row items-center justify-between p-4"
-                    style={index !== Math.min(payments.length - 1, 4) ? { borderBottomWidth: 1, borderBottomColor: colors.borderLight } : undefined}
+                    style={
+                      index !== Math.min(payments.length - 1, 4)
+                        ? { borderBottomWidth: 1, borderBottomColor: colors.borderLight }
+                        : undefined
+                    }
                   >
                     <View className="flex-row items-center flex-1">
                       <View className="w-10 h-10 rounded-full bg-emerald-500/20 items-center justify-center mr-3">
@@ -358,7 +393,9 @@ export default function DebtDetailScreen() {
                         <Text style={{ color: colors.text }} className="font-medium">
                           {formatCurrency(payment.amount)}
                         </Text>
-                        <Text style={{ color: colors.textMuted }} className="text-xs">{formattedDate}</Text>
+                        <Text style={{ color: colors.textMuted }} className="text-xs">
+                          {formattedDate}
+                        </Text>
                       </View>
                     </View>
                     <View className="items-end">
@@ -389,25 +426,52 @@ export default function DebtDetailScreen() {
         {/* What If Section */}
         <SectionHeader title="What If..." />
 
-        {/* Extra Payment Slider */}
-        <ExtraPaymentSlider
-          debt={debt}
-          extraPayment={extraPayment ?? debt.minimum_payment}
-          onExtraPaymentChange={setExtraPayment}
-        />
+        {isSubscribed ? (
+          <>
+            {/* Extra Payment Slider */}
+            <ExtraPaymentSlider
+              debt={debt}
+              extraPayment={extraPayment ?? debt.minimum_payment}
+              onExtraPaymentChange={setExtraPayment}
+            />
 
-        {/* Refinance Slider */}
-        <RefinanceSlider
-          debt={debt}
-          newRate={newRate ?? debt.interest_rate}
-          onNewRateChange={setNewRate}
-        />
+            {/* Refinance Slider */}
+            <RefinanceSlider
+              debt={debt}
+              newRate={newRate ?? debt.interest_rate}
+              onNewRateChange={setNewRate}
+            />
+          </>
+        ) : (
+          <PremiumFeatureOverlay
+            title="What If Scenarios"
+            description="See how extra payments and refinancing can accelerate your debt payoff"
+          >
+            {/* Extra Payment Slider */}
+            <ExtraPaymentSlider
+              debt={debt}
+              extraPayment={extraPayment ?? debt.minimum_payment}
+              onExtraPaymentChange={setExtraPayment}
+            />
+
+            {/* Refinance Slider */}
+            <RefinanceSlider
+              debt={debt}
+              newRate={newRate ?? debt.interest_rate}
+              onNewRateChange={setNewRate}
+            />
+          </PremiumFeatureOverlay>
+        )}
       </ScrollView>
 
       {/* Record Payment Button */}
       {debt.status !== 'paid_off' && (
         <View className="absolute bottom-0 left-0 right-0 px-4 pb-8 pt-4">
-          <BlurView intensity={80} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+          <BlurView
+            intensity={80}
+            tint={isDark ? 'dark' : 'light'}
+            style={StyleSheet.absoluteFill}
+          />
           <Pressable
             onPress={handleOpenPaymentSheet}
             className="bg-emerald-500 rounded-2xl py-4 flex-row items-center justify-center"
@@ -420,17 +484,32 @@ export default function DebtDetailScreen() {
 
       {/* Payment Bottom Sheet */}
       <GlassBottomSheet ref={paymentSheetRef} snapPoints={['50%', '90%']}>
-        <BottomSheetScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16 }}>
-          <Text style={{ color: colors.text }} className="text-xl font-semibold mb-2">Record Payment</Text>
+        <BottomSheetScrollView
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16 }}
+        >
+          <Text style={{ color: colors.text }} className="text-xl font-semibold mb-2">
+            Record Payment
+          </Text>
           <Text style={{ color: colors.textSecondary }} className="text-sm mb-6">
             Enter the amount you paid towards {debt.name}
           </Text>
 
           {/* Amount Input */}
-          <View className="rounded-2xl p-4 mb-4" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', borderWidth: 1, borderColor: colors.border }}>
-            <Text style={{ color: colors.textSecondary }} className="text-sm mb-2">Payment Amount</Text>
+          <View
+            className="rounded-2xl p-4 mb-4"
+            style={{
+              backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+              borderWidth: 1,
+              borderColor: colors.border,
+            }}
+          >
+            <Text style={{ color: colors.textSecondary }} className="text-sm mb-2">
+              Payment Amount
+            </Text>
             <View className="flex-row items-center">
-              <Text style={{ color: colors.text }} className="text-3xl font-bold mr-1">$</Text>
+              <Text style={{ color: colors.text }} className="text-3xl font-bold mr-1">
+                $
+              </Text>
               <BottomSheetTextInput
                 ref={paymentInputRef}
                 value={paymentAmount}
@@ -451,9 +530,17 @@ export default function DebtDetailScreen() {
               onPress={() => handleQuickPay(debt.minimum_payment)}
               className="flex-1 py-3 rounded-xl"
               style={{
-                backgroundColor: paymentAmount === debt.minimum_payment.toString() ? 'rgba(16, 185, 129, 0.2)' : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'),
+                backgroundColor:
+                  paymentAmount === debt.minimum_payment.toString()
+                    ? 'rgba(16, 185, 129, 0.2)'
+                    : isDark
+                    ? 'rgba(255,255,255,0.05)'
+                    : 'rgba(0,0,0,0.05)',
                 borderWidth: 1,
-                borderColor: paymentAmount === debt.minimum_payment.toString() ? 'rgba(16, 185, 129, 0.5)' : colors.border,
+                borderColor:
+                  paymentAmount === debt.minimum_payment.toString()
+                    ? 'rgba(16, 185, 129, 0.5)'
+                    : colors.border,
               }}
             >
               <Text style={{ color: colors.text }} className="text-center font-medium">
@@ -464,9 +551,17 @@ export default function DebtDetailScreen() {
               onPress={() => handleQuickPay(debt.minimum_payment * 2)}
               className="flex-1 py-3 rounded-xl"
               style={{
-                backgroundColor: paymentAmount === (debt.minimum_payment * 2).toString() ? 'rgba(16, 185, 129, 0.2)' : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'),
+                backgroundColor:
+                  paymentAmount === (debt.minimum_payment * 2).toString()
+                    ? 'rgba(16, 185, 129, 0.2)'
+                    : isDark
+                    ? 'rgba(255,255,255,0.05)'
+                    : 'rgba(0,0,0,0.05)',
                 borderWidth: 1,
-                borderColor: paymentAmount === (debt.minimum_payment * 2).toString() ? 'rgba(16, 185, 129, 0.5)' : colors.border,
+                borderColor:
+                  paymentAmount === (debt.minimum_payment * 2).toString()
+                    ? 'rgba(16, 185, 129, 0.5)'
+                    : colors.border,
               }}
             >
               <Text style={{ color: colors.text }} className="text-center font-medium">
@@ -477,12 +572,22 @@ export default function DebtDetailScreen() {
               onPress={() => handleQuickPay(debt.current_balance)}
               className="flex-1 py-3 rounded-xl"
               style={{
-                backgroundColor: paymentAmount === debt.current_balance.toString() ? 'rgba(16, 185, 129, 0.2)' : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'),
+                backgroundColor:
+                  paymentAmount === debt.current_balance.toString()
+                    ? 'rgba(16, 185, 129, 0.2)'
+                    : isDark
+                    ? 'rgba(255,255,255,0.05)'
+                    : 'rgba(0,0,0,0.05)',
                 borderWidth: 1,
-                borderColor: paymentAmount === debt.current_balance.toString() ? 'rgba(16, 185, 129, 0.5)' : colors.border,
+                borderColor:
+                  paymentAmount === debt.current_balance.toString()
+                    ? 'rgba(16, 185, 129, 0.5)'
+                    : colors.border,
               }}
             >
-              <Text style={{ color: colors.text }} className="text-center font-medium">Full</Text>
+              <Text style={{ color: colors.text }} className="text-center font-medium">
+                Full
+              </Text>
             </Pressable>
           </View>
 
@@ -491,7 +596,14 @@ export default function DebtDetailScreen() {
             onPress={handleRecordPayment}
             disabled={!paymentAmount || parseFloat(paymentAmount) <= 0 || recordPayment.isPending}
             className="rounded-2xl py-4"
-            style={{ backgroundColor: paymentAmount && parseFloat(paymentAmount) > 0 ? '#10B981' : (isDark ? '#374151' : '#D1D5DB') }}
+            style={{
+              backgroundColor:
+                paymentAmount && parseFloat(paymentAmount) > 0
+                  ? '#10B981'
+                  : isDark
+                  ? '#374151'
+                  : '#D1D5DB',
+            }}
           >
             <Text className="text-white font-semibold text-lg text-center">
               {recordPayment.isPending ? 'Recording...' : 'Confirm Payment'}
@@ -504,7 +616,9 @@ export default function DebtDetailScreen() {
       {payments && payments.length > 0 && (
         <GlassBottomSheet ref={historySheetRef} snapPoints={['70%']}>
           <View className="px-5 pt-2 pb-4 flex-1">
-            <Text style={{ color: colors.text }} className="text-xl font-semibold mb-2">Payment History</Text>
+            <Text style={{ color: colors.text }} className="text-xl font-semibold mb-2">
+              Payment History
+            </Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm mb-4">
               {payments.length} payments recorded for {debt.name}
             </Text>
@@ -522,7 +636,11 @@ export default function DebtDetailScreen() {
                   <View
                     key={payment.id}
                     className="flex-row items-center justify-between py-3"
-                    style={index !== payments.length - 1 ? { borderBottomWidth: 1, borderBottomColor: colors.borderLight } : undefined}
+                    style={
+                      index !== payments.length - 1
+                        ? { borderBottomWidth: 1, borderBottomColor: colors.borderLight }
+                        : undefined
+                    }
                   >
                     <View className="flex-row items-center flex-1">
                       <View className="w-10 h-10 rounded-full bg-emerald-500/20 items-center justify-center mr-3">
@@ -532,7 +650,9 @@ export default function DebtDetailScreen() {
                         <Text style={{ color: colors.text }} className="font-medium">
                           {formatCurrency(payment.amount)}
                         </Text>
-                        <Text style={{ color: colors.textMuted }} className="text-xs">{formattedDate}</Text>
+                        <Text style={{ color: colors.textMuted }} className="text-xs">
+                          {formattedDate}
+                        </Text>
                       </View>
                     </View>
                     <View className="items-end">
