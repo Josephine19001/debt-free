@@ -10,12 +10,9 @@ import { useTheme } from '@/context/theme-provider';
 import { APP_URLS } from '@/lib/config/urls';
 import { toast } from 'sonner-native';
 
-// Fallback prices if RevenueCat fails to load
-const FALLBACK_MONTHLY_PRICE = 4.99;
-const FALLBACK_YEARLY_PRICE = 39.99;
 const TRIAL_DAYS = 7;
 
-type PlanType = 'monthly' | 'yearly';
+type PlanType = 'weekly' | 'yearly';
 
 const features = [
   {
@@ -49,24 +46,24 @@ export default function PaywallScreen() {
   const { isDark } = useTheme();
 
   // Get packages from RevenueCat offerings
-  const monthlyPackage = offerings?.current?.monthly;
+  const weeklyPackage = offerings?.current?.weekly;
   const yearlyPackage = offerings?.current?.annual;
 
   // Use RevenueCat formatted price strings (includes currency symbol)
-  const monthlyPriceString = monthlyPackage?.product.priceString ?? `$${FALLBACK_MONTHLY_PRICE}`;
-  const yearlyPriceString = yearlyPackage?.product.priceString ?? `$${FALLBACK_YEARLY_PRICE}`;
-  const yearlyPerMonthString =
-    yearlyPackage?.product.pricePerMonthString ?? `$${(FALLBACK_YEARLY_PRICE / 12).toFixed(2)}`;
+  const weeklyPriceString = weeklyPackage?.product.priceString;
+  const yearlyPriceString = yearlyPackage?.product.priceString;
+  const yearlyPerMonthString = yearlyPackage?.product.pricePerMonthString;
 
   // Numeric prices for calculations
-  const monthlyPrice = monthlyPackage?.product.price ?? FALLBACK_MONTHLY_PRICE;
-  const yearlyPrice = yearlyPackage?.product.price ?? FALLBACK_YEARLY_PRICE;
+  const weeklyPrice = weeklyPackage?.product.price ?? 0;
+  const yearlyPrice = yearlyPackage?.product.price ?? 0;
 
-  const currentPriceString = selectedPlan === 'yearly' ? yearlyPriceString : monthlyPriceString;
-  const savingsPercent = Math.round((1 - yearlyPrice / 12 / monthlyPrice) * 100);
+  // Calculate savings: weekly * 52 weeks vs yearly
+  const weeklyAnnualCost = weeklyPrice * 52;
+  const savingsPercent = weeklyAnnualCost > 0 ? Math.round((1 - yearlyPrice / weeklyAnnualCost) * 100) : 0;
 
   const handleStartTrial = async () => {
-    const packageToPurchase = selectedPlan === 'yearly' ? yearlyPackage : monthlyPackage;
+    const packageToPurchase = selectedPlan === 'yearly' ? yearlyPackage : weeklyPackage;
 
     if (!packageToPurchase) {
       // Fallback if RevenueCat not loaded
@@ -226,12 +223,12 @@ export default function PaywallScreen() {
                 </View>
               </Pressable>
 
-              {/* Monthly Plan */}
-              <Pressable onPress={() => setSelectedPlan('monthly')} className="flex-1 ml-2">
+              {/* Weekly Plan */}
+              <Pressable onPress={() => setSelectedPlan('weekly')} className="flex-1 ml-2">
                 <View className="rounded-2xl overflow-hidden">
                   <LinearGradient
                     colors={
-                      selectedPlan === 'monthly'
+                      selectedPlan === 'weekly'
                         ? isDark
                           ? ['#0f1f1a', '#0a1512']
                           : ['#ecfdf5', '#d1fae5']
@@ -246,7 +243,7 @@ export default function PaywallScreen() {
                     style={{
                       borderWidth: 2,
                       borderColor:
-                        selectedPlan === 'monthly'
+                        selectedPlan === 'weekly'
                           ? '#10B981'
                           : isDark
                           ? 'rgba(255,255,255,0.1)'
@@ -256,21 +253,21 @@ export default function PaywallScreen() {
                   <View className="p-4 items-center">
                     <View
                       className={`w-5 h-5 rounded-full border-2 mb-3 items-center justify-center ${
-                        selectedPlan === 'monthly'
+                        selectedPlan === 'weekly'
                           ? 'border-emerald-500 bg-emerald-500'
                           : 'border-gray-500'
                       }`}
                     >
-                      {selectedPlan === 'monthly' && <Check size={12} color="#fff" />}
+                      {selectedPlan === 'weekly' && <Check size={12} color="#fff" />}
                     </View>
                     <Text className="font-bold text-lg mb-1" style={{ color: colors.text }}>
-                      Monthly
+                      Weekly
                     </Text>
                     <Text className="font-bold text-2xl" style={{ color: colors.text }}>
-                      {monthlyPriceString}
+                      {weeklyPriceString}
                     </Text>
                     <Text className="text-sm" style={{ color: colors.textMuted }}>
-                      /month
+                      /week
                     </Text>
                   </View>
                 </View>
@@ -321,10 +318,10 @@ export default function PaywallScreen() {
               </Text>
               {selectedPlan === 'yearly' ? (
                 <Text className="text-emerald-200 text-sm mt-1">
-                  Then {currentPriceString}/year
+                  Then {yearlyPriceString}/year
                 </Text>
               ) : (
-                <Text className="text-emerald-200 text-sm mt-1">{currentPriceString}/month</Text>
+                <Text className="text-emerald-200 text-sm mt-1">{weeklyPriceString}/week</Text>
               )}
             </View>
           </Pressable>
